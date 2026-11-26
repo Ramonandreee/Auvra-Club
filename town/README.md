@@ -70,13 +70,30 @@ gera um visual completo e **Desfazer** restaura até 24 mudanças de aparência 
 é editado separadamente. Aparências antigas no save e em `auvra_avatar` recebem os campos novos com
 valores padrão.
 
-O corpo usa anéis de vértices conectados entre tronco, membros e cabeça, com pesos de skinning
-interpolados nas articulações. O rosto usa um atlas de Canvas, o cabelo usa cascas e as camadas
-de roupa e acessórios acompanham o mesmo esqueleto. A prévia usa o LOD0. No distrito, a qualidade
-baixa força LOD2 e desativa sombras. A média atualiza as sombras a até 8 Hz. Média e alta escolhem
-LOD0, LOD1 ou LOD2 pela distância da câmera, com margem nos limiares para evitar alternância rápida.
-A malha de cada pessoa usa uma draw call no passe principal. Contatos podem ter uma chamada adicional
-para o marcador.
+O corpo usa malhas com pesos interpolados nas articulações. A cabeça deriva da malha anatômica
+CC0 do MakeHuman. Cabelo, cor da pele, íris, sobrancelhas, barba, vestuário e acessórios são
+montados pelo jogo. Os três níveis de detalhe compartilham o esqueleto. A prévia usa LOD0,
+a qualidade baixa usa LOD2 e as outras alternam pela distância da câmera, com
+histerese na troca. A malha usa uma chamada de desenho no passe principal por pessoa.
+O marcador de contato precisa de uma chamada adicional quando está visível.
+
+Em **Roupa**, **Aplicar visual da fase** sugere uma combinação coerente com a progressão.
+Todas as roupas, de casual a alfaiataria premium, ficam disponíveis desde o início.
+Contatos mantêm identidade visual associada ao nome e à função. Ao abrir uma conversa,
+jogador e contato viram um para o outro e entram em uma animação de diálogo. Táxis e
+outros carros integram o tráfego ambiente. Embarque depende de um sistema de veículos jogáveis.
+
+### Fonte da malha facial
+
+O arquivo [base.obj](https://github.com/makehumancommunity/makehuman/blob/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/3dobjs/base.obj)
+do MakeHuman declara [CC0 1.0 Universal](https://github.com/makehumancommunity/makehuman/blob/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/LICENSE.md#c-the-license-for-the-bundled-assets).
+O script `tools/bake-character-head.py` recorta a cabeça na altura do colarinho e gera
+os dados incorporados de 3.600 e 900 triângulos. Ele pode ser executado com Blender 4.3
+pela raiz do repositório.
+
+```sh
+blender -b -t 2 -P tools/bake-character-head.py -- /caminho/base.obj town/index.html
+```
 
 ## No celular (app instalável)
 
