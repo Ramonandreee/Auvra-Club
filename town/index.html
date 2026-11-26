@@ -1314,6 +1314,8 @@ let LOCAL=null; // save deste aparelho (lido no boot)
 function hasSave(){return !!(LOCAL&&LOCAL.S&&!LOCAL.S.over);}
 function openMenu(page){menuOpen=true;document.getElementById('menu').classList.remove('off');document.getElementById('hud').classList.add('off');document.getElementById('tray').classList.remove('on');if(placing)cancelPlacing();renderMenu(page||'home');}
 function closeMenu(){if(!started)return;menuOpen=false;document.getElementById('menu').classList.add('off');document.getElementById('hud').classList.remove('off');CAM.mode='play';refreshHUD();}
+function netLabel(){return MP.on?'🟢 online · '+Object.keys(MP.online).length+' em Wall Street':MP.configured()&&!mpDone?'⏳ conectando…':'⚪ '+esc(MP.status);}
+let mpDone=false;
 function navBtn(k,e,t,on,cls){return '<button class="nb'+(on?' on':'')+(cls?' '+cls:'')+'" data-p="'+k+'"><span class="e">'+e+'</span><span>'+t+'</span></button>';}
 function renderMenu(page){const m=document.getElementById('menu');CAM.mode=page==='perso'?'avatar':started?'play':'menu';if(page==='perso'){CAM.yaw=0.5;}
   const sv=hasSave()?LOCAL.S:null;
@@ -1323,7 +1325,7 @@ function renderMenu(page){const m=document.getElementById('menu');CAM.mode=page=
     '<button class="nb play" id="mPlay">'+playLabel+'</button>'+((sv||started)?navBtn('new','🌱','Novo jogo',page==='new'):'')+
     navBtn('perso','👤','Personagem',page==='perso')+navBtn('friends','👥','Amigos',page==='friends')+navBtn('stats','📊','Indicadores',page==='stats')+
     navBtn('settings','⚙️','Ajustes',page==='settings')+navBtn('help','❓','Como jogar',page==='help')+
-    '<div class="pcard">'+card+'<br>'+(MP.on?'🟢 online · '+Object.keys(MP.online).length+' em Wall Street':'⚪ '+esc(MP.status))+'</div></div>';
+    '<div class="pcard">'+card+'<br><span id="mNet">'+netLabel()+'</span></div></div>';
   if(page==='home')html+='<div class="hero-title"><b>Wall Street</b><span>Construa seu império a partir da esquina da Wall com a Broad.</span></div>';
   else html+='<div class="page on'+(page==='perso'?' narrow':'')+'" id="mPage">'+pageHTML(page)+'</div>';
   m.innerHTML=html;
@@ -1401,7 +1403,7 @@ async function boot(){
   LOCAL=readLocal();
   if(hasSave())loadGame(LOCAL);else newGame(AVATAR.name||'Visitante'); // o distrito aparece vivo atrás do menu
   rebuildHero();paintMiniBase();
-  mpReady=MP.configured()?MP.start():Promise.resolve();mpReady.then(()=>{if(menuOpen&&!document.getElementById('mPage'))renderMenu('home');});
+  mpReady=MP.configured()?MP.start():Promise.resolve();mpReady.then(()=>{mpDone=true;const el=document.getElementById('mNet');if(el)el.textContent=netLabel();});
   document.getElementById('loading').classList.add('off');openMenu(AVATAR.name?'home':'perso');
   requestAnimationFrame(t=>{last=t;frame(t);});
   window.__townReady=true;
