@@ -1642,43 +1642,72 @@ function buildPerson(L){
   mesh.boundingSphere=new THREE.Sphere(new THREE.Vector3(0,.91,0),1.12);
   mesh.boundingBox=new THREE.Box3(new THREE.Vector3(-.65,-.12,-.62),new THREE.Vector3(.65,1.98,.62));
   const g=new THREE.Group();g.add(mesh);g.scale.setScalar(L.height||1);
-  g.userData={mesh,rig:R,look:L,t:Math.random()*10,stride:0,lastYaw:null};
+  g.userData={mesh,rig:R,look:L,t:Math.random()*10,gaitPhase:0,gaitSpeed:0,lastYaw:null};
   personLOD(g,SETTINGS.quality==='baixa'?2:1);
   return g;
 }
-function animPerson(g,phase,moving,dt,dialog=false){
+// The shoe follows a ground-level stance, then lifts and returns in the swing.
+const THIGH_LENGTH=BONES[BI.thL][3]-BONES[BI.shL][3];
+const SHIN_LENGTH=BONES[BI.shL][3]-BONES[BI.footL][3];
+const ANKLE_HEIGHT=BONES[BI.footL][3]-.013;
+const MAX_LEG_REACH=THIGH_LENGTH+SHIN_LENGTH-.006;
+function gaitFoot(cycle,stance,distance,lift,stride){
+  const swing=cl((cycle-stance)/(1-stance),0,1);
+  const returnProgress=swing*swing*(3-2*swing);
+  const roll=-.25*stride*Math.sin(2*Math.PI*swing);
+  const soleClearance=roll>=0?.145*Math.sin(roll):-.065*Math.sin(roll);
+  return {
+    z:distance*(stance*.5-cycle+returnProgress),
+    y:ANKLE_HEIGHT+lift*Math.sin(Math.PI*swing)**2+soleClearance,
+    roll
+  };
+}
+function poseLeg(rig,side,foot){
+  const drop=rig.hips.position.y+BONES[BI['th'+side]][3]-BONES[BI.hips][3]-foot.y;
+  const a=THIGH_LENGTH,b=SHIN_LENGTH;
+  const reach=cl(Math.hypot(drop,foot.z),Math.abs(a-b)+.001,MAX_LEG_REACH);
+  const thigh=Math.atan2(-foot.z,drop)-Math.acos(cl((a*a+reach*reach-b*b)/(2*a*reach),-1,1));
+  const knee=Math.acos(cl((reach*reach-a*a-b*b)/(2*a*b),-1,1));
+  rig['th'+side].rotation.x=thigh;
+  rig['sh'+side].rotation.x=knee;
+  rig['foot'+side].rotation.x=foot.roll-thigh-knee;
+}
+function animPerson(g,movementSpeed,dt,dialog=false){
   const data=g.userData,R=data.rig,k=1-Math.exp(-dt*10);
   const {acc}=data.look,t=data.t+=dt;
-  const speed=typeof moving==='number'?moving:moving?1.5:0;
-  const run=sstep(2.5,6.2,speed);
-  data.stride+=(sstep(0,1.6,speed)-data.stride)*k;
-  const swing=Math.sin(phase)*data.stride;
+  // World speed is in metres/s. The pose is solved in the avatar's unscaled space.
+  data.gaitSpeed+=(movementSpeed/g.scale.y-data.gaitSpeed)*(1-Math.exp(-dt*14));
+  const speed=data.gaitSpeed,run=sstep(2.5,6.2,speed),stride=sstep(.05,1.45,speed);
+  const cadence=lerp(.75,1.38,sstep(.1,2.5,speed))+run*.72;
+  data.gaitPhase=(data.gaitPhase+dt*cadence*stride)%1;
+  const cycle=data.gaitPhase,phase=cycle*2*Math.PI,swing=Math.sin(phase)*stride;
+  const stance=lerp(.63,.36,run),distance=speed/cadence,lift=(.085+run*.125)*stride;
+  const feet=[gaitFoot(cycle,stance,distance,lift,stride),gaitFoot((cycle+.5)%1,stance,distance,lift,stride)];
   const yaw=g.rotation.y,turn=data.lastYaw===null?0:Math.atan2(Math.sin(yaw-data.lastYaw),Math.cos(yaw-data.lastYaw));
   data.lastYaw=yaw;
   const set=(bone,axis,v)=>{bone.rotation[axis]+=(v-bone.rotation[axis])*k;};
-  const drink=acc==='coffee'&&!speed&&!dialog?sstep(.66,.78,Math.sin(t*.7)):0;
+  const drink=acc==='coffee'&&!movementSpeed&&!dialog?sstep(.66,.78,Math.sin(t*.7)):0;
   const phone=acc==='phone'&&!dialog?1:0;
   const speak=dialog?sstep(.04,.82,Math.sin(t*2.4))*.83:0;
-  const bob=(Math.abs(Math.cos(phase))-.5)*(.034+run*.055)*data.stride;
-  R.hips.position.y+=(.91+bob+Math.sin(t*1.8)*.004-R.hips.position.y)*k;
-  set(R.hips,'z',Math.sin(t*.85)*.028*(1-data.stride));
-  set(R.hips,'y',swing*.10);set(R.spine,'x',run*.20+data.stride*.04);
-  set(R.spine,'z',cl(turn*2,-.20,.20)*data.stride);
-  set(R.chest,'y',-swing*.14);set(R.chest,'x',Math.sin(t*1.8)*.019);
-  set(R.head,'y',Math.sin(t*.49)*.22*(1-data.stride)+phone*.12);
+  const bob=(Math.abs(Math.cos(phase))-.5)*(.025+run*.060)*stride;
+  // Lower the pelvis at long strides so neither boot is pulled off its path.
+  const heightLimit=foot=>foot.y+.01+Math.sqrt(Math.max(.10,MAX_LEG_REACH**2-foot.z**2));
+  R.hips.position.y=Math.min(.895+bob-.050*run, heightLimit(feet[0]),heightLimit(feet[1]));
+  set(R.spine,'x',run*.20+stride*.04);
+  set(R.spine,'z',cl(turn*2,-.20,.20)*stride);
+  set(R.chest,'y',-swing*.16);set(R.chest,'x',Math.sin(t*1.8)*.019);
+  set(R.head,'y',Math.sin(t*.49)*.22*(1-stride)+phone*.12);
   set(R.head,'x',drink*.23-phone*.09+speak*Math.sin(t*6)*.10);
   set(R.jaw,'x',Math.max(phone*.40,speak)*(Math.sin(t*14)*.070+.080));
-  for(const [side,s] of [['L',-1],['R',1]]){
-    const right=s===1, gesture=right?Math.max(phone,drink):speak*.74;
-    set(R['th'+side],'x',s*swing*(.48+run*.37));
-    set(R['sh'+side],'x',Math.max(0,-s*Math.sin(phase+1.1))*data.stride*(.62+run*.57));
-    set(R['foot'+side],'x',s*swing*.24);
+  for(const [i,side] of ['L','R'].entries()){
+    const s=i*2-1,right=s===1,gesture=right?Math.max(phone,drink):speak*.74;
+    poseLeg(R,side,feet[i]);
     set(R['ua'+side],'x',lerp(-s*swing*(.40+run*.29),-.43,gesture));
     set(R['ua'+side],'z',-s*(.08+gesture*.28));
-    set(R['fa'+side],'x',lerp(-.12-data.stride*(.24+run*.46),right?-1.74:-1.28,gesture));
+    set(R['fa'+side],'x',lerp(-.12-stride*(.24+run*.46),right?-1.74:-1.28,gesture));
     set(R['hand'+side],'x',gesture*.18);
     set(R['fingers'+side],'x',right&&acc?-.27:-.08);
-    const eye=R['eye'+side], glance=Math.sin(t*.87)*.004;
+    const eye=R['eye'+side],glance=Math.sin(t*.87)*.004;
     eye.rotation.y=glance*33;eye.rotation.x=Math.sin(t*.53)*.065;
   }
 }
@@ -1872,12 +1901,12 @@ function rebuildPools(){const q=QUAL[SETTINGS.quality];
   if(!SIDEWALKS.length)for(const s of STREETS){if(!s.dirs&&s.kind===T.ROAD)continue;const sides=s.kind===T.PED?[s.a0-1,s.a1+1,(s.a0+s.a1+1)/2-0.5]:[s.a0-1,s.a1+1];
     for(const c of sides){SIDEWALKS.push({axis:s.axis,c:(c+0.5)*TS,from:s.b0*TS+2,to:(s.b1+1)*TS-2});}}
   for(let i=0;i<q.crowd;i++){const mesh=buildPerson(randomLook(r,i%4===0?'tourist':'street'));dynGroup.add(mesh);const L=SIDEWALKS[(r()*SIDEWALKS.length)|0];
-    CROWD.push({mesh,L,s:L.from+r()*(L.to-L.from),dir:r()<.5?1:-1,v:1.1+r()*0.6,lat:(r()-.5)*2.2,ph:r()*6});}
+    CROWD.push({mesh,L,s:L.from+r()*(L.to-L.from),dir:r()<.5?1:-1,v:1.1+r()*0.6,lat:(r()-.5)*2.2});mesh.userData.gaitPhase=r();}
   for(let i=0;i<q.cars;i++){const mesh=buildCar(i%3===2?'black':i%4===3?'car':'taxi');dynGroup.add(mesh);CARS.push({mesh,lane:null,s:0,v:0});}}
 function updateCrowd(dt){for(const c of CROWD){c.s+=c.v*c.dir*dt;if(c.s<c.L.from||c.s>c.L.to){c.dir*=-1;c.s=cl(c.s,c.L.from,c.L.to);}
     const x=c.L.axis==='v'?c.L.c+c.lat:c.s,z=c.L.axis==='v'?c.s:c.L.c+c.lat;c.mesh.position.set(x,0,z);const heading=c.L.axis==='v'?(c.dir>0?0:Math.PI):(c.dir>0?Math.PI/2:-Math.PI/2);
     c.mesh.rotation.y=turnToward(c.mesh.rotation.y,heading,dt);
-    c.ph+=dt*c.v*5.2;animPerson(c.mesh,c.ph,c.v,dt);}}
+    animPerson(c.mesh,c.v,dt);}}
 let poolT=0;
 function updateNPCs(dt){poolT-=dt;const tx=hero?hero.x:WORLD.cxA*TILE,ty=hero?hero.y:WORLD.cyA*TILE;
   if(poolT<=0){poolT=0.35;const want=workers.map(w=>({w,d:Math.hypot(w.x-tx,w.y-ty)-(w.contact?4000:0)})).sort((a,b)=>a.d-b.d).slice(0,NPC_POOL.length).map(o=>o.w);const ws=new Set(want);
@@ -1893,7 +1922,7 @@ function updateNPCs(dt){poolT-=dt;const tx=hero?hero.x:WORLD.cxA*TILE,ty=hero?he
     }
     p.mesh.rotation.y=turnToward(p.mesh.rotation.y,w.heading||0,dt);
     const speed=w.moving&&!chatting?M(w.spd):0;
-    w.ph+=dt*speed*4;animPerson(p.mesh,w.ph,speed,dt,chatting);if(p.icon&&p.icon.visible)p.icon.position.set(x,2.35+Math.sin(performance.now()*0.003+w.ph)*0.08,z);}}
+    animPerson(p.mesh,speed,dt,chatting);if(p.icon&&p.icon.visible)p.icon.position.set(x,2.35+Math.sin(p.mesh.userData.t*3)*0.08,z);}}
 
 /* ============================ CÉU + DIA/NOITE ============================ */
 function buildSky(){skyMat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,fog:false,
@@ -1964,7 +1993,7 @@ function drawPreview(dt){
   previewCamera.position.set(0,target+(face?.012:.12),dist);
   previewCamera.lookAt(0,target,0);
   preview.rotation.y=previewAngle;
-  if(!reduceMotion.matches)animPerson(preview,0,0,dt);
+  if(!reduceMotion.matches)animPerson(preview,0,dt);
   renderer.setViewport(0,0,innerWidth,innerHeight);
   renderer.setClearColor(0x080c12);renderer.clear();
   renderer.setViewport(r.left+1,innerHeight-r.bottom+1,r.width-2,r.height-2);
@@ -2009,7 +2038,7 @@ function updateCamera(dt){let tx,ty,tz,dist,pitch;
 /* ============================ MOVIMENTO / INTERAÇÃO ============================ */
 let hero=null; // posição em px lógicos (x, y=z) — mesma unidade do save
 let joy={x:0,y:0,id:null}, keys={}, dragCam=false;
-function makeHero(x,y){hero={x,y,tx:x,ty:y,moving:false,heading:Math.PI,onArrive:null,auto:false,stuck:0,ph:0};if(heroMesh){heroMesh.position.set(M(x),0,M(y));}}
+function makeHero(x,y){hero={x,y,tx:x,ty:y,moving:false,heading:Math.PI,onArrive:null,auto:false,stuck:0};if(heroMesh){heroMesh.position.set(M(x),0,M(y));}}
 function goTo(x,y,cb){if(!hero)return cb&&cb();if(Math.hypot(hero.x-x,hero.y-y)<30){hero.auto=false;return cb&&cb();}hero.tx=x;hero.ty=y;hero.onArrive=cb||null;hero.auto=true;hero.stuck=0;}
 function updateHero(dt){if(!hero||!heroMesh)return;let vx=0,vz=0,spd=0;const canMove=started&&!menuOpen&&!modalOpen();
   let ix=joy.x+((keys.d||keys.arrowright)?1:0)-((keys.a||keys.arrowleft)?1:0),iy=joy.y+((keys.s||keys.arrowdown)?1:0)-((keys.w||keys.arrowup)?1:0);
@@ -2020,14 +2049,27 @@ function updateHero(dt){if(!hero||!heroMesh)return;let vx=0,vz=0,spd=0;const can
     if(!dragCam){const want=Math.atan2(-vx,-vz);let dy=((want-CAM.yaw+Math.PI*3)%(Math.PI*2))-Math.PI;if(Math.abs(dy)<2.6)CAM.yaw+=dy*Math.min(1,dt*0.9*mag);}}
   else if(canMove&&hero.auto){const dx=M(hero.tx-hero.x),dz=M(hero.ty-hero.y),d=Math.hypot(dx,dz);
     if(d<0.35){hero.auto=false;const cb=hero.onArrive;hero.onArrive=null;if(cb)cb();}else{vx=dx/d;vz=dz/d;spd=5.2;}}
-  hero.moving=spd>0;
-  if(spd>0){const step=PX(spd*dt);const nx=hero.x+vx*step,ny=hero.y+vz*step;let moved=false;
-    if(walkable(nx,ny)){hero.x=nx;hero.y=ny;moved=true;}else if(walkable(nx,hero.y)){hero.x=nx;moved=true;}else if(walkable(hero.x,ny)){hero.y=ny;moved=true;}
-    if(!moved&&hero.auto){hero.stuck+=dt;if(hero.stuck>0.7){hero.auto=false;const cb=hero.onArrive;hero.onArrive=null;if(cb&&interactTarget)cb();}}
+  let travelled=0;
+  if(spd>0){
+    const x=hero.x,y=hero.y,step=PX(spd*dt),nx=x+vx*step,ny=y+vz*step;
+    if(walkable(nx,ny)){hero.x=nx;hero.y=ny;}
+    else if(nx!==x&&walkable(nx,y))hero.x=nx;
+    else if(ny!==y&&walkable(x,ny))hero.y=ny;
     hero.x=cl(hero.x,0,MAPW*TILE-1);hero.y=cl(hero.y,0,MAPH*TILE-1);
-    const want=Math.atan2(vx,vz);let dh=((want-hero.heading+Math.PI*3)%(Math.PI*2))-Math.PI;hero.heading+=dh*Math.min(1,dt*12);hero.ph+=dt*spd*2.3;}
+    const dx=hero.x-x,dz=hero.y-y;
+    travelled=M(Math.hypot(dx,dz));
+    if(travelled){
+      hero.stuck=0;
+      hero.heading=turnToward(hero.heading,Math.atan2(dx,dz),dt);
+    }else if(hero.auto){
+      hero.stuck+=dt;
+      if(hero.stuck>.7){hero.auto=false;const cb=hero.onArrive;hero.onArrive=null;if(cb&&interactTarget)cb();}
+    }
+  }
+  hero.moving=travelled>0;
   if(talkingTo)hero.heading=turnToward(hero.heading,Math.atan2(talkingTo.x-hero.x,talkingTo.y-hero.y),dt);
-  heroMesh.position.set(M(hero.x),0,M(hero.y));heroMesh.rotation.y=hero.heading;animPerson(heroMesh,hero.ph,spd,dt,!!talkingTo);
+  heroMesh.position.set(M(hero.x),0,M(hero.y));heroMesh.rotation.y=hero.heading;
+  animPerson(heroMesh,dt>0?travelled/dt:0,dt,!!talkingTo);
   heroRing.position.set(heroMesh.position.x,0.06,heroMesh.position.z);heroRing.visible=started&&!menuOpen;}
 function updateWorkers(dt){for(const w of workers){if(w===talkingTo)continue;const dx=w.tx-w.x,dy=w.ty-w.y,d=Math.hypot(dx,dy);
   if(d<3){w.moving=false;if(w.pause>0){w.pause-=dt;}else if(Math.random()<0.03){pickTarget(w);w.pause=0.4+Math.random()*2.6;}}
