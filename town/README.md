@@ -53,11 +53,47 @@ menu ou painel aberto.
 
 ## Menu principal
 
-▶ Jogar / Continuar · 🌱 Novo jogo · 👤 **Personagem** (nome, pele, cabelo, roupa, calça, silhueta,
-altura — com prévia 3D) · 👥 **Amigos** (online, ranking, chat, ofertas) · 📊 **Indicadores**
-(patrimônio, caixa, dívida, lucro/dia, ranking, gráfico do patrimônio, tabela das empresas) ·
-⚙️ **Ajustes** (qualidade gráfica baixa/média/alta, sensibilidade, inverter câmera, ciclo dia/noite,
-trânsito, tela cheia, instalar app, salvar) · ❓ **Como jogar**. O distrito fica vivo atrás do menu.
+**Jogar / Continuar**, **Novo jogo**, **Personagem**, **Amigos**, **Indicadores**, **Ajustes** e
+**Como jogar**. Indicadores reúne patrimônio, caixa, dívida, lucro por dia, ranking e a tabela das empresas.
+Ajustes reúne qualidade gráfica, câmera, ciclo dia/noite, trânsito, tela cheia, instalação e save.
+
+## Interface e personagens
+
+O HUD, a barra de ferramentas, o menu e os modais usam superfícies azul-carvão, texto claro e
+dourado para ações e foco. O CSS concentra a grade de 8 px, os raios, a elevação, a tipografia e as
+transições de 140 ms. Os controles principais têm área de toque de pelo menos 44 px e respeitam as
+safe areas. A preferência por movimento reduzido desativa as animações da interface.
+
+Em **Personagem**, as abas **Corpo**, **Rosto**, **Cabelo**, **Roupa** e **Acessórios** editam a aparência
+ao lado da prévia 3D. Arraste a prévia para girar e use **Aproximar** para enquadrar o rosto. **Aleatório**
+gera um visual completo e **Desfazer** restaura até 24 mudanças de aparência da sessão. O nome
+é editado separadamente. Aparências antigas no save e em `auvra_avatar` recebem os campos novos com
+valores padrão.
+
+O corpo usa malhas com pesos interpolados nas articulações. A cabeça deriva da malha anatômica
+CC0 do MakeHuman. Cabelo, cor da pele, íris, sobrancelhas, barba, vestuário e acessórios são
+montados pelo jogo. Os três níveis de detalhe compartilham o esqueleto. A prévia usa LOD0,
+a qualidade baixa usa LOD2 e as outras alternam pela distância da câmera, com
+histerese na troca. A malha usa uma chamada de desenho no passe principal por pessoa.
+O marcador de contato precisa de uma chamada adicional quando está visível.
+
+Em **Roupa**, **Aplicar visual da fase** sugere uma combinação coerente com a progressão.
+Todas as roupas, de casual a alfaiataria premium, ficam disponíveis desde o início.
+Contatos mantêm identidade visual associada ao nome e à função. Ao abrir uma conversa,
+jogador e contato viram um para o outro e entram em uma animação de diálogo. Táxis e
+outros carros integram o tráfego ambiente. Embarque depende de um sistema de veículos jogáveis.
+
+### Fonte da malha facial
+
+O arquivo [base.obj](https://github.com/makehumancommunity/makehuman/blob/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/3dobjs/base.obj)
+do MakeHuman declara [CC0 1.0 Universal](https://github.com/makehumancommunity/makehuman/blob/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/LICENSE.md#c-the-license-for-the-bundled-assets).
+O script `tools/bake-character-head.py` recorta a cabeça na altura do colarinho e gera
+os dados incorporados de 3.600 e 900 triângulos. Ele pode ser executado com Blender 4.3
+pela raiz do repositório.
+
+```sh
+blender -b -t 2 -P tools/bake-character-head.py -- /caminho/base.obj town/index.html
+```
 
 ## No celular (app instalável)
 
@@ -103,5 +139,8 @@ o plano grátis do Supabase **pausa o projeto após 1 semana sem uso** (reative 
 - O bloco de economia fica entre os marcadores `/*@ECON-BEGIN*/` e `/*@ECON-END*/` — mantenha-os.
 - 3D/UI: smoke test com Playwright em celular emulado na horizontal (carrega, menu, personagem,
   freela, construir, painéis, 4×, recarregar/continuar, aviso de girar o celular) — no scratchpad.
-- Desempenho: ~200 draw calls na qualidade média (cidade estática fundida por material; pessoas e
-  carros com 1 material de cores por vértice). Saves do mapa 2D antigo são re-assentados em Wall St.
+- Para medir o passe principal, consulte `window.__game.STATS()` depois de entrar no distrito.
+  Os campos `calls` e `triangles` vêm de `renderer.info.render`. O Three.js reinicia esses
+  contadores após o passe de sombras. Em média, o orçamento é 250 chamadas e 400 mil triângulos,
+  com pools de 26 NPCs e 18 pedestres de multidão. A meta de 30 FPS exige teste em aparelho físico.
+- Saves do mapa 2D antigo são re-assentados em Wall St.
