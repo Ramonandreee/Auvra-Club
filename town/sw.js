@@ -2,7 +2,7 @@
 // HTML: rede primeiro (atualização chega na hora), cache como reserva offline.
 // Bibliotecas de CDN (versão fixada, incl. módulos three/addons) e ícones: cache primeiro.
 // Chamadas ao Supabase (API/realtime) nunca passam pelo cache.
-const CACHE = 'auvra-town-v4'; // v4: malhas de personagens e editor
+const CACHE = 'auvra-town-v5'; // v5: animação de caminhada e corrida
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 const CDN = [
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js',

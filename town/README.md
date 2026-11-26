@@ -77,6 +77,10 @@ a qualidade baixa usa LOD2 e as outras alternam pela distância da câmera, com
 histerese na troca. A malha usa uma chamada de desenho no passe principal por pessoa.
 O marcador de contato precisa de uma chamada adicional quando está visível.
 
+Na caminhada e na corrida, joelhos e tornozelos acompanham uma trajetória de apoio e
+retorno. A passada do protagonista usa o deslocamento realizado no mundo, incluindo
+quando ele desliza ao longo de uma parede ou para diante de um obstáculo.
+
 Em **Roupa**, **Aplicar visual da fase** sugere uma combinação coerente com a progressão.
 Todas as roupas, de casual a alfaiataria premium, ficam disponíveis desde o início.
 Contatos mantêm identidade visual associada ao nome e à função. Ao abrir uma conversa,
