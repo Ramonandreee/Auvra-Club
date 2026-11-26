@@ -6,7 +6,7 @@
 import * as T from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
 import {headShape,torsoShape,limbShape} from './character-shapes.mjs';
 const scene=new T.Scene();scene.background=new T.Color(0x252831);
-const camera=new T.PerspectiveCamera(35,innerWidth/innerHeight,.01,30);camera.position.set(0,1.15,3.6);camera.lookAt(0,.95,0);
+const camera=new T.PerspectiveCamera(35,innerWidth/innerHeight,.01,30);function frameCamera(){const distance=Math.max(3.6,3.6/(camera.aspect||1));camera.position.set(0,1.15,distance);camera.lookAt(0,.95,0)}frameCamera();
 const renderer=new T.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.toneMapping=T.ACESFilmicToneMapping;document.body.append(renderer.domElement);
 scene.add(new T.HemisphereLight(0xe9efff,0x625043,2));const light=new T.DirectionalLight(0xffecd6,3);light.position.set(3,5,4);scene.add(light);const rim=new T.DirectionalLight(0xaacaff,2);rim.position.set(-3,2,-3);scene.add(rim);
 const root=new T.Group();scene.add(root);const floor=new T.Mesh(new T.CircleGeometry(1.2,48),new T.MeshStandardMaterial({color:0x44464b}));floor.rotation.x=-Math.PI/2;scene.add(floor);
@@ -22,11 +22,12 @@ for(const s of [-1,1]){sphere(skin,s*.09,1.656,0,.014,.025,.016);sphere(0xe8e4de
 sphere(0x935c50,0,1.61,.079,.026,.006,.008);
 add(new T.SphereGeometry(1,24,14,0,Math.PI*2,0,Math.PI*.48),hair,0,1.69,-.01,.099,.095,.102);
 sphere(hair,0,1.68,-.055,.087,.081,.052);
+if(b===\x27B\x27){sphere(hair,0,1.60,-.075,.092,.13,.052);sphere(hair,0,1.73,-.105,.045,.043,.043)}
 sphere(pants,0,.99,0,.15,.11,.095);
 for(const s of [-1,1]){const x=s*.21;add(limbShape(T,'upperArm'),cloth,x,1.15,0);add(limbShape(T,'forearm'),suit?cloth:skin,x,.89,0);sphere(skin,x,.84,.006,.027,.053,.022);add(limbShape(T,'thigh'),pants,s*.095,.49,0);add(limbShape(T,'shin'),pants,s*.095,.07,0);sphere(0x15171b,s*.095,.04,.045,.048,.04,.11)}
-if(suit){box(0xece9e2,0,1.34,.106,.087,.24,.015);box(0x6b2430,0,1.34,.119,.025,.23,.009);for(const s of [-1,1]){const m=box(0x151e2b,s*.057,1.35,.112,.042,.23,.012);m.rotation.z=s*.24}}
+if(suit){for(const s of [-1,1]){box(0xece9e2,s*.21,.91,0,.075,.024,.065);box(0x121820,s*.075,1.19,.098,.065,.008,.012)}box(0xece9e2,0,1.34,.106,.087,.24,.015);box(0x6b2430,0,1.34,.119,.025,.23,.009);for(const s of [-1,1]){const m=box(0x151e2b,s*.057,1.35,.112,.042,.23,.012);m.rotation.z=s*.24}}
 document.querySelector('#status').textContent=root.children.reduce((n,m)=>n+(m.geometry.index?m.geometry.index.count:m.geometry.attributes.position.count)/3,0).toLocaleString('pt-BR')+' triângulos';}
 for(const el of document.querySelectorAll('select'))el.addEventListener('change',rebuild);rebuild();
 let drag=false,last=0;renderer.domElement.addEventListener('pointerdown',e=>{drag=true;last=e.clientX;renderer.domElement.setPointerCapture(e.pointerId)});renderer.domElement.addEventListener('pointermove',e=>{if(drag){root.rotation.y+=(e.clientX-last)*.012;last=e.clientX}});for(const ev of ['pointerup','pointercancel'])renderer.domElement.addEventListener(ev,()=>drag=false);
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});renderer.setAnimationLoop(()=>renderer.render(scene,camera));
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();frameCamera();renderer.setSize(innerWidth,innerHeight)});renderer.setAnimationLoop(()=>renderer.render(scene,camera));
 </script></html>
