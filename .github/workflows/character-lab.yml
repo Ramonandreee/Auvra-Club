@@ -1,0 +1,22 @@
+name: Character Lab
+on:
+  push:
+    branches: ['feature/character-art-v3']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  geometry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check experiments/character-art/character-shapes.mjs
+      - run: node experiments/character-art/test-shapes.mjs
+      - name: Check viewer module syntax
+        run: |
+          python3 -c 'import re,pathlib; s=pathlib.Path("experiments/character-art/index.html").read_text(); pathlib.Path("/tmp/character-viewer.mjs").write_text(re.search(r"<script type=\"module\">(.*?)</script>",s,re.S).group(1))'
+          node --check /tmp/character-viewer.mjs
