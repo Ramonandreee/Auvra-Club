@@ -2,6 +2,7 @@
 // Each ring: [y, halfWidth, halfDepth, centerZ]. Bottom to top.
 export function loft(THREE, rings, segments = 16) {
   if (rings.length < 2 || !Number.isInteger(segments) || segments < 3) throw new Error('Invalid loft');
+  if(rings.some((r,i)=>r.length<3 || !r.every(Number.isFinite) || r[1]<=0 || r[2]<=0 || (i>0 && r[0]<=rings[i-1][0]))) throw new Error('Invalid ring profile');
   const positions=[], uv=[], indices=[];
   for(let j=0;j<rings.length;j++){
     const [y,w,d,z=0]=rings[j];
@@ -32,7 +33,11 @@ export function loft(THREE, rings, segments = 16) {
   const g=new THREE.BufferGeometry();
   g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
   g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
-  g.setIndex(indices);g.computeVertexNormals();return g;
+  g.setIndex(indices);g.computeVertexNormals();
+  // Average duplicated seam normals for smooth lighting around the circumference.
+  const normal=g.attributes.normal;
+  for(let j=0;j<rings.length;j++){const a=j*stride,b=a+segments;const v=new THREE.Vector3(normal.getX(a)+normal.getX(b),normal.getY(a)+normal.getY(b),normal.getZ(a)+normal.getZ(b)).normalize();normal.setXYZ(a,v.x,v.y,v.z);normal.setXYZ(b,v.x,v.y,v.z);}
+  normal.needsUpdate=true;g.computeBoundingSphere();return g;
 }
 export function headShape(THREE, build='A', segments=24){
   const k=build==='B'?.94:1;
