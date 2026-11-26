@@ -1,11 +1,15 @@
-# Glossário — Project ATLAS / MOGUL
+# Glossário — Auvra Club (Project ATLAS)
 
 > Termos canônicos da bíblia de pré-produção. Mantém a consistência entre documentos.
 
 ## Projeto & Mundo
 | Termo | Definição |
 |-------|-----------|
-| **MOGUL** | Título do jogo. *A Business Empire Life Simulator.* |
+| **Auvra Club** | Título oficial do jogo. Subtítulo: *Construa seu império em Meridian.* Slogan: *"Você não administra um império. Você vive um."* |
+| **Meridian** | O mundo/cidade onde o jogo acontece (Meridian City). |
+| **Project ATLAS** | Codinome interno de produção (só em documentação de equipe). |
+| **MOGUL** *(aposentado)* | Título de trabalho antigo. Permanece apenas como identificador técnico do módulo C++ em `ue5/` (renomear exigiria migrar o projeto Unreal). |
+| **Business Simulator** *(aposentado)* | Nome provisório dos protótipos; abandonado por conflito com um jogo homônimo na Steam. |
 | **Project ATLAS** | Codinome interno de produção. |
 | **Meridian City** | A metrópole global fictícia onde o jogo se passa. Ver [04-World](04-WORLD-DESIGN.md). |
 | **Sterling Heights** | Distrito Financeiro. |
@@ -79,7 +83,7 @@
 | **Gate** | Ponto de decisão go/no-go entre fases de produção. |
 | **Strike Team** | Time multidisciplinar por domínio (World, Economy, Agents, etc.). |
 | **Live Ops** | Operação contínua do jogo como serviço pós-lançamento. |
-| **MOGUL+** | Assinatura opcional. Ver [12](12-BUSINESS-PLAN.md) §2. |
+| **Auvra+** | Assinatura opcional. Ver [12](12-BUSINESS-PLAN.md) §2. |
 | **LTV / ARPU / CAC** | Lifetime Value / Average Revenue Per User / Customer Acquisition Cost. |
 | **P2W** | Pay-to-Win — explicitamente **proibido** no design de monetização. |
 | **Unit economics de IA** | Custo marginal de inferência por jogador; KPI de margem crítico. Ver [12](12-BUSINESS-PLAN.md) §3.4. |

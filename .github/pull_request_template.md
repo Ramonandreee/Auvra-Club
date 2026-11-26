@@ -1,4 +1,4 @@
-<!-- MOGUL / Project ATLAS — template de Pull Request -->
+<!-- Auvra Club / Project ATLAS — template de Pull Request -->
 
 ## O que muda
 <!-- Resumo objetivo da mudança. -->

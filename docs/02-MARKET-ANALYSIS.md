@@ -1,13 +1,13 @@
 # 02 — Market, Audience & Competition
 
-> *Project ATLAS / MOGUL — Bíblia de Pré-Produção*
+> *Auvra Club (codinome Project ATLAS) — Bíblia de Pré-Produção*
 > Documento 02 de 12 · Confidencial
 
 ---
 
 ## 1. Tese de Mercado
 
-> **Existe uma demanda massiva e comprovada por (a) simulação de vida e (b) fantasia de empreendedorismo/poder, mas nenhum produto AAA jamais uniu as duas com imersão de mundo aberto. MOGUL ocupa um espaço em branco de alto valor entre *The Sims* e a Paradox.**
+> **Existe uma demanda massiva e comprovada por (a) simulação de vida e (b) fantasia de empreendedorismo/poder, mas nenhum produto AAA jamais uniu as duas com imersão de mundo aberto. Auvra Club ocupa um espaço em branco de alto valor entre *The Sims* e a Paradox.**
 
 A oportunidade nasce de uma convergência cultural e tecnológica:
 
@@ -40,10 +40,10 @@ A oportunidade nasce de uma convergência cultural e tecnológica:
 - **Risco de churn:** se a curva inicial (sobrevivência) for punitiva/lenta demais.
 
 ### 2.2 Persona secundária — "O Criador de Conteúdo"
-Streamers e criadores de YouTube/TikTok são um **canal de marketing e um segmento de design**. MOGUL é projetado para gerar histórias emergentes ("clipáveis"): a aquisição hostil que deu errado, o funcionário que virou rival, a falência dramática. Ferramentas de captura/replay e legibilidade de eventos são requisitos de design (ver [09-UX-UI](09-UX-UI.md)).
+Streamers e criadores de YouTube/TikTok são um **canal de marketing e um segmento de design**. Auvra Club é projetado para gerar histórias emergentes ("clipáveis"): a aquisição hostil que deu errado, o funcionário que virou rival, a falência dramática. Ferramentas de captura/replay e legibilidade de eventos são requisitos de design (ver [09-UX-UI](09-UX-UI.md)).
 
 ### 2.3 Matriz Bartle / motivações atendidas
-| Tipo | Como MOGUL atende |
+| Tipo | Como Auvra Club atende |
 |------|-------------------|
 | **Achiever** | Conglomerados, net worth, rankings, conquistas visíveis, dominação de mercado |
 | **Explorer** | Mundo aberto denso, descoberta de NPCs/oportunidades, profundidade de sistemas econômicos |
@@ -74,7 +74,7 @@ Streamers e criadores de YouTube/TikTok são um **canal de marketing e um segmen
 ```
             ALTA PROFUNDIDADE DE NEGÓCIOS
                         ^
-   Capitalism Lab •     |      ★ MOGUL (espaço-alvo)
+   Capitalism Lab •     |      ★ Auvra Club (espaço-alvo)
    Paradox (EU/Vic) •   |
    Software Inc. •      |
    The Founder •        |
@@ -85,7 +85,7 @@ Streamers e criadores de YouTube/TikTok são um **canal de marketing e um segmen
             BAIXA PROFUNDIDADE DE NEGÓCIOS
 ```
 
-O quadrante superior-direito (**alta profundidade de negócios + alta imersão de mundo aberto**) está **vazio**. É o território de MOGUL.
+O quadrante superior-direito (**alta profundidade de negócios + alta imersão de mundo aberto**) está **vazio**. É o território de Auvra Club.
 
 ### 4.2 Concorrentes diretos e adjacentes
 
@@ -99,7 +99,7 @@ O quadrante superior-direito (**alta profundidade de negócios + alta imersão d
 | **BitLife** | Life sim acessível, viral | Texto puro, sem imersão, raso |
 | **Mobile tycoons / idle** | Monetização, alcance | Predatórios, rasos, sem fantasia de "ser uma pessoa" |
 
-### 4.3 Análise SWOT (MOGUL)
+### 4.3 Análise SWOT (Auvra Club)
 
 **Strengths**
 - Categoria nova sem incumbente AAA (vantagem de pioneirismo).
@@ -138,7 +138,7 @@ Qualquer concorrente pode copiar **um** desses. O **moat** está na **integraç�
 - **One-liner de marketing:** *"Live the empire."* / *"De um quarto apertado a um império global."*
 - **Categoria reivindicada:** "The AAA Life-Business Sim."
 - **Âncora de comparação para o público:** *"É o GTA dos negócios"* / *"The Sims para quem quer poder de verdade."*
-- **Prova social-alvo:** queremos que a comunidade compartilhe histórias emergentes ("MOGUL stories") como prova viva do diferencial.
+- **Prova social-alvo:** queremos que a comunidade compartilhe histórias emergentes ("Auvra stories") como prova viva do diferencial.
 
 ## 7. Riscos de mercado e mitigação (resumo)
 | Risco de mercado | Mitigação |

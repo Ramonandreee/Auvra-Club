@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Auvra Club</title>
+<meta name="description" content="Auvra Club — construa um império em Meridian. Jogue no navegador, com amigos.">
+<meta name="theme-color" content="#1a140e">
+<style>
+  :root{--bg:#1a140e;--wood:#4a3524;--wood2:#3a2919;--edge:#241810;--hi:#6a4d33;--cream:#f2e4c8;--dim:#c9b48c;--gold:#e8c060;--green:#8fd07a}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(ellipse at top,#2a2014,var(--bg) 70%);color:var(--cream);font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif;min-height:100vh;padding:40px 16px 56px}
+  main{max-width:880px;margin:0 auto}
+  h1{color:var(--gold);font-size:clamp(30px,6vw,48px);letter-spacing:.5px}
+  .tag{color:var(--dim);font-size:15px;margin:6px 0 28px;line-height:1.45;max-width:620px}
+  .hero{display:block;text-decoration:none;color:inherit;background:linear-gradient(var(--wood),var(--wood2));border:3px solid var(--edge);border-radius:12px;box-shadow:inset 0 2px 0 var(--hi),0 8px 24px rgba(0,0,0,.45);padding:22px;transition:transform .08s,filter .12s}
+  .hero:hover{filter:brightness(1.08);transform:translateY(-2px)}
+  .hero .k{display:inline-block;background:var(--gold);color:#2a1d12;font-weight:800;font-size:11px;letter-spacing:1px;padding:3px 8px;border-radius:6px;text-transform:uppercase}
+  .hero h2{font-size:24px;margin:10px 0 6px}
+  .hero p{color:var(--dim);line-height:1.45;font-size:14.5px}
+  .cta{display:inline-block;margin-top:14px;background:var(--gold);color:#2a1d12;font-weight:800;padding:10px 18px;border-radius:8px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:16px}
+  .card{display:block;text-decoration:none;color:inherit;background:rgba(74,53,36,.55);border:2px solid var(--edge);border-radius:10px;padding:16px;transition:filter .12s}
+  .card:hover{filter:brightness(1.15)}
+  .card h3{font-size:16px;margin-bottom:4px}.card p{color:var(--dim);font-size:13px;line-height:1.4}
+  .card .k{font-size:10.5px;color:var(--dim);letter-spacing:1px;text-transform:uppercase}
+  ul{margin:10px 0 0 18px;color:var(--dim);font-size:14px;line-height:1.6}
+  footer{margin-top:34px;color:var(--dim);font-size:12px;line-height:1.5}
+  footer a{color:var(--gold)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Auvra Club</h1>
+  <div style="color:var(--gold);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;margin-top:2px">Construa seu império em Meridian</div>
+  <p class="tag">Você chega a Meridian com $3k e um notebook velho. Freelas, empresas, talentos roubados, guerras de preço, IPOs e aquisições hostis — inclusive das empresas dos seus amigos.</p>
+
+  <a class="hero" href="town/">
+    <span class="k">▶ Jogo principal · multiplayer</span>
+    <h2>🏙️ Meridian — o distrito</h2>
+    <p>Mundo compartilhado: todos jogam na mesma Meridian, cada um no seu ritmo. Ranking de patrimônio, quem está online, chat, ofertas por empresas e aquisição hostil de empresas de capital aberto. Save na nuvem.</p>
+    <ul><li>Toque no chão para andar, num prédio para ir até ele</li><li>⭐ Sede: freelas, cursos e banco · pessoas de anel dourado: networking</li><li>Espaço pausa · 1/2/3 velocidade · roda do mouse ou pinça = zoom</li><li>📲 No celular: ⚙️ Ajustes → <b>Instalar app</b> (tela cheia, ícone na tela inicial)</li></ul>
+    <span class="cta">Jogar agora</span>
+  </a>
+
+  <div class="grid">
+    <a class="card" href="world/"><span class="k">Protótipo · referência</span><h3>🌆 Meridian City 3D</h3><p>Primeira pessoa, ciclo dia/noite, carros e multidão. Single-player.</p></a>
+    <a class="card" href="game/"><span class="k">Protótipo · referência</span><h3>📊 Simulador de sistemas 2D</h3><p>A primeira versão, só painéis, 100% offline. Single-player.</p></a>
+  </div>
+
+  <footer>Protótipo jogável da bíblia de design do <i>Project ATLAS</i>. Funciona no celular e no computador; sem instalar nada.</footer>
+</main>
+</body>
+</html>

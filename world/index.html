@@ -7,10 +7,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="MOGUL">
+<meta name="apple-mobile-web-app-title" content="Auvra Club">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>MOGUL — Meridian City (3D)</title>
+<title>Auvra Club — Meridian City (3D)</title>
 <style>
   :root{
     --gold:#e7cb86;--gold2:#c9a24e;--gold-dim:rgba(231,203,134,.14);
@@ -145,7 +145,7 @@
 <div class="ui" id="cross"></div>
 
 <div class="ui" id="hud">
-  <span class="brand">MOGUL</span>
+  <span class="brand">Auvra Club</span>
   <span class="phase" id="phase">Fase 1 · Sobrevivência</span>
   <div class="st"><div class="k">Dia</div><div class="v" id="sDay">1</div></div>
   <div class="st"><div class="k">Caixa</div><div class="v cash" id="sCash">$0</div></div>
@@ -172,7 +172,7 @@
 
 <div id="blocker">
   <div class="box">
-    <h1>MOGUL</h1>
+    <h1>Auvra Club</h1>
     <div class="tag">Meridian City</div>
     <p>Você está nos <b>Boroughs</b>, ao anoitecer. A cidade brilha lá na frente — o Distrito Financeiro, o Grid, Goldhaven. Tudo aquilo pode ser seu. Caminhe até as pessoas, aperte mãos, funde empresas, construa o império.</p>
     <span class="cta">▶ Clique para entrar em Meridian</span>
@@ -217,7 +217,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 try{
 /* ===================================================================== *
- *  MOGUL — Meridian City (walkable 3D slice)
+ *  Auvra Club — Meridian City (walkable 3D slice)
  *  Real-time 3D world (Three.js) wrapping the proven business sim.
  * ===================================================================== */
 
@@ -256,18 +256,36 @@ function newGame(){
   S={day:1,cash:1400,energy:10,maxEnergy:10,stress:8,
      skills:{negotiation:10,charisma:12,finance:8,leadership:8},
      rep:{market:5,talent:5,public:6},
-     companies:[],contacts:[],phase:1,phaseName:"Sobrevivência",
+     companies:[],contacts:[],rivals:[],phase:1,phaseName:"Sobrevivência",
      market:{cycle:"estável",mult:1.0,rate:6.0,mood:0,target:1.0},
-     over:false,won:false,peakNet:0,founded:0,hires:0,
+     over:false,won:false,peakNet:0,founded:0,hires:0,acquisitions:0,ipos:0,
      metIds:[],   // interactable world NPCs already turned into contacts
   };
+  for(let i=0;i<4;i++)S.rivals.push(genRival()); // concorrentes-IA já vivem no mercado
   save();
 }
+function coName(n){const a=["Nova","Apex","Vertex","Lumen","Iron","Atlas","Meridian","Cobalt","Halcyon","Orion","Vanta","Praxis","Zenith"];
+  const b={tech:["Labs","AI","Soft","Stack","Systems"],real:["Group","Works","Industries","Logistics","Build"],soft:["Media","Health","Studio","House"]};
+  return pick(a)+" "+pick(b[n.family]);}
+function genRival(){const n=pick(NICHES);
+  return {id:"rv"+Date.now()+ri(0,99999),name:coName(n),niche:n.id,value:Math.round(rnd(40000,500000)),drift:rnd(0.985,1.04)};}
+function rivalTick(){ // concorrentes vivem sozinhos: crescem, quebram, surgem novos
+  if(!S.rivals)S.rivals=[];const mf=0.55+S.market.mult*0.45;
+  for(let i=S.rivals.length-1;i>=0;i--){const r=S.rivals[i];
+    r.value=Math.max(8000,Math.round(r.value*r.drift*rnd(0.97,1.04)*mf));
+    if(chance(0.012)){S.rivals.splice(i,1);log("📉 A concorrente "+r.name+" quebrou e saiu do mercado.");}}
+  if(S.rivals.length<6&&chance(0.12)){const r=genRival();S.rivals.push(r);log("🏢 Uma nova concorrente surgiu: "+r.name+".");}}
 function skillAvg(){return (S.skills.negotiation+S.skills.charisma+S.skills.finance+S.skills.leadership)/4;}
 function roleFit(e,n){if(!n)return 1;if(e.fam==="any")return 1.05;return e.fam===n.family?1.18:0.9;}
+function coSynergy(co){ // império maior se reforça; mesmo setor se reforça ainda mais
+  const n=S.companies.length; if(n<=1)return 1;
+  let s=1+Math.min(0.22,(n-1)*0.045);                  // horizontal: cada empresa a mais soma força
+  const nn=NICHES.find(x=>x.id===co.niche);
+  if(nn&&S.companies.some(c=>c!==co&&(NICHES.find(x=>x.id===c.niche)||{}).family===nn.family))s+=0.06; // mesma família
+  return s;}
 function coRevenue(co){const n=NICHES.find(x=>x.id===co.niche);let emp=0;co.employees.forEach(e=>emp+=e.competence*0.012*roleFit(e,n));
   const rep=1+(S.rep.market-5)*0.012+(S.rep.public-5)*0.006;const ops=0.45+co.ops/100*0.95;const f=1+(skillAvg()-8)*0.01;
-  return Math.max(0,co.baseRev*(1+emp)*ops*S.market.mult*rep*f*co.scale);}
+  return Math.max(0,co.baseRev*(1+emp)*ops*S.market.mult*rep*f*co.scale*coSynergy(co));}
 function coCosts(co){let s=0;co.employees.forEach(e=>s+=e.salary);return s+co.overhead;}
 function coProfit(co){return coRevenue(co)-coCosts(co);}
 function coValue(co){const n=NICHES.find(x=>x.id===co.niche);const annual=coProfit(co)*365;
@@ -293,11 +311,11 @@ function remember(p,t){p.memory.unshift(t);if(p.memory.length>3)p.memory.length=
 function endDay(){
   if(S.over)return;
   let coNet=0;
-  S.companies.forEach(co=>{co.age=(co.age||0)+1;coNet+=coProfit(co);co.ops=clamp(co.ops-rnd(0.4,1.2),0,100);
+  S.companies.forEach(co=>{co.age=(co.age||0)+1;coNet+=coProfit(co);co.ops=clamp(co.ops-(co.managed?rnd(0.05,0.4):rnd(0.4,1.2)),0,100); // gerente segura a operação
     co.scale*=rnd(0.998,1.004);const n=NICHES.find(x=>x.id===co.niche);
     if(chance(n.risk*0.05)){co.scale*=rnd(.82,.93);log("Tropeço na "+co.name+": um problema comeu parte da receita.");}});
   S.cash+=coNet;const bills=dailyExpenses();S.cash-=bills;
-  employeeTick();marketTick();
+  employeeTick();marketTick();rivalTick();
   S.energy=clamp(S.maxEnergy-Math.floor(S.stress/25),3,S.maxEnergy);
   if(S.stress>80&&chance(0.25)){S.stress=clamp(S.stress-30,0,100);log("Seu corpo cobrou a conta — um susto te obrigou a parar.");}
   if(S.day>2&&chance(0.4))fireEvent();
@@ -396,7 +414,7 @@ function initThree(){
   try{ renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=exposure; }catch(e){}
   scene=new THREE.Scene();
   scene.background=new THREE.Color(0x0b1018);
-  scene.fog=new THREE.FogExp2(0x0b1018,0.0036); // atmospheric depth
+  scene.fog=new THREE.FogExp2(0x0b1018,0.0041); // atmospheric depth (torres distantes desbotam no horizonte)
   camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,0.1,1600);
   camera.position.set(-150,EYE,150);
   playerPos=new THREE.Vector3(-150,0,150);
@@ -447,23 +465,30 @@ function makeAsphaltTexture(){
 }
 function buildCity(){
   // ground
-  groundMat=new THREE.MeshStandardMaterial({color:0x0e1216,roughness:0.95,metalness:0.0});
+  groundMat=new THREE.MeshStandardMaterial({color:0x0e1216,roughness:0.68,metalness:0.2,envMapIntensity:0.5}); // asfalto com leve brilho (reflete céu/neon)
   const ground=new THREE.Mesh(new THREE.PlaneGeometry(BOUND*2+200,BOUND*2+200),groundMat);
   ground.rotation.x=-Math.PI/2;scene.add(ground);
   // roads: real asphalt (grain, patches, edge lines, dashed centre) + instanced curbs
-  const roadMat=new THREE.MeshStandardMaterial({map:makeAsphaltTexture(),roughness:.9,metalness:0});
+  const roadMat=new THREE.MeshStandardMaterial({map:makeAsphaltTexture(),roughness:.6,metalness:.15,envMapIntensity:0.5}); // pista com sheen molhado
   const roadGeo=new THREE.PlaneGeometry(12,BOUND*2);
-  const curbs=[];
-  for(let i=-BOUND;i<=BOUND;i+=40){
+  for(let i=-BOUND;i<=BOUND;i+=40){ // ruas: planos de 12 de largura formam a grade
     const v=new THREE.Mesh(roadGeo,roadMat);v.rotation.x=-Math.PI/2;v.position.set(i,0.02,0);scene.add(v);
     const h=new THREE.Mesh(roadGeo,roadMat);h.rotation.set(-Math.PI/2,0,Math.PI/2);h.position.set(0,0.02,i);scene.add(h);
-    curbs.push({x:i-7.5,z:0,a:'z'},{x:i+7.5,z:0,a:'z'},{x:0,z:i-7.5,a:'x'},{x:0,z:i+7.5,a:'x'});
+  }
+  // meios-fios/calçadas em SEGMENTOS por quadra, com vão na interseção — NÃO atravessam mais a rua transversal
+  const curbs=[]; const CURBO=7.5, CURBL=40-2*CURBO; // segmento de 25 centrado na quadra; cruzamento fica livre
+  for(let i=-BOUND;i<=BOUND;i+=40){
+    for(let j=-BOUND;j<BOUND;j+=40){ const c=j+20;
+      curbs.push({x:i-CURBO,z:c,sx:3,sz:CURBL});   // meio-fio da rua vertical (corre em Z, parte na quadra)
+      curbs.push({x:i+CURBO,z:c,sx:3,sz:CURBL});
+      curbs.push({x:c,z:i-CURBO,sx:CURBL,sz:3});   // meio-fio da rua horizontal (corre em X, parte na quadra)
+      curbs.push({x:c,z:i+CURBO,sx:CURBL,sz:3});
+    }
   }
   const unitBox=new THREE.BoxGeometry(1,1,1);
-  const curbInst=new THREE.InstancedMesh(unitBox,new THREE.MeshStandardMaterial({color:0x272d35,roughness:.92}),curbs.length);
+  const curbInst=new THREE.InstancedMesh(unitBox,new THREE.MeshStandardMaterial({color:0x2b333d,roughness:.9}),curbs.length);
   { const m=new THREE.Matrix4(),q=new THREE.Quaternion();
-    curbs.forEach((cb,i)=>{const s=cb.a==='z'?new THREE.Vector3(3,0.14,BOUND*2):new THREE.Vector3(BOUND*2,0.14,3);
-      m.compose(new THREE.Vector3(cb.x,0.07,cb.z),q,s);curbInst.setMatrixAt(i,m);});
+    curbs.forEach((cb,i)=>{m.compose(new THREE.Vector3(cb.x,0.07,cb.z),q,new THREE.Vector3(cb.sx,0.14,cb.sz));curbInst.setMatrixAt(i,m);});
     curbInst.instanceMatrix.needsUpdate=true; }
   scene.add(curbInst);
   // districts get real architectural identity: material + window style + massing
@@ -475,7 +500,8 @@ function buildCity(){
     lux:  {tex:'lux',  color:0x322c1f,rough:.50,metal:.30,emis:0xffe2b0,emisScale:.95, envScale:1.6}, // Goldhaven: pedra clara/elegante
   };
   const buckets={glass:[],tech:[],res:[],ind:[],lux:[]};
-  const roof=[],beac=[],ant=[],shops=[];
+  const roof=[],beac=[],ant=[],shops=[],feat=[];
+  colliders.length=0;
   for(let x=-BOUND+20;x<BOUND;x+=40){
     for(let z=-BOUND+20;z<BOUND;z+=40){
       const bx=x+ri(-6,6), bz=z+ri(-6,6);
@@ -490,9 +516,11 @@ function buildCity(){
       const h=rnd(hR[0],hR[1]), w=rnd(14,24), d=rnd(14,24);
       const shade=Math.round((0.72+Math.random()*0.28)*255);
       buckets[style].push({x:bx,z:bz,w,d,h,shade});
+      feat.push({x:bx,z:bz,w,d,h,style}); // p/ relevo de fachada (pilastras de canto + cornija)
+      colliders.push({x:bx,z:bz,hw:w/2,hd:d/2}); // sólido: não dá p/ atravessar
       const shopP={glass:.8,tech:.85,lux:.9,res:.4,ind:.08}[style];
       if(chance(shopP)) shops.push({x:bx,z:bz,w,d,warm:(style==='res'||style==='lux'||chance(.4))}); // vitrine no térreo
-      if(style==='glass'&&h>80&&chance(.7)) buckets.glass.push({x:bx,z:bz,w:w+rnd(6,10),d:d+rnd(6,10),h:rnd(8,14),shade}); // pódio da torre
+      if(style==='glass'&&h>80&&chance(.7)){ const pw=w+rnd(6,10),pd=d+rnd(6,10); buckets.glass.push({x:bx,z:bz,w:pw,d:pd,h:rnd(8,14),shade}); colliders.push({x:bx,z:bz,hw:pw/2,hd:pd/2}); } // pódio da torre (mais largo)
       if(h<95){const n=ri(1,3);for(let k=0;k<n;k++)roof.push({x:bx+rnd(-w*0.3,w*0.3),z:bz+rnd(-d*0.3,d*0.3),y:h,s:rnd(1.4,3.4)});} // AC/caixa d'água
       if(h>=95) beac.push({x:bx,z:bz,y:h+1.2});                                            // luz de aviação
       if(h>=30&&chance(.35)) ant.push({x:bx+rnd(-3,3),z:bz+rnd(-3,3),y:h,l:rnd(4,9)});     // antenas
@@ -512,6 +540,21 @@ function buildCity(){
     scene.add(inst); buildingMats.push(mmat); if(!firstMat)firstMat=mmat;
   }
   buildingMat=firstMat;
+  // relevo de fachada: pilastras de canto (moldura vertical) + cornija no topo (define a linha do telhado)
+  if(feat.length){
+    const pierMat=new THREE.MeshStandardMaterial({color:0x181c22,roughness:.82,metalness:.2,envMapIntensity:.35});
+    const pInst=new THREE.InstancedMesh(unitBox,pierMat,feat.length*4);
+    const cornMat=new THREE.MeshStandardMaterial({color:0x2c333d,roughness:.7,metalness:.28,envMapIntensity:.6});
+    const cInst=new THREE.InstancedMesh(unitBox,cornMat,feat.length);
+    const m=new THREE.Matrix4(),q=new THREE.Quaternion();const corners=[[-1,-1],[1,-1],[-1,1],[1,1]];let pi=0;
+    feat.forEach((f,i)=>{
+      const pw=(f.style==='glass'?1.9:1.4), hh=f.h*0.99;              // torre de vidro: mullion mais forte
+      for(const cn of corners){ m.compose(new THREE.Vector3(f.x+cn[0]*f.w/2,hh/2,f.z+cn[1]*f.d/2),q,new THREE.Vector3(pw,hh,pw));pInst.setMatrixAt(pi++,m);}
+      const ch=clamp(f.h*0.02,0.8,1.6);                               // cornija fina, levemente saliente
+      m.compose(new THREE.Vector3(f.x,f.h-ch*0.5,f.z),q,new THREE.Vector3(f.w+0.9,ch,f.d+0.9));cInst.setMatrixAt(i,m);
+    });
+    pInst.instanceMatrix.needsUpdate=true;cInst.instanceMatrix.needsUpdate=true;scene.add(pInst);scene.add(cInst);
+  }
   // rooftop life: clutter, antennas, aviation beacons (bloom picks the reds up at night)
   if(roof.length){const rInst=new THREE.InstancedMesh(unitBox,new THREE.MeshStandardMaterial({color:0x3a414b,roughness:.9,metalness:.2}),roof.length);
     const m=new THREE.Matrix4(),q=new THREE.Quaternion();
@@ -537,29 +580,47 @@ function buildCity(){
   }
 }
 let buildingMat=null; const buildingMats=[];
+const colliders=[]; // AABBs de prédios {x,z,hw,hd} p/ colisão (mundo é eixo-alinhado)
+function collideCity(pos,radius){
+  // empurra `pos` p/ fora de qualquer prédio; resolve pelo eixo de menor penetração
+  let hit=false;
+  for(let i=0;i<colliders.length;i++){const c=colliders[i];
+    const ex=c.hw+radius, ez=c.hd+radius;      // AABB expandido pelo raio do corpo
+    const dx=pos.x-c.x, dz=pos.z-c.z;
+    if(dx>-ex&&dx<ex&&dz>-ez&&dz<ez){          // dentro da caixa expandida => colidiu
+      const px=ex-Math.abs(dx), pz=ez-Math.abs(dz); // penetração em cada eixo
+      if(px<pz){ pos.x=c.x+(dx<0?-ex:ex); } else { pos.z=c.z+(dz<0?-ez:ez); } // saída mínima
+      hit=true;
+    }
+  }
+  return hit;
+}
 function makeWindowTexture(style){
   // per-district window languages (default keeps the original look; office uses it)
   const styles={
-    default:{gx:11,gy:13,cw:7,ch:8, lit:.55,warmP:.45,darkF:.18},
-    glass:  {gx:11,gy:12,cw:9,ch:10,lit:.78,warmP:.12,darkF:.06},  // curtain-wall: quase tudo aceso, frio
-    tech:   {gx:11,gy:13,cw:7,ch:8, lit:.60,warmP:.25,darkF:.12},
-    res:    {gx:12,gy:15,cw:6,ch:7, lit:.38,warmP:.80,darkF:.30},  // janelas menores, quentes, muitas apagadas
-    ind:    {gx:14,gy:22,cw:9,ch:6, lit:.16,warmP:.70,darkF:.50},  // galpões: raras janelas industriais
-    lux:    {gx:12,gy:14,cw:7,ch:9, lit:.50,warmP:.75,darkF:.15},
+    default:{gx:11,gy:13,cw:7,ch:8, lit:.40,warmP:.45,darkF:.32,colD:.22},
+    glass:  {gx:11,gy:12,cw:9,ch:10,lit:.54,warmP:.15,darkF:.22,colD:.16},  // curtain-wall: mais aceso, frio, mas não 100%
+    tech:   {gx:11,gy:13,cw:7,ch:8, lit:.42,warmP:.28,darkF:.30,colD:.22},
+    res:    {gx:12,gy:15,cw:6,ch:7, lit:.30,warmP:.82,darkF:.44,colD:.28},  // residencial: muitas apagadas, quentes
+    ind:    {gx:14,gy:22,cw:9,ch:6, lit:.12,warmP:.70,darkF:.55,colD:.30},  // galpões: raras janelas industriais
+    lux:    {gx:12,gy:14,cw:7,ch:9, lit:.40,warmP:.78,darkF:.30,colD:.22},
   };
   const p=styles[style]||styles.default;
   const c=document.createElement('canvas');c.width=128;c.height=256;const g=c.getContext('2d');
   g.fillStyle='#070a0f';g.fillRect(0,0,128,256);
   const warm=['#ffd9a0','#ffce86','#ffb866'], cool=['#bcd8ff','#9fc4ff','#d6e6ff'];
+  // colunas (linhas de escritórios) que ficam majoritariamente apagadas -> quebra a "grade uniforme"
+  const cols=[]; for(let x=6;x<128;x+=p.gx) cols.push(Math.random()<p.colD);
   for(let y=6;y<256;y+=p.gy){
-    const floorDark=Math.random()<p.darkF;
+    const floorDark=Math.random()<p.darkF;                 // andares inteiros apagados (prédio dorme)
+    let ci=0;
     for(let x=6;x<128;x+=p.gx){
-      const r=Math.random();
-      if(floorDark? r<p.lit*0.2 : r<p.lit){
+      const litP=p.lit*(floorDark?0.14:1)*(cols[ci++]?0.22:1); // ocupação real: minoria acesa
+      if(Math.random()<litP){
         g.fillStyle=(Math.random()<p.warmP?warm:cool)[Math.floor(Math.random()*3)];
-        g.globalAlpha=0.55+Math.random()*0.45;
+        g.globalAlpha=0.38+Math.random()*0.44;             // brilho variado (janelas não são todas iguais)
         g.fillRect(x,y,p.cw,p.ch);
-      } else { g.fillStyle='#0c1118'; g.globalAlpha=1; g.fillRect(x,y,p.cw,p.ch); }
+      } else { g.fillStyle='#0b0f16'; g.globalAlpha=1; g.fillRect(x,y,p.cw,p.ch); }
     }
   }
   g.globalAlpha=1;
@@ -849,6 +910,7 @@ function updateDriving(dt){
   if(Math.abs(car.speed)>0.4) car.heading+=st*turn*dt*clamp(car.speed/12,-1,1);
   car.pos.x=clamp(car.pos.x+Math.cos(car.heading)*car.speed*dt,-BOUND+4,BOUND-4);
   car.pos.z=clamp(car.pos.z+Math.sin(car.heading)*car.speed*dt,-BOUND+4,BOUND-4);
+  if(collideCity(car.pos,1.7)){ car.speed*=-0.18; if(Math.abs(car.speed)<3)car.speed=0; blip(90,0.06,'square'); } // bate no prédio: quica e perde velocidade
   car.group.position.copy(car.pos); car.group.rotation.y=Math.PI/2-car.heading;
   const fx=Math.cos(car.heading),fz=Math.sin(car.heading);
   camera.position.lerp(new THREE.Vector3(car.pos.x-fx*9,4.6,car.pos.z-fz*9),0.18);
@@ -875,7 +937,7 @@ function setupGraphics(){
     scene.environment=pmrem.fromEquirectangular(eqt).texture;
     eqt.dispose(); pmrem.dispose();
     const bms=buildingMats.length?buildingMats:(buildingMat?[buildingMat]:[]);
-    for(const bm of bms){bm.envMapIntensity=0.22*((bm.userData&&bm.userData.envScale)||1);}
+    for(const bm of bms){bm.envMapIntensity=0.32*((bm.userData&&bm.userData.envScale)||1);} // vidro reflete mais o céu (realismo)
   }catch(e){console.error('env',e);}
   // bloom — the single biggest "alive at night" win (neon windows/lights glow)
   composer=new EffectComposer(renderer);
@@ -970,20 +1032,30 @@ function makePersonMesh(look){
   const style=look.style||pick(['short','flat','long','bun','bald']);
   // pernas articuladas no quadril (grupos giram no pivô anatômico certo)
   const mkLeg=(sx)=>{const j=new THREE.Group();j.position.set(sx*0.115,0.88,0);
-    const l=new THREE.Mesh(new THREE.CapsuleGeometry(0.082,0.6,3,6),pants);l.position.y=-0.38;j.add(l);
+    const l=new THREE.Mesh(new THREE.CapsuleGeometry(0.072,0.62,3,7),pants);l.position.y=-0.38;j.add(l);
     const s=new THREE.Mesh(new THREE.BoxGeometry(0.11,0.07,0.24),shoes);s.position.set(0,-0.75,0.045);j.add(s);
     g.add(j);return j;};
   const legL=mkLeg(-1),legR=mkLeg(1);
-  const torso=new THREE.Mesh(new THREE.CapsuleGeometry(0.155,0.42,4,8),jacket);torso.position.y=1.14;g.add(torso);
-  const collar=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.09,0.09,7),skin);collar.position.y=1.47;g.add(collar);
-  // braços articulados no ombro, com mãos
-  const mkArm=(sx)=>{const j=new THREE.Group();j.position.set(sx*0.235,1.40,0);
-    const a=new THREE.Mesh(new THREE.CapsuleGeometry(0.052,0.5,3,6),jacket);a.position.y=-0.30;j.add(a);
-    const h=new THREE.Mesh(new THREE.SphereGeometry(0.045,7,7),skin);h.position.y=-0.60;j.add(h);
-    j.rotation.z=sx*0.06;g.add(j);return j;};
+  // TRONCO cônico: peito mais largo que a cintura (V atlético limpo, sem caroços de cápsula)
+  const torso=new THREE.Mesh(new THREE.CylinderGeometry(0.142,0.108,0.52,14),jacket);torso.position.y=1.16;g.add(torso);
+  const chestCap=new THREE.Mesh(new THREE.SphereGeometry(0.142,14,9),jacket);chestCap.scale.set(1,0.46,0.82);chestCap.position.y=1.40;g.add(chestCap);
+  const hipCap=new THREE.Mesh(new THREE.SphereGeometry(0.112,12,8),pants);hipCap.scale.set(1,0.5,0.85);hipCap.position.y=0.92;g.add(hipCap);
+  // ombros enxutos + pescoço real (a cabeça deixa de afundar no tronco)
+  const shoulders=new THREE.Mesh(new THREE.CapsuleGeometry(0.05,0.20,3,8),jacket);shoulders.rotation.z=Math.PI/2;shoulders.position.y=1.44;g.add(shoulders);
+  const neck=new THREE.Mesh(new THREE.CylinderGeometry(0.049,0.058,0.11,10),skin);neck.position.y=1.52;g.add(neck);
+  // braços em repouso: braço + antebraço (leve flexão no cotovelo) + mão
+  const mkArm=(sx)=>{const j=new THREE.Group();j.position.set(sx*0.172,1.45,0);
+    const up=new THREE.Mesh(new THREE.CapsuleGeometry(0.046,0.30,3,7),jacket);up.position.y=-0.20;j.add(up);
+    const fore=new THREE.Mesh(new THREE.CapsuleGeometry(0.042,0.28,3,7),jacket);fore.position.y=-0.50;j.add(fore);
+    const h=new THREE.Mesh(new THREE.SphereGeometry(0.05,8,8),skin);h.position.y=-0.70;h.scale.set(0.85,1.15,0.7);j.add(h);
+    j.rotation.x=0.05;j.rotation.z=sx*0.04;g.add(j);return j;};
   const armL=mkArm(-1),armR=mkArm(1);
+  if(look.shirt!=null){ // camisa clara sob o paletó aberto (gola em V + placket) => contraste do protagonista
+    const sm=new THREE.MeshStandardMaterial({color:look.shirt,roughness:.5});
+    const shirt=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.26,0.02),sm);shirt.position.set(0,1.28,0.118);g.add(shirt);
+    const cv=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.05,0.10,3),sm);cv.position.set(0,1.44,0.10);cv.rotation.x=0.3;g.add(cv);}
   // cabeça: crânio levemente oval, olhos, cabelo por estilo
-  const headG=new THREE.Group();headG.position.y=1.615;g.add(headG);
+  const headG=new THREE.Group();headG.position.y=1.63;g.add(headG);
   const head=new THREE.Mesh(new THREE.SphereGeometry(0.115,12,10),skin);head.scale.y=1.12;headG.add(head);
   const eL=new THREE.Mesh(new THREE.SphereGeometry(0.014,6,6),dark);eL.position.set(-0.042,0.012,0.104);headG.add(eL);
   const eR=new THREE.Mesh(new THREE.SphereGeometry(0.014,6,6),dark);eR.position.set(0.042,0.012,0.104);headG.add(eR);
@@ -1000,7 +1072,7 @@ function makePersonMesh(look){
 
 /* ---- player avatar (third-person) ---- */
 function buildPlayer(){
-  avatar=makePersonMesh({jacket:0x2a3346,pants:0x20242c,skin:0xd9a97e,hair:0x241a12,style:'short',height:1.02});
+  avatar=makePersonMesh({jacket:0x3a4658,pants:0x272c38,skin:0xe0b48a,hair:0x2a1e14,shirt:0xc2ccda,style:'short',height:1.03});
   avatar.position.copy(playerPos); scene.add(avatar);
 }
 
@@ -1082,7 +1154,7 @@ function buildRain(){
   const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
   rain=new THREE.Points(geo,new THREE.PointsMaterial({color:0xaecbe8,size:0.5,transparent:true,opacity:0.5})); rain.visible=false; scene.add(rain);
 }
-function setWeather(w){ weather=w; if(rain)rain.visible=(w==='rain'); if(groundMat){ groundMat.roughness=(w==='rain')?0.28:0.95; groundMat.envMapIntensity=(w==='rain')?0.9:0.3; groundMat.needsUpdate=true; } toast(w==='rain'?'🌧️ Começou a chover':'🌤️ O tempo limpou'); }
+function setWeather(w){ weather=w; if(rain)rain.visible=(w==='rain'); if(groundMat){ groundMat.roughness=(w==='rain')?0.18:0.68; groundMat.envMapIntensity=(w==='rain')?1.2:0.5; groundMat.needsUpdate=true; } toast(w==='rain'?'🌧️ Começou a chover':'🌤️ O tempo limpou'); }
 function updateWeather(dt){
   weatherTimer-=dt; if(weatherTimer<=0){ weatherTimer=rnd(60,140); setWeather(chance(0.4)?'rain':'clear'); }
   if(rain&&rain.visible){ const cx=isDriving&&activeCar?activeCar.pos.x:(playerPos?playerPos.x:0), cz=isDriving&&activeCar?activeCar.pos.z:(playerPos?playerPos.z:0);
@@ -1104,9 +1176,9 @@ function tryClub(){
 }
 
 /* ---- day/night ---- */
-const NIGHT={sky:new THREE.Color(0x05080f),fog:new THREE.Color(0x05080f),sun:new THREE.Color(0x2a3550),hemiSky:new THREE.Color(0x1a2440),sunI:0.12,hemiI:0.28,emis:1.7};
-const DAY={sky:new THREE.Color(0x9fc0e8),fog:new THREE.Color(0x9fc0e8),sun:new THREE.Color(0xffe6b0),hemiSky:new THREE.Color(0xaecbf0),sunI:1.25,hemiI:0.7,emis:0.04};
-const DUSK={sky:new THREE.Color(0x171526),fog:new THREE.Color(0x241a2e),sun:new THREE.Color(0xff8a4e),hemiSky:new THREE.Color(0x453858),sunI:0.55,hemiI:0.42,emis:0.95};
+const NIGHT={sky:new THREE.Color(0x060912),fog:new THREE.Color(0x080c16),sun:new THREE.Color(0x35425f),hemiSky:new THREE.Color(0x1c2848),sunI:0.14,hemiI:0.32,emis:0.95};
+const DAY={sky:new THREE.Color(0x9fc0e8),fog:new THREE.Color(0xb9d2ec),sun:new THREE.Color(0xffe6b0),hemiSky:new THREE.Color(0xaecbf0),sunI:1.30,hemiI:0.72,emis:0.03};
+const DUSK={sky:new THREE.Color(0x1a2742),fog:new THREE.Color(0x33344e),sun:new THREE.Color(0xff9a5c),hemiSky:new THREE.Color(0x445071),sunI:0.66,hemiI:0.52,emis:0.55};
 function lerpC(a,b,t,out){out.r=a.r+(b.r-a.r)*t;out.g=a.g+(b.g-a.g)*t;out.b=a.b+(b.b-a.b)*t;return out;}
 let _c=new THREE.Color();
 function updateDayNight(dt){
@@ -1142,7 +1214,7 @@ function makeGlowTex(){
 function makeSkyTex(zen,hor,gnd){
   const c=document.createElement('canvas');c.width=8;c.height=256;const g=c.getContext('2d');
   const grd=g.createLinearGradient(0,0,0,256);
-  grd.addColorStop(0,zen);grd.addColorStop(0.50,hor);grd.addColorStop(0.56,gnd);grd.addColorStop(1,gnd);
+  grd.addColorStop(0,zen);grd.addColorStop(0.34,zen);grd.addColorStop(0.50,hor);grd.addColorStop(0.545,hor);grd.addColorStop(0.56,gnd);grd.addColorStop(1,gnd);
   g.fillStyle=grd;g.fillRect(0,0,8,256);return new THREE.CanvasTexture(c);
 }
 function skyPalette(){
@@ -1151,7 +1223,7 @@ function skyPalette(){
   else if(T<0.75){A=DAY;B=DUSK;t=(T-0.5)/0.25;}else{A=DUSK;B=NIGHT;t=(T-0.75)/0.25;}
   const mix=(a,b)=>{const c=new THREE.Color();c.r=a.r+(b.r-a.r)*t;c.g=a.g+(b.g-a.g)*t;c.b=a.b+(b.b-a.b)*t;return c;};
   const zen=mix(A.sky,B.sky), sunc=mix(A.sun,B.sun);
-  const hor=new THREE.Color(); hor.r=clamp(zen.r*0.5+sunc.r*0.6,0,1); hor.g=clamp(zen.g*0.5+sunc.g*0.45,0,1); hor.b=clamp(zen.b*0.55+sunc.b*0.4,0,1);
+  const hor=new THREE.Color(); hor.r=clamp(zen.r*0.42+sunc.r*0.78,0,1); hor.g=clamp(zen.g*0.5+sunc.g*0.5,0,1); hor.b=clamp(zen.b*0.62+sunc.b*0.3,0,1);
   const nightF=(A===NIGHT)?(1-t):((B===NIGHT)?t:0);
   return {zen,hor,sunc,nightF};
 }
@@ -1283,7 +1355,7 @@ function updateMovement(dt){
     playerPos.x+=(fx*my+rx*mx)*sp; playerPos.z+=(fz*my+rz*mx)*sp;
   }
   if(inOffice){ playerPos.x=clamp(playerPos.x,OFFICE.x-22,OFFICE.x+22); playerPos.z=clamp(playerPos.z,-17,17); $("sLoc").textContent="Sua sede"; }
-  else { playerPos.x=clamp(playerPos.x,-BOUND+6,BOUND-6); playerPos.z=clamp(playerPos.z,-BOUND+6,BOUND-6); $("sLoc").textContent=districtAt(playerPos.x,playerPos.z); }
+  else { playerPos.x=clamp(playerPos.x,-BOUND+6,BOUND-6); playerPos.z=clamp(playerPos.z,-BOUND+6,BOUND-6); collideCity(playerPos,0.55); $("sLoc").textContent=districtAt(playerPos.x,playerPos.z); }
   playerPos.y=0;
   // camera: first- or third-person
   if(camMode==='fps'){
@@ -1339,9 +1411,13 @@ function openBusiness(){
   if(S.companies.length) h+="<button class='opt' onclick='__hire()'><div class='t'>🧑‍💼 Entrevistar & contratar</div><div class='d'>Talento puxa receita. (custa energia)</div></button>";
   h+="<div class='mt'></div>";
   if(!S.companies.length) h+="<div class='empty'>Você ainda não tem empresas.</div>";
-  else S.companies.forEach(co=>{const n=NICHES.find(x=>x.id===co.niche);const rev=coRevenue(co),prof=rev-coCosts(co),val=coValue(co);
-    h+="<div class='row' style='flex-wrap:wrap'><div class='av'>"+n.ico+"</div><div class='info'><div class='n'>"+co.name+" <span class='tag'>"+n.name+"</span></div><div class='m'>"+co.employees.length+" func · op "+Math.round(co.ops)+"/100</div><div class='bar' style='max-width:220px'><i style='width:"+Math.round(co.ops)+"%'></i></div></div><div class='side'><div class='big' style='color:var(--gold)'>"+money(val)+"</div><div style='color:"+(prof>=0?"var(--green)":"var(--red)")+"'>"+(prof>=0?"+":"")+money(prof)+"/dia</div></div>"+
-      "<div style='flex-basis:100%;display:flex;gap:8px;margin-top:9px'><button class='btn ghost small' onclick=\"__op('"+co.id+"')\">📈 Tocar operação (-3⚡)</button><button class='btn ghost small' onclick=\"__sell('"+co.id+"')\">🏷️ Vender</button></div></div>";});
+  else S.companies.forEach(co=>{const n=NICHES.find(x=>x.id===co.niche);const rev=coRevenue(co),prof=rev-coCosts(co),val=coValue(co);const syn=coSynergy(co);
+    const badges=(co.managed?" <span class='tag'>🧑‍✈️ gerida</span>":"")+(co.public?" <span class='tag'>📊 aberta</span>":"")+(co.acquired?" <span class='tag'>🦈 adquirida</span>":"")+(syn>1.001?" <span class='tag' style='color:var(--gold)'>sinergia ×"+syn.toFixed(2)+"</span>":"");
+    h+="<div class='row' style='flex-wrap:wrap'><div class='av'>"+n.ico+"</div><div class='info'><div class='n'>"+co.name+" <span class='tag'>"+n.name+"</span>"+badges+"</div><div class='m'>"+co.employees.length+" func · op "+Math.round(co.ops)+"/100</div><div class='bar' style='max-width:220px'><i style='width:"+Math.round(co.ops)+"%'></i></div></div><div class='side'><div class='big' style='color:var(--gold)'>"+money(val)+"</div><div style='color:"+(prof>=0?"var(--green)":"var(--red)")+"'>"+(prof>=0?"+":"")+money(prof)+"/dia</div></div>"+
+      "<div style='flex-basis:100%;display:flex;gap:8px;margin-top:9px;flex-wrap:wrap'><button class='btn ghost small' onclick=\"__op('"+co.id+"')\">📈 Tocar operação (-3⚡)</button>"+
+      (co.managed?"":"<button class='btn ghost small' onclick=\"__manage('"+co.id+"')\">🧑‍✈️ Contratar gerente</button>")+
+      (val>=500000&&!co.public?"<button class='btn ghost small' onclick=\"__ipo('"+co.id+"')\">📊 IPO</button>":"")+
+      "<button class='btn ghost small' onclick=\"__sell('"+co.id+"')\">🏷️ Vender</button></div></div>";});
   modal("💼","Negócios","",null);$("panel").querySelector('.body').innerHTML=h;
 }
 window.__found=()=>{
@@ -1355,9 +1431,6 @@ function foundCompany(id,cost){const n=NICHES.find(x=>x.id===id);S.cash-=cost;
   const co={id:"co"+Date.now()+ri(0,999),name:coName(n),niche:id,baseRev:base,ops:42,scale:1,employees:[],overhead:Math.round(base*0.3),age:0};
   S.companies.push(co);S.founded++;S.stress=clamp(S.stress+6,0,100);
   log("🏢 Você fundou "+co.name+" ("+n.name+"). -"+money(cost));toast("Empresa fundada: "+co.name);checkPhase();save();refreshHUD();openBusiness();}
-function coName(n){const a=["Nova","Apex","Vertex","Lumen","Iron","Atlas","Meridian","Cobalt","Halcyon","Orion","Vanta","Praxis","Zenith"];
-  const b={tech:["Labs","AI","Soft","Stack","Systems"],real:["Group","Works","Industries","Logistics","Build"],soft:["Media","Health","Studio","House"]};
-  return pick(a)+" "+pick(b[n.family]);}
 window.__hire=()=>{
   if(S.energy<3)return toast("Sem energia para entrevistar hoje.");
   const cands=[genPerson(true),genPerson(true),genPerson(true)];
@@ -1375,6 +1448,40 @@ window.__sell=id=>{const co=S.companies.find(c=>c.id===id);if(!co)return;const v
   modal("🏷️","Vender "+co.name,"<p>Comprador-IA avalia em <b style='color:var(--gold)'>"+moneyFull(v)+"</b>.</p>",[
     {t:"✅ Vender por "+moneyFull(v),d:"Exit.",fn:()=>{S.cash+=v;S.companies=S.companies.filter(c=>c.id!==id);log("Você vendeu a "+co.name+" por "+money(v)+".");toast("Exit: "+money(v));checkPhase();save();refreshHUD();openBusiness();}},
     {t:"↩ Manter",d:"",fn:openBusiness}]);};
+/* ---- M&A: adquirir concorrente-IA (crescer por aquisição) ---- */
+function doAcquire(r){
+  if(!S.rivals)S.rivals=[];const idx=S.rivals.indexOf(r);if(idx<0)return null;
+  const price=Math.round(r.value*1.35);if(S.cash<price)return null;
+  S.cash-=price;const n=NICHES.find(x=>x.id===r.niche);
+  const co={id:"co"+Date.now()+ri(0,999),name:r.name,niche:r.niche,
+    baseRev:rnd(n.base[0],n.base[1])*(1+r.value/250000),ops:55,scale:1+r.value/400000,
+    employees:[],overhead:0,age:30,acquired:true};
+  co.overhead=Math.round(coRevenue(co)*0.32);
+  for(let k=0;k<ri(2,5);k++){const e=genPerson(true);e.fam=n.family;co.employees.push(e);} // equipe herdada
+  S.companies.push(co);S.rivals.splice(idx,1);S.rep.market=clamp(S.rep.market+3,0,100);S.founded++;S.acquisitions=(S.acquisitions||0)+1;
+  return co;}
+window.__acquire=id=>{const r=(S.rivals||[]).find(x=>x.id===id);if(!r)return;const price=Math.round(r.value*1.35);
+  modal("🦈","Adquirir "+r.name,"<p>A <b>"+r.name+"</b> vale ~"+money(r.value)+". Comprá-la custa <b style='color:var(--gold)'>"+moneyFull(price)+"</b> (prêmio de aquisição). Vira sua — com receita e equipe.</p><p class='small dim'>Caixa: <b style='color:var(--green)'>"+moneyFull(S.cash)+"</b></p>",[
+    {t:(S.cash>=price?"✅ Adquirir por "+moneyFull(price):"⚠ Caixa insuficiente"),d:"M&A — a fantasia shark.",disabled:S.cash<price,fn:()=>{const co=doAcquire(r);if(co){log("🦈 Aquisição! Você comprou a "+co.name+" por "+money(price)+". Integre bem — ou destrua valor.");toast("Adquirida: "+co.name);checkPhase();save();refreshHUD();openPhone('market');}else toast("Caixa insuficiente");}},
+    {t:"↩ Voltar",d:"",fn:()=>openPhone('market')}]);};
+/* ---- delegação: contratar gerente (a operação para de decair) ---- */
+window.__manage=id=>{const co=S.companies.find(c=>c.id===id);if(!co||co.managed)return;
+  const sal=Math.round(80+coRevenue(co)*0.12);
+  const mgr=genPerson(true);mgr.role="Gerente Geral";mgr.fam="any";mgr.salary=sal;mgr.competence=Math.max(mgr.competence,68);mgr.isManager=true;
+  co.employees.push(mgr);co.managed=true;S.hires++;
+  log("🧑‍✈️ "+mgr.name+" assumiu como gerente da "+co.name+". A operação para de decair sozinha — você ganhou tempo.");
+  toast("Gerente contratado");save();refreshHUD();openBusiness();};
+/* ---- IPO: abrir capital na Meridian Exchange ---- */
+function doIPO(co){ // mutação isolada (testável); retorna o valor captado
+  if(!co||co.public)return 0;const raise=Math.round(coValue(co)*1.4);
+  S.cash+=raise;co.public=true;co.scale*=0.9;S.rep.market=clamp(S.rep.market+5,0,100);S.rep.public=clamp(S.rep.public+8,0,100);S.ipos=(S.ipos||0)+1;
+  return raise;}
+window.__ipo=id=>{const co=S.companies.find(c=>c.id===id);if(!co||co.public)return;
+  const val=coValue(co);if(val<500000)return toast("Empresa pequena demais para IPO (mín. "+money(500000)+").");
+  const raise=Math.round(val*1.4);
+  modal("📊","Abrir capital — "+co.name,"<p>Levar a <b>"+co.name+"</b> à bolsa (Meridian Exchange) capta <b style='color:var(--gold)'>"+moneyFull(raise)+"</b> agora. Em troca: diluição e escrutínio público.</p>",[
+    {t:"📈 Fazer o IPO ("+moneyFull(raise)+")",d:"Caixa massivo + reputação.",fn:()=>{const got=doIPO(co);log("📊 "+co.name+" abriu capital na Meridian Exchange! Captou "+money(got)+". Você tocou o sino.");toast("IPO! +"+money(got));checkPhase();save();refreshHUD();openBusiness();}},
+    {t:"↩ Ainda não",d:"",fn:openBusiness}]);};
 
 /* --- networking --- */
 function openNetwork(p){
@@ -1410,11 +1517,18 @@ function renderPhoneTab(){const el=$("ptab");if(!el)return;let h="";
     [["market","Mercado"],["talent","Como chefe"],["public","Pública"]].forEach(([k,l])=>h+="<div style='margin-bottom:8px'><div class='small' style='display:flex;justify-content:space-between'><span>"+l+"</span><span class='dim'>"+Math.round(S.rep[k])+"</span></div><div class='bar'><i style='width:"+S.rep[k]+"%;background:linear-gradient(90deg,#5aa9f0,#7fc0ff)'></i></div></div>");
   } else if(phoneTab==='empire'){
     if(!S.companies.length)h="<div class='empty'>Sem empresas. Vá ao The Foundry (marcador azul) para fundar uma.</div>";
-    else S.companies.forEach(co=>{const n=NICHES.find(x=>x.id===co.niche);const prof=coProfit(co),val=coValue(co);
-      h+="<div class='row'><div class='av'>"+n.ico+"</div><div class='info'><div class='n'>"+co.name+"</div><div class='m'>"+co.employees.length+" func · op "+Math.round(co.ops)+"</div></div><div class='side'><div class='big' style='color:var(--gold)'>"+money(val)+"</div><div style='color:"+(prof>=0?"var(--green)":"var(--red)")+"'>"+(prof>=0?"+":"")+money(prof)+"/d</div></div></div>";});
+    else S.companies.forEach(co=>{const n=NICHES.find(x=>x.id===co.niche);const prof=coProfit(co),val=coValue(co);const syn=coSynergy(co);
+      const badges=(co.managed?" <span class='tag'>🧑‍✈️</span>":"")+(co.public?" <span class='tag'>📊</span>":"")+(syn>1.001?" <span class='tag' style='color:var(--gold)'>×"+syn.toFixed(2)+"</span>":"");
+      h+="<div class='row'><div class='av'>"+n.ico+"</div><div class='info'><div class='n'>"+co.name+badges+"</div><div class='m'>"+co.employees.length+" func · op "+Math.round(co.ops)+"</div></div><div class='side'><div class='big' style='color:var(--gold)'>"+money(val)+"</div><div style='color:"+(prof>=0?"var(--green)":"var(--red)")+"'>"+(prof>=0?"+":"")+money(prof)+"/d</div></div></div>";});
   } else if(phoneTab==='market'){
     const m=S.market;h+="<div class='kpis'>"+kpi("Ciclo",m.cycle.toUpperCase(),m.cycle==="recessão"?"var(--red)":m.cycle==="aquecido"?"var(--green)":"var(--gold)")+kpi("Multiplicador","×"+m.mult.toFixed(2))+kpi("Juros",m.rate.toFixed(1)+"%")+kpi("Humor",m.mood>.2?"otimista":m.mood<-.2?"pessimista":"neutro")+"</div>";
     h+="<div class='small muted'>O mercado vive sozinho. Recessão derruba receita e valuations; boom premia coragem.</div>";
+    h+="<div class='small dim' style='margin:12px 0 4px'>🦈 Alvos de aquisição (M&A)</div>";
+    h+="<div class='small muted' style='margin-bottom:8px'>Concorrentes-IA vivem sozinhas: crescem, quebram, surgem. Compre uma para crescer por aquisição — vem com receita e equipe.</div>";
+    const rivals=(S.rivals||[]).slice().sort((a,b)=>b.value-a.value);
+    if(!rivals.length)h+="<div class='empty'>Nenhuma concorrente no radar agora.</div>";
+    else rivals.forEach(r=>{const n=NICHES.find(x=>x.id===r.niche);const price=Math.round(r.value*1.35);
+      h+="<div class='row'><div class='av'>"+n.ico+"</div><div class='info'><div class='n'>"+r.name+" <span class='tag'>"+n.name+"</span></div><div class='m'>valuation "+money(r.value)+" · aquisição ~"+money(price)+"</div></div><div class='side'><button class='btn ghost small' onclick=\"__acquire('"+r.id+"')\">🦈 Adquirir</button></div></div>";});
   } else if(phoneTab==='rede'){
     if(!S.contacts.length)h="<div class='empty'>Você ainda não converteu ninguém em contato fixo.<br>Aborde as pessoas com anel dourado na cidade (tecla E).</div>";
     else S.contacts.forEach((c,i)=>h+="<div class='row'><div class='av'>"+c.name[0]+"</div><div class='info'><div class='n'>"+c.name+"</div><div class='m'>"+c.role+" · "+relLabel(c.rel)+"</div></div><div class='side'><div class='big'>"+Math.round(c.rel)+"</div></div></div>");
@@ -1473,7 +1587,9 @@ function animate(){
 /* ============================ BOOT ============================ */
 function boot(){
   const saved=load();
-  if(saved&&!saved.over){S=saved;S.name=S.name||"Você";}
+  if(saved&&!saved.over){S=saved;S.name=S.name||"Você";
+    if(!S.rivals){S.rivals=[];for(let i=0;i<4;i++)S.rivals.push(genRival());} // migração: save antigo sem M&A
+  }
   else{newGame();S.name="Você";}
   initThree();
   try{newObjective();}catch(e){console.error('objective',e);}

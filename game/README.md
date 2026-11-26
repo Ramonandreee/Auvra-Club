@@ -1,4 +1,4 @@
-# MOGUL — Protótipo Jogável (Vertical Slice)
+# Auvra Club — Protótipo Jogável (Vertical Slice)
 
 > O "feel + economy prototype" do Ano 1 do [plano de produção](../docs/11-PRODUCTION-PLAN.md), jogável no navegador, sem dependências.
 
@@ -38,7 +38,7 @@ Este é o protótipo de *sistemas e sensação*, não o jogo AAA final. **Não**
 - **Stack:** HTML/CSS/JS puro, arquivo único, zero dependências, zero build.
 - **Balanceamento:** a economia foi afinada por **simulação headless** (centenas de dias rodados sem render, caçando instabilidades) — o "headless econ sim" de [10-Tech](../docs/10-TECHNICAL-ARCHITECTURE.md) §4.
 - **Qualidade:** as rotas de UI (render, modais, eventos, game over) foram validadas por testes automatizados de fumaça.
-- **API de teste:** a lógica é exposta em `window.MOGUL` (inclui hooks `_*` para simulação), permitindo dirigir o jogo por script.
+- **API de teste:** a lógica é exposta em `window.BizSim` (inclui hooks `_*` para simulação), permitindo dirigir o jogo por script.
 
 ## Sistemas de Escala/Influência (implementados)
 - **M&A jogável** — concorrentes-IA vivem no Mercado (crescem, quebram, surgem); **adquira-os** pagando um prêmio (a fantasia *shark*). Aba **Mercado → 🦈 Adquirir**.

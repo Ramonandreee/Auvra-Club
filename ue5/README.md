@@ -1,4 +1,6 @@
-# MOGUL — Scaffold do projeto Unreal Engine 5.6
+# Auvra Club — Scaffold do projeto Unreal Engine 5.6
+
+> **Nome:** o jogo se chama **Auvra Club**. `MOGUL` aparece aqui só como **identificador técnico** do módulo/projeto C++ (`MOGUL.uproject`, `Source/MOGUL/`, classes `Mogul*`) — renomear exigiria migrar redirects do Unreal, então fica assim de propósito.
 
 > O **ponto de partida de engine** descrito no [doc 10](../docs/10-TECHNICAL-ARCHITECTURE.md). Não é o jogo pronto — é o **esqueleto real, abrível no editor**, com a arquitetura do GDD e a economia já validada portada para C++.
 

@@ -1,13 +1,13 @@
 # 03 — Gameplay Design: Core Loops, Meta Loops & Progression
 
-> *Project ATLAS / MOGUL — Bíblia de Pré-Produção*
+> *Auvra Club (codinome Project ATLAS) — Bíblia de Pré-Produção*
 > Documento 03 de 12 · Confidencial
 
 ---
 
 ## 1. Filosofia de Loop
 
-MOGUL é uma cebola de loops aninhados. Cada loop alimenta o de cima. O jogador deve sentir progresso em **todas** as escalas de tempo simultaneamente — do minuto à década.
+Auvra Club é uma cebola de loops aninhados. Cada loop alimenta o de cima. O jogador deve sentir progresso em **todas** as escalas de tempo simultaneamente — do minuto à década.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -30,7 +30,7 @@ MOGUL é uma cebola de loops aninhados. Cada loop alimenta o de cima. O jogador 
 ## 2. Os Cinco Loops Detalhados
 
 ### 2.1 Moment Loop (segundos) — "A Interação"
-A unidade atômica de MOGUL. Toda a fantasia se reduz, no menor nível, a **interações significativas**: uma conversa, uma negociação, uma decisão, uma observação.
+A unidade atômica de Auvra Club. Toda a fantasia se reduz, no menor nível, a **interações significativas**: uma conversa, uma negociação, uma decisão, uma observação.
 
 `Perceber → Avaliar → Agir → Reagir (o mundo responde) → Consequência imediata`
 
@@ -105,7 +105,7 @@ Crescem com uso/prática e via educação/mentoria. Afetam a eficácia de açõe
 - **Tempo** — o recurso mais escasso; a economia central do jogo é a **economia da atenção do jogador**.
 - **Felicidade / Realização** — métrica pessoal que tensiona contra a ganância (você pode ser bilionário e miserável — e o jogo *mostra* isso).
 
-> **Tensão de design intencional:** o jogo te empurra a sacrificar saúde/relações/felicidade por crescimento. Mas as consequências disso são reais e visíveis. MOGUL não diz "isso é errado" — ele **mostra o custo** e deixa o jogador escolher que tipo de magnata quer ser.
+> **Tensão de design intencional:** o jogo te empurra a sacrificar saúde/relações/felicidade por crescimento. Mas as consequências disso são reais e visíveis. Auvra Club não diz "isso é errado" — ele **mostra o custo** e deixa o jogador escolher que tipo de magnata quer ser.
 
 ### 4.3 Habilidades & estilo de jogo (arquétipos emergentes)
 Não há "classes". O estilo emerge de como o jogador investe atributos e tempo. Arquétipos que o sistema reconhece e premia diferentemente:
@@ -118,7 +118,7 @@ Não há "classes". O estilo emerge de como o jogador investe atributos e tempo.
 
 ## 5. Estilos de Vitória (múltiplas fantasias de poder)
 
-MOGUL não tem uma "tela de vitória". Tem **estados aspiracionais** que o jogador persegue (ver Endgame em [01-Vision](01-PRODUCT-VISION.md) §3 e §6 aqui):
+Auvra Club não tem uma "tela de vitória". Tem **estados aspiracionais** que o jogador persegue (ver Endgame em [01-Vision](01-PRODUCT-VISION.md) §3 e §6 aqui):
 
 - **Magnata setorial** — dominar um setor inteiro.
 - **Investidor global / Shark investor** — viver de capital, não de operar.
@@ -156,7 +156,7 @@ Ao "passar o bastão", o jogador inicia um novo personagem (filho/protegido/nova
 
 ## 8. Economia da Atenção do Jogador (o meta-recurso)
 
-O recurso mais escasso de MOGUL não é dinheiro — é a **atenção/tempo do jogador**. Todo o jogo é uma alocação dessa atenção:
+O recurso mais escasso de Auvra Club não é dinheiro — é a **atenção/tempo do jogador**. Todo o jogo é uma alocação dessa atenção:
 
 - Cedo: o jogador faz quase tudo pessoalmente (alta imersão, baixo escopo).
 - Tarde: o jogador comanda um império vasto demais para tocar pessoalmente; **delegar para gerentes-IA confiáveis** é a habilidade-mestra do endgame.

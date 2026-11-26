@@ -1,6 +1,6 @@
 # 12 — Business Plan & Live Operations
 
-> *Project ATLAS / MOGUL — Bíblia de Pré-Produção*
+> *Auvra Club (codinome Project ATLAS) — Bíblia de Pré-Produção*
 > Documento 12 de 12 · Confidencial
 > *Inclui: Revenue Model, Monetization, Risk Analysis, Post-Launch Plan, Expansion Packs, DLC Strategy, Five-Year Product Vision*
 
@@ -8,7 +8,7 @@
 
 ## 1. Filosofia de Negócio
 
-> **MOGUL é um produto premium e um serviço de longo prazo — mas nunca um jogo predatório. A monetização segue a mesma regra do design: ela só existe se *aumentar* a fantasia de império, nunca se a explorar.**
+> **Auvra Club é um produto premium e um serviço de longo prazo — mas nunca um jogo predatório. A monetização segue a mesma regra do design: ela só existe se *aumentar* a fantasia de império, nunca se a explorar.**
 
 Três princípios:
 1. **Premium primeiro, serviço depois.** O jogador paga por um jogo completo e excelente. A camada de serviço é *aditiva e opcional*, não um pré-requisito para se divertir.
@@ -25,7 +25,7 @@ Três princípios:
 | **Expansões** | Grandes pacotes (novos setores, cidades, mecânicas) | Pago (~USD 25–40) | 2/ano pós-lançamento |
 | **DLC menor / Content Packs** | Pacotes temáticos focados | Pago (~USD 8–15) | Frequente |
 | **Cosméticos** | Imóveis, veículos, roupas, arte de escritório, skins de marca | Microtransação (não-P2W) | Loja rotativa |
-| **MOGUL+ (assinatura opcional)** | Saves expandidos, mundos online persistentes, perks cosméticos, acesso antecipado | Recorrente (opcional) | Pós-lançamento |
+| **Auvra+ (assinatura opcional)** | Saves expandidos, mundos online persistentes, perks cosméticos, acesso antecipado | Recorrente (opcional) | Pós-lançamento |
 | **Creator economy (longo prazo)** | UGC marketplace com revenue share | Take rate | Visão 5 anos |
 
 ### 2.2 Por que esse mix
@@ -51,7 +51,7 @@ Três princípios:
 | Base game (vendas contínuas + edições) | ~USD 550M |
 | Expansões (10 grandes ao longo de 5 anos) | ~USD 300M |
 | DLC menor + cosméticos | ~USD 180M |
-| Assinatura MOGUL+ | ~USD 90M |
+| Assinatura Auvra+ | ~USD 90M |
 | **Total 5 anos** | **~USD 1,1B** |
 
 ### 3.3 Break-even & ROI
@@ -65,7 +65,7 @@ Três princípios:
   - Preferência por **SLM on-device** (custo marginal ≈ 0).
   - Cloud LLM só em "momentos importantes", com **orçamento de tokens por sessão** e caching.
   - Fallback determinístico (custo 0) sempre disponível.
-  - **MOGUL+** ajuda a cobrir o custo de jogadores "heavy AI".
+  - **Auvra+** ajuda a cobrir o custo de jogadores "heavy AI".
 - **Meta:** custo de IA por jogador/mês mantido numa fração pequena da receita média por usuário, monitorado como KPI de margem desde o beta.
 
 ## 4. Go-To-Market & Marketing (~USD 90M)
@@ -96,7 +96,7 @@ Três princípios:
 | R5 | **Custo/latência/qualidade de LLM inviabiliza os agentes** | Alta | Média | Arquitetura híbrida (on-device+cloud+fallback); IA como enhancement, não dependência ([07](07-NPC-AI-ARCHITECTURE.md) §4, [10](10-TECHNICAL-ARCHITECTURE.md) §5) |
 | R6 | **Performance** — densidade + agentes + sim não cabem no console (esp. Series S) | Alta | Média | LOD triplo (geo/sim/cognição); budget por distrito; regeneração determinística ([10](10-TECHNICAL-ARCHITECTURE.md)) |
 | R7 | **Saves enormes/corrompidos** em runs de centenas de horas | Média | Média | Compactação de memória; regeneração por seed; serialização versionada; saves atômicos ([10](10-TECHNICAL-ARCHITECTURE.md) §7) |
-| R8 | **Custo operacional de IA corrói margem** | Alta | Média | Unit economics §3.4; on-device first; MOGUL+; KPI de margem |
+| R8 | **Custo operacional de IA corrói margem** | Alta | Média | Unit economics §3.4; on-device first; Auvra+; KPI de margem |
 
 ### 5.3 Riscos de mercado/negócio
 | # | Risco | Sev. | Prob. | Mitigação |
@@ -115,7 +115,7 @@ Três princípios:
 
 ## 6. Post-Launch Plan (Live Operations)
 
-> O lançamento é o **começo**, não o fim. MOGUL é um serviço de longo prazo (modelo Paradox/CDPR: o jogo de 5 anos depois é muito maior que o de lançamento).
+> O lançamento é o **começo**, não o fim. Auvra Club é um serviço de longo prazo (modelo Paradox/CDPR: o jogo de 5 anos depois é muito maior que o de lançamento).
 
 ### 6.1 Cadência de Live Ops
 - **Patches de estabilidade** (semanas 1–8): qualidade pós-lançamento massivo.
@@ -150,7 +150,7 @@ DLC **expande a fantasia**, nunca a recorta para revender. Três tamanhos:
 ## 8. KPIs & Métricas de Sucesso (Live)
 - **Aquisição:** unidades vendidas, CAC, conversão de wishlist/beta.
 - **Engajamento:** DAU/MAU, sessões, tempo de sessão, profundidade de progressão (quantos chegam à Fase 4–5), retenção D1/D7/D30/D90.
-- **Monetização:** ARPU/ARPPU, attach rate de DLC, conversão de MOGUL+, LTV.
+- **Monetização:** ARPU/ARPPU, attach rate de DLC, conversão de Auvra+, LTV.
 - **Margem:** **custo de IA por usuário** (KPI crítico — §3.4), custo de infra/usuário.
 - **Saúde do produto:** sentiment/review score, churn, NPS, histórias emergentes compartilhadas (proxy do moat).
 
@@ -159,7 +159,7 @@ DLC **expande a fantasia**, nunca a recorta para revender. Três tamanhos:
 > **A ambição não é lançar um jogo. É criar — e ser dono de — uma categoria e uma plataforma.**
 
 ### Fase A — Estabelecer (Ano 1 pós-lançamento)
-Provar o serviço: estabilizar, entregar as primeiras grandes expansões, consolidar a comunidade, validar unit economics de IA. **Meta:** MOGUL reconhecido como *o* AAA life-business sim.
+Provar o serviço: estabilizar, entregar as primeiras grandes expansões, consolidar a comunidade, validar unit economics de IA. **Meta:** Auvra Club reconhecido como *o* AAA life-business sim.
 
 ### Fase B — Expandir (Anos 2–3 pós)
 - **Go Global:** novas cidades jogáveis (Meridian vira a primeira de um *mundo*).
@@ -169,11 +169,11 @@ Provar o serviço: estabilizar, entregar as primeiras grandes expansões, consol
 
 ### Fase C — Plataformizar (Anos 4–5 pós)
 - **Creator Economy / UGC:** ferramentas para a comunidade criar nichos, cenários, conteúdo — com **marketplace e revenue share**. O conteúdo passa a escalar para além do estúdio (o efeito-rede que torna o moat permanente — [02-Market](02-MARKET-ANALYSIS.md)).
-- **MOGUL como marca/IP:** potencial transmídia (a fantasia de magnata tem alcance além do jogo); franquia de longo prazo.
+- **Auvra Club como marca/IP:** potencial transmídia (a fantasia de magnata tem alcance além do jogo); franquia de longo prazo.
 - **A simulação como ativo:** a stack de agentes + economia é, ela mesma, tecnologia valiosa e reusável (sequências, novos títulos, licenciamento).
 
 ### A estrela-guia de 5 anos
-> Que, daqui a cinco anos, **"jogar MOGUL"** seja sinônimo da fantasia de construir um império — como *The Sims* é sinônimo de simular uma vida — sustentado por uma comunidade que cria, compete e compartilha histórias que nenhum outro jogo consegue gerar.
+> Que, daqui a cinco anos, **"jogar Auvra Club"** seja sinônimo da fantasia de construir um império — como *The Sims* é sinônimo de simular uma vida — sustentado por uma comunidade que cria, compete e compartilha histórias que nenhum outro jogo consegue gerar.
 
 ---
 

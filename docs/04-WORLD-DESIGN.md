@@ -1,6 +1,6 @@
 # 04 — World Design: Meridian City
 
-> *Project ATLAS / MOGUL — Bíblia de Pré-Produção*
+> *Auvra Club (codinome Project ATLAS) — Bíblia de Pré-Produção*
 > Documento 04 de 12 · Confidencial
 
 ---

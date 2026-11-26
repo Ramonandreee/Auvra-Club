@@ -1,13 +1,13 @@
 # 05 — Economy & Financial Systems
 
-> *Project ATLAS / MOGUL — Bíblia de Pré-Produção*
+> *Auvra Club (codinome Project ATLAS) — Bíblia de Pré-Produção*
 > Documento 05 de 12 · Confidencial
 
 ---
 
 ## 1. Filosofia Econômica
 
-> **A economia de MOGUL é um organismo, não um placar. Ela tem ciclos, humores e memória — e nunca está esperando o jogador.**
+> **A economia de Auvra Club é um organismo, não um placar. Ela tem ciclos, humores e memória — e nunca está esperando o jogador.**
 
 Três princípios governam o design econômico:
 
