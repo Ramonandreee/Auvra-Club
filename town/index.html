@@ -228,10 +228,16 @@
     margin-right:calc(var(--s2) + var(--sr));overflow:hidden
   }
   .avatar-view{position:relative;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;touch-action:none}
-  .avatar-view .view-mode{
-    position:absolute;bottom:var(--s2);left:var(--s2);background:var(--glass2);padding:0 var(--s2);
-    border:1px solid var(--line);border-radius:var(--r-sm)
+  .avatar-view .view-mode,.avatar-view .view-motion{
+    position:absolute;left:var(--s2);background:var(--glass2);padding:0 var(--s2);
+    border:1px solid var(--control-line);border-radius:var(--r-sm);font-size:12px
   }
+  .avatar-view .view-mode{bottom:var(--s2)}
+  .avatar-view .view-motion{
+    top:var(--s2);min-height:var(--touch);max-width:calc(100% - 2 * var(--s2));
+    color:var(--cream);color-scheme:dark;cursor:pointer;touch-action:manipulation
+  }
+  .view-motion:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
   .avatar-editor{
     min-width:0;min-height:0;background:var(--glass2);border:1px solid var(--line);
     border-radius:var(--r-lg);display:flex;flex-direction:column;padding:var(--s2);gap:var(--s1)
@@ -1961,7 +1967,15 @@ function avatarLook(){
     top:PAL.top[AVATAR.top]??PAL.top[0],pants:PAL.pants[AVATAR.pants]??PAL.pants[0]};
   return {...AVATAR,...colors,tie:0xc9a24a};
 }
-let avatarTab='Corpo', avatarUndo=[], preview=null, previewAngle=.14, previewClose=null;
+const PREVIEW_MOTIONS={
+  idle:{label:'Parado',speed:0},
+  walk:{label:'Caminhada',speed:2.4},
+  run:{label:'Corrida',speed:6.2}
+};
+let avatarTab='Corpo', avatarUndo=[], preview=null, previewAngle=.14, previewClose=null, previewMotion='idle';
+function previewFace(){
+  return previewClose??(previewMotion==='idle'&&(avatarTab==='Rosto'||avatarTab==='Cabelo'));
+}
 const previewScene=new THREE.Scene(), previewCamera=new THREE.PerspectiveCamera(35,1,.05,20);
 previewScene.background=new THREE.Color(0x192431);
 previewScene.add(new THREE.HemisphereLight(0xf8f2e8,0x637898,2.15));
@@ -1969,15 +1983,18 @@ const portraitKey=new THREE.DirectionalLight(0xffe0b5,2.2);
 portraitKey.position.set(-2,3,4);previewScene.add(portraitKey);
 const portraitFill=new THREE.DirectionalLight(0xc0deff,1.25);
 portraitFill.position.set(3,2,1);previewScene.add(portraitFill);
+const previewFloor=new THREE.Mesh(new THREE.CircleGeometry(.83,36),new THREE.MeshBasicMaterial({color:0x243140}));
+previewFloor.rotation.x=-Math.PI/2;previewFloor.position.y=-.012;previewScene.add(previewFloor);
 
 function rebuildHero(){
   if(heroMesh){scene.remove(heroMesh);disposePerson(heroMesh);}
   heroMesh=buildPerson(avatarLook());scene.add(heroMesh);
   if(hero){heroMesh.position.set(M(hero.x),0,M(hero.y));heroMesh.rotation.y=hero.heading||0;}
-  releasePreview();
+  if(preview)setPersonLook(preview,avatarLook());
 }
 function releasePreview(){
   if(preview){previewScene.remove(preview);disposePerson(preview);preview=null;}
+  previewMotion='idle';previewClose=null;
 }
 function drawPreview(dt){
   const view=document.querySelector('.avatar-view');
@@ -1986,14 +2003,18 @@ function drawPreview(dt){
     preview=buildPerson(avatarLook());personLOD(preview,0);previewScene.add(preview);
   }
   const r=view.getBoundingClientRect();
-  const face=previewClose??(avatarTab==='Rosto'||avatarTab==='Cabelo');
+  const face=previewFace();
+  previewFloor.visible=!face;
+  const speed=PREVIEW_MOTIONS[previewMotion].speed;
   const h=preview.scale.y, target=(face?1.657:.90)*h;
-  const dist=(face?Math.max(1,r.height/r.width*.69)*.71:3.27)*h;
+  const bodyDist=speed?3.68:3.27;
+  const dist=(face?Math.max(1,r.height/r.width*.69)*.71:bodyDist)*h;
   previewCamera.aspect=r.width/r.height;previewCamera.updateProjectionMatrix();
   previewCamera.position.set(0,target+(face?.012:.12),dist);
   previewCamera.lookAt(0,target,0);
   preview.rotation.y=previewAngle;
-  if(!reduceMotion.matches)animPerson(preview,0,dt);
+  // Reduced motion disables ambient movement. A requested preview still plays.
+  if(!reduceMotion.matches||speed||preview.userData.gaitSpeed>.005)animPerson(preview,speed,dt);
   renderer.setViewport(0,0,innerWidth,innerHeight);
   renderer.setClearColor(0x080c12);renderer.clear();
   renderer.setViewport(r.left+1,innerHeight-r.bottom+1,r.width-2,r.height-2);
@@ -2150,7 +2171,7 @@ function setupInput(){document.querySelectorAll('#speed button[data-s]').forEach
   const up=e=>{const had=ptrs.delete(e.pointerId);if(!had)return;if(ptrs.size===0){pinch=0;if(moved<8&&performance.now()-downT<450)onTap(e.clientX,e.clientY);setTimeout(()=>dragCam=false,50);}};
   cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
   cv.addEventListener('wheel',e=>{e.preventDefault();CAM.dist=cl(CAM.dist*(e.deltaY>0?1.1:0.9),3,22);},{passive:false});
-  addEventListener('keydown',e=>{if(e.target?.matches('input,textarea,button')&&e.key!=='Escape')return;const k=e.key.toLowerCase();keys[k]=true;
+  addEventListener('keydown',e=>{if(e.target?.matches('input,textarea,button,select')&&e.key!=='Escape')return;const k=e.key.toLowerCase();keys[k]=true;
     if(k==='escape'){if(modalOpen())closeModal();else if(placing)cancelPlacing();else if(started)menuOpen?closeMenu():openMenu('home');}
     else if(!started||menuOpen)return;else if(k===' '){e.preventDefault();setSpeed(S.speed?0:1);}else if(k==='1')setSpeed(1);else if(k==='2')setSpeed(2);else if(k==='3')setSpeed(4);else if(k==='e'||k==='enter')doInteract();});
   addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});addEventListener('blur',()=>{keys={};});
@@ -2178,18 +2199,19 @@ function modalOpen(){return !!document.getElementById('scrim');}
 function afterDay3d(){HIST.push({d:S.day,n:Math.round(netWorth()),c:Math.round(S.cash)});if(HIST.length>400)HIST.splice(0,HIST.length-400);
   if(S.phase!==lastPhase){lastPhase=S.phase;paintGround();paintMiniBase();if(placing){paintOverlay();}}}
 function frame(now){const dt=Math.min((now-last)/1000,0.05);last=now;
-  try{const running=started&&!S.over&&S.speed>0&&!modalOpen()&&!menuOpen;
+  try{
+    if(CAM.mode==='avatar'&&drawPreview(dt))return;
+    const running=started&&!S.over&&S.speed>0&&!modalOpen()&&!menuOpen;
     if(running){dayAcc+=dt*S.speed;if(dayAcc>=DAY_SEC){dayAcc-=DAY_SEC;endDay();afterDay3d();}if(SETTINGS.cycle)tod=(tod+dt*S.speed/(DAY_SEC*16))%1;}
     if(!SETTINGS.cycle)tod=0.4;
     const dp=document.getElementById('dayProg');if(dp)dp.style.width=(dayAcc/DAY_SEC*100)+'%';
     updateWorkers(dt);updateHero(dt);updateTraffic(dt);updateCrowd(dt);updateNPCs(dt);updateSteam(dt);syncBuildings();updateGhost();updateCamera(dt);updateLighting();updateInteract();
-    if(CAM.mode!=='avatar'||!drawPreview(dt)){
-      if(SETTINGS.quality==='media'&&now-lastShadow>=125){sun.shadow.needsUpdate=true;lastShadow=now;}
-      updatePersonLODs();renderer.render(scene,camera);
-    }
-    if(started&&!menuOpen)drawMini(dt);}
-  catch(e){console.error(e);}
-  requestAnimationFrame(frame);}
+    if(SETTINGS.quality==='media'&&now-lastShadow>=125){sun.shadow.needsUpdate=true;lastShadow=now;}
+    updatePersonLODs();renderer.render(scene,camera);
+    if(started&&!menuOpen)drawMini(dt);
+  }catch(e){console.error(e);}
+  finally{requestAnimationFrame(frame);}
+}
 /* ============================ DISTRITO (expande por fase) ============================ */
 const UNLOCK_R=[0,10,15,21,28,99]; // raio (tiles) a partir da esquina Wall x Broad
 function tileUnlocked(x,y){if(!WORLD||!started)return true;const r=UNLOCK_R[S.phase]||99;return Math.max(Math.abs(x-WORLD.cxA-0.5),Math.abs(y-WORLD.cyA-0.5))<=r+0.5;}
@@ -2648,7 +2670,10 @@ function avatarOptions(){
   }).join('');
 }
 function characterHTML(){
-  return '<div class="avatar-view" aria-label="Prévia do personagem. Arraste para girar."><button class="view-mode" id="pView">Aproximar</button></div>'+
+  return '<div class="avatar-view" role="group" aria-label="Prévia do personagem. Arraste para girar.">'+
+    '<select class="view-motion" id="pMotion" aria-label="Movimento do personagem">'+
+    Object.entries(PREVIEW_MOTIONS).map(([mode,{label}])=>'<option value="'+mode+'">'+label+'</option>').join('')+
+    '</select><button type="button" class="view-mode" id="pView">Aproximar</button></div>'+
     '<section class="avatar-editor"><h1 class="ph1">Seu personagem</h1><input type="text" id="pName" aria-label="Nome do personagem" maxlength="24" placeholder="Nome do personagem" value="'+esc(AVATAR.name||'')+'">'+
     '<div class="avatar-tabs" role="tablist" aria-label="Categorias">'+AVATAR_TABS.map((tab,i)=>
       '<button role="tab" id="pTab'+i+'" aria-controls="pOptions" aria-selected="'+(tab===avatarTab)+'" data-tab="'+tab+'">'+tab+'</button>').join('')+
@@ -2664,7 +2689,8 @@ function bindCharacter(){
   };
   const change=()=>{saveAvatar();rebuildHero();};
   function refreshView(){
-    const close=previewClose??(avatarTab==='Rosto'||avatarTab==='Cabelo');
+    const close=previewFace();
+    $('pMotion').value=previewMotion;
     $('pView').textContent=close?'Corpo inteiro':'Aproximar';
     $('pView').setAttribute('aria-pressed',close);
   }
@@ -2732,12 +2758,15 @@ function bindCharacter(){
     if(!avatarUndo.length)$('pRandom').focus();
   };
   $('pView').onclick=()=>{
-    previewClose=!(previewClose??(avatarTab==='Rosto'||avatarTab==='Cabelo'));refreshView();
+    previewClose=!previewFace();refreshView();
+  };
+  $('pMotion').onchange=e=>{
+    previewMotion=e.target.value;previewClose=null;refreshView();
   };
   const view=document.querySelector('.avatar-view');
   let dragX=0;
   view.onpointerdown=e=>{
-    if(!e.isPrimary||e.target.closest('button'))return;
+    if(!e.isPrimary||e.target.closest('button,select'))return;
     dragX=e.clientX;view.setPointerCapture(e.pointerId);
   };
   view.onpointermove=e=>{
