@@ -11,7 +11,7 @@ ambição AAA. O repositório contém **duas coisas**:
 
 1. **A bíblia de design** (`docs/`) — especificação de pré-produção completa (13 documentos + glossário).
 2. **Protótipos jogáveis** — provas de conceito que rodam no navegador (publicados na Vercel a partir do `index.html` da raiz):
-   - `town/index.html` — **JOGO PRINCIPAL**: distrito 2D pixel art + multiplayer (Supabase). Ver `town/README.md`.
+   - `town/index.html` — **O JOGO**: Wall Street em 3D, terceira pessoa, celular na horizontal + multiplayer (Supabase). A raiz `index.html` redireciona para cá. Ver `town/README.md`.
    - `world/index.html` — Meridian City em 3D (Three.js via CDN) — *referência, single-player*.
    - `game/index.html` — protótipo de sistemas 2D (offline) — *referência, single-player*.
 
@@ -22,8 +22,8 @@ ambição AAA. O repositório contém **duas coisas**:
 
 ```
 README.md              Índice mestre + fatos canônicos
-index.html             Página inicial (deploy na Vercel, estático, sem build)
-town/                  JOGO PRINCIPAL: distrito 2D + multiplayer (+ town/README.md)
+index.html             Redireciona para town/ (deploy na Vercel, estático, sem build)
+town/                  O JOGO: Wall Street 3D + multiplayer + PWA (+ town/README.md)
 supabase/schema.sql    Backend multiplayer: tabelas, RLS e RPCs (aplicar no SQL Editor)
 tools/sim-town.js      Simulação headless permanente da economia do town/
 docs/00..12            A bíblia (visão, mercado, gameplay, mundo, economia, negócios,
