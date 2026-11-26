@@ -33,8 +33,8 @@ do repo privado). Co-desenvolvimento real continua sendo via PRs.
 | Passo | Convenção |
 |------|-----------|
 | **Branch** | `feature/<assunto>`, `fix/<assunto>` ou `claude/<assunto>`. Uma branch por tarefa. |
-| **Commits** | Descritivos (PT-BR ok). Prefixos: `docs:`, `feat(game):`, `feat(world):`, `fix:`, `chore:`. |
-| **Validação** | Mudou protótipo? Rode os checks (ver abaixo) **antes** do push. |
+| **Commits** | Descritivos (PT-BR ok). Prefixos: `docs:`, `feat(town):`, `fix:`, `chore:`. |
+| **Validação** | Mudou o jogo (`town/`)? Rode os checks (ver abaixo) **antes** do push. |
 | **PR** | Use o template. Descreva o que muda, qual pilar serve, e o que foi validado. |
 | **Review** | Pelo menos uma revisão antes do merge. Resolva comentários por commits na mesma branch. |
 | **Merge** | Squash & merge na default branch. Apague a branch depois. |
@@ -43,11 +43,12 @@ do repo privado). Co-desenvolvimento real continua sendo via PRs.
 
 ## Validação local (resumo — detalhes em [CLAUDE.md](CLAUDE.md))
 
-Para mudanças em `game/` ou `world/`:
+Para mudanças em `town/` (o jogo):
 
-1. **Sintaxe** — `node --check` no script extraído (`.mjs` para o mundo 3D).
-2. **Economia headless** — rodar centenas de dias simulados: sem exceções, progride pelas 5 fases, falência possível mas não garantida.
-3. **UI smoke test** — stub de DOM exercitando render/modais/eventos sem lançar.
+1. **Sintaxe** — `node --check` no módulo extraído (`.mjs`) e em `town/sw.js`.
+2. **Economia headless** — `node tools/sim-town.js 200 700`: sem exceções, progride pelas 5 fases, falência possível mas não garantida.
+3. **UI smoke test** — Playwright com celular emulado na horizontal (menu, jogar, construir, painéis, recarregar) sem erros de console.
+4. **Backend** — mudou `supabase/schema.sql`? Teste RLS/RPC antes do push.
 
 Use o diretório scratchpad da sua sessão para harnesses temporários — **não comite** arquivos de teste.
 

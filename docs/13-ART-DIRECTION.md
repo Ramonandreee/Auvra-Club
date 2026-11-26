@@ -25,15 +25,15 @@ Bússola estética (em ordem de prioridade):
 
 | Camada | Onde vive | Teto de qualidade realista |
 |--------|-----------|-----------------------------|
-| **UI / HUD / menus** | Protótipos `game/` e `world/` (HTML/CSS) | **AAA de verdade já agora** — design system premium completo (§3) |
-| **Mundo 3D no protótipo** | `world/` (Three.js/WebGL) | Estilizado-realista; tone mapping, bloom, env reflections, fog, materiais PBR-ish. **Não** é fotorrealismo |
-| **Fotorrealismo pleno** | Produção **UE5.6** (`ue5/`) — ver [doc 10](10-TECHNICAL-ARCHITECTURE.md), [doc 11](11-PRODUCTION-PLAN.md) | MetaHuman, Nanite, Lumen/GI, vegetação por folha, materiais PBR completos |
+| **UI / HUD / menus** | O jogo web `town/` (HTML/CSS) | **AAA de verdade já agora** — design system premium completo (§3) |
+| **Mundo 3D jogável hoje** | `town/` — Wall Street (Three.js/WebGL) | Estilizado-realista; tone mapping, bloom, env reflections, fog, materiais PBR-ish. **Não** é fotorrealismo |
+| **Fotorrealismo pleno** | Produção futura em **UE5.6** — ver [doc 10](10-TECHNICAL-ARCHITECTURE.md), [doc 11](11-PRODUCTION-PLAN.md) | MetaHuman, Nanite, Lumen/GI, vegetação por folha, materiais PBR completos |
 
 > Fotorrealismo "indistinguível de uma foto" é a **produção em engine** (Lumen GI, ray tracing, MetaHumans, Nanite, vegetação procedural). Este documento define a **direção** que essa produção persegue, e o **design system** que já elevamos na UI dos protótipos.
 
 ## 3. Design System (UI) — a linguagem única
 
-Aplicado de forma idêntica em `game/` e no HUD de `world/`. Tudo deriva de **design tokens**; nada tem medida arbitrária.
+Aplicado no HUD e nos menus do jogo (`town/`). Tudo deriva de **design tokens**; nada tem medida arbitrária.
 
 ### 3.1 Grid & espaçamento
 - **Base 8px.** Escala: 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64.
