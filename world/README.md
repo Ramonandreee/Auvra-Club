@@ -1,4 +1,6 @@
-# Auvra Club — Meridian City (mundo 3D navegável)
+# Auvra Club — Meridian City (mundo 3D navegável) · *protótipo de referência*
+
+> ⚠️ **Histórico:** este protótipo é anterior à decisão de nov/2026 que trocou a cidade fictícia Meridian por **Nova York, a partir de Wall Street** ([04-World](../docs/04-WORLD-DESIGN.md)). O jogo atual é o [`town/`](../town/README.md). Os nomes abaixo (Meridian, MeridianOS, Sterling Heights) são da versão antiga.
 
 > Uma fatia jogável da Meridian City do [World Design](../docs/04-WORLD-DESIGN.md), em primeira pessoa, no navegador. A camada "presença física / Pilar I" do GDD, tornada real e caminhável.
 

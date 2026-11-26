@@ -40,17 +40,17 @@ Esta é a **tensão de design mais difícil de Auvra Club**. A resposta é uma f
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 3.1 Camada 2 — O "MeridianOS" (o hub diegético)
-O dispositivo central do jogador é um **smartphone/tablet in-fiction ("MeridianOS")** — a metáfora perfeita: todo empresário moderno comanda do telefone, então um hub baseado em apps é *diegético por natureza*.
+### 3.1 Camada 2 — O "AuvraOS" (o hub diegético)
+O dispositivo central do jogador é um **smartphone/tablet in-fiction ("AuvraOS")** — a metáfora perfeita: todo empresário moderno comanda do telefone, então um hub baseado em apps é *diegético por natureza*.
 
-Apps do MeridianOS (cada um é um sistema):
+Apps do AuvraOS (cada um é um sistema):
 | App | Função | Sistema |
 |-----|--------|---------|
 | **Mensagens** | Comunicação com contatos/agentes; deals por texto | [07-AI](07-NPC-AI-ARCHITECTURE.md) |
 | **Contatos / Rede** | Seu grafo social, relações, follow-ups | [07-Networking](07-NPC-AI-ARCHITECTURE.md) §5 |
 | **Empresas** | Painel resumido das suas empresas (resumo do CFO-IA) | [06-Business](06-BUSINESS-SYSTEMS.md) |
 | **Banco / Finanças** | Patrimônio, contas, crédito, transferências | [05-Economy](05-ECONOMY-DESIGN.md) §7 |
-| **Mercado (MerEx)** | Ações, investimentos, trading | [05-Economy](05-ECONOMY-DESIGN.md) §8 |
+| **Mercado (a Bolsa)** | Ações, investimentos, trading | [05-Economy](05-ECONOMY-DESIGN.md) §8 |
 | **Notícias** | Mídia-IA: o mundo, rivais, sua reputação | [05](05-ECONOMY-DESIGN.md), [07](07-NPC-AI-ARCHITECTURE.md) |
 | **Imobiliária** | Buscar/gerir imóveis | [08-Assets](08-ASSETS-SYSTEMS.md) |
 | **Agenda** | O Daily Loop: tempo, compromissos, eventos | [03-Gameplay](03-GAMEPLAY-DESIGN.md) §2.2 |
@@ -74,7 +74,7 @@ Cada fluxo segue o mandamento: **toda ação significativa é uma cena vivida, n
 ### 4.1 Fluxo: Contratar um funcionário
 ```
 Identificar necessidade (CFO/RH-IA sinaliza ou jogador decide)
-  → Abrir vagas / acionar headhunter (MeridianOS)
+  → Abrir vagas / acionar headhunter (AuvraOS)
   → Receber candidatos (agentes gerados/recrutados)
   → ENTREVISTA (cena diegética): conversar, ler sinais, avaliar fit
   → Negociar oferta (salário, equity, condições) — minigame social
@@ -105,7 +105,7 @@ Resumido em [06-Business](06-BUSINESS-SYSTEMS.md) §6.1; em UX é uma **sequênc
 
 ### 4.5 Fluxo: O Daily Loop
 ```
-Acordar (no seu imóvel atual — status visível) → checar MeridianOS (mensagens/news/mercado)
+Acordar (no seu imóvel atual — status visível) → checar AuvraOS (mensagens/news/mercado)
   → revisar Agenda → sair para o mundo → executar blocos do dia
   → eventos imprevistos (chamadas, encontros) → fechar o dia (descanso/lazer/trabalho extra)
 ```
@@ -136,7 +136,7 @@ Auvra Club é projetado para acessibilidade de padrão AAA (requisito, não opci
 ## 8. Direção de Arte de UI
 
 - **Linguagem visual:** premium, limpa, "fintech de luxo encontra editorial de revista de negócios". Tipografia forte, espaço negativo, micro-animações satisfatórias, materiais (vidro, metal, ouro como acento).
-- **Evolução com a fantasia:** a própria UI **amadurece** com o jogador — o MeridianOS na Fase 1 é básico; na Fase 5, é um cockpit de comando de império, refletindo a ascensão.
+- **Evolução com a fantasia:** a própria UI **amadurece** com o jogador — o AuvraOS na Fase 1 é básico; na Fase 5, é um cockpit de comando de império, refletindo a ascensão.
 - **Identidade sonora:** UX sound design premium (cada interação tem um som "caro" e satisfatório — parte da fantasia de luxo).
 - **Captura/replay:** ferramentas de foto/clip de qualidade (serve a persona criador de conteúdo — [02-Market](02-MARKET-ANALYSIS.md) — e o marketing orgânico).
 

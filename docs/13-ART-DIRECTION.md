@@ -83,8 +83,9 @@ Aceleração/desaceleração natural, peso e transferência de massa, movimento 
 ### 4.5 Veículos
 Interior modelado, painel, bancos com costuras, cintos, volante, espelhos, suspensão funcional, pneus/freios/discos/pinças, pintura multicamadas, reflexos, sujeira dinâmica e desgaste progressivo. Cada categoria com identidade própria; nada genérico.
 
-### 4.6 Cidade (metrópole viva)
+### 4.6 Cidade (Nova York viva, a partir de Wall Street)
 Fachadas únicas (sem repetição perceptível), vitrines e interiores visíveis com luz interna, letreiros/placas, semáforos, postes, cabos, lixeiras, bancos, hidrantes, caixas elétricas, bueiros, calçadas detalhadas, ciclovias, sinalização horizontal, vegetação urbana. Cada região conta uma história: financeiro, comercial, residencial, industrial, portuário, rural — coerentes com [doc 04](04-WORLD-DESIGN.md).
+**Assinatura de Nova York (obrigatória):** cânions de calcário e vidro da Wall Street, marcos fiéis (Trinity, Federal Hall, a Bolsa, 40 Wall…), táxis amarelos, caixas d'água de madeira nos telhados, escadas de incêndio nos prédios de tijolo, entradas de metrô com globos verdes, chaminés de vapor listradas no asfalto, placas verdes de esquina, balizadores de segurança. **Sem marcas reais** em fachadas e letreiros (ver [04](04-WORLD-DESIGN.md) §1).
 
 ### 4.7 Vegetação
 Árvores completas (galhos, folhas individuais, variação), arbustos, flores, capim; vento, sombras próprias, subsurface (luz atravessando folhas); compatível com o bioma da região.

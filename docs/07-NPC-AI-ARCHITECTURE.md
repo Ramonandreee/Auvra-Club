@@ -8,7 +8,7 @@
 
 ## 1. A Tese de IA
 
-> **Não queremos NPCs. Queremos agentes. Cada pessoa importante em Meridian é uma mente persistente: com personalidade, memória de anos, objetivos próprios e a capacidade de agir no mundo independentemente do jogador.**
+> **Não queremos NPCs. Queremos agentes. Cada pessoa importante em Nova York é uma mente persistente: com personalidade, memória de anos, objetivos próprios e a capacidade de agir no mundo independentemente do jogador.**
 
 Este é o maior **moat tecnológico** de Auvra Club (ver [02-Market](02-MARKET-ANALYSIS.md)). A diferença entre um "NPC" tradicional e um "agente" Auvra Club:
 
@@ -23,7 +23,7 @@ Este é o maior **moat tecnológico** de Auvra Club (ver [02-Market](02-MARKET-A
 
 ## 2. O Desafio Central: Escala vs. Profundidade
 
-Não é viável (custo/latência/performance) rodar uma "mente de IA pesada" para cada um dos milhares de habitantes de Meridian. A solução é uma **arquitetura de IA em camadas de profundidade (LOD de cognição)** — gastamos cognição onde importa.
+Não é viável (custo/latência/performance) rodar uma "mente de IA pesada" para cada um dos milhares de habitantes de Nova York. A solução é uma **arquitetura de IA em camadas de profundidade (LOD de cognição)** — gastamos cognição onde importa.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -154,7 +154,7 @@ Você não sabe tudo sobre um contato de cara. Informação é **revelada por re
 - Todas as relações vivem num **grafo social global** conectando jogador, agentes e empresas.
 - **Conexões indiretas importam:** "amigo de amigo" — você pode pedir a um contato que te **apresente** a alguém (introductions são uma mecânica-chave; quem você conhece define quem você *pode* conhecer).
 - **Capital social** é um recurso: favores devidos/a receber, força e qualidade da rede. A rede tem valor mensurável e estratégico.
-- **Círculos & gatekeeping:** acesso a certos círculos (ex.: o Apex Club em Goldhaven — [04-World](04-WORLD-DESIGN.md)) é gated por reputação e por *quem te apresenta*.
+- **Círculos & gatekeeping:** acesso a certos círculos (ex.: o Apex Club no Upper East Side — [04-World](04-WORLD-DESIGN.md)) é gated por reputação e por *quem te apresenta*.
 
 ### 5.5 Tipos de relação
 Conhecidos → Contatos → Aliados → Sócios/Parceiros → Mentores/Protegidos → Rivais → Inimigos. Cada tipo tem dinâmica e benefícios/riscos próprios, e pode **evoluir ou degradar** com base em ações e memória ([§3.3]).

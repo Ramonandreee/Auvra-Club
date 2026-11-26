@@ -27,7 +27,7 @@
 | Economia viva: ciclos boom/recessão, juros, multiplicador de mercado | [05-Economy](../docs/05-ECONOMY-DESIGN.md) |
 | Status físico: apartamento e carro mudam como o mundo te trata | [08-Assets](../docs/08-ASSETS-SYSTEMS.md) |
 | Eventos com escolhas e consequências (aquisição, roubo de talento, imprensa…) | [05](../docs/05-ECONOMY-DESIGN.md), [07](../docs/07-NPC-AI-ARCHITECTURE.md) |
-| Interface diegética (MeridianOS-like), patrimônio sentido | [09-UX/UI](../docs/09-UX-UI.md) |
+| Interface diegética (AuvraOS-like), patrimônio sentido | [09-UX/UI](../docs/09-UX-UI.md) |
 
 ## O que **ainda não** está aqui (é um protótipo)
 
@@ -43,12 +43,12 @@ Este é o protótipo de *sistemas e sensação*, não o jogo AAA final. **Não**
 ## Sistemas de Escala/Influência (implementados)
 - **M&A jogável** — concorrentes-IA vivem no Mercado (crescem, quebram, surgem); **adquira-os** pagando um prêmio (a fantasia *shark*). Aba **Mercado → 🦈 Adquirir**.
 - **Gerentes-IA / delegação** — contrate um gerente para uma empresa e a operação **para de decair sozinha** (a "economia da atenção" do endgame — [03](../docs/03-GAMEPLAY-DESIGN.md) §8). Aba **Império → 🧑‍✈️**.
-- **IPO / mercado de capitais** — abra o capital de uma empresa grande (>500k) na MerEx para uma injeção massiva de caixa + reputação ([05](../docs/05-ECONOMY-DESIGN.md) §8). Aba **Império → 📊 IPO**.
+- **IPO / mercado de capitais** — abra o capital de uma empresa grande (>500k) na Bolsa para uma injeção massiva de caixa + reputação ([05](../docs/05-ECONOMY-DESIGN.md) §8). Aba **Império → 📊 IPO**.
 - **Sinergia de conglomerado** — quanto mais empresas (e mais na mesma família), maior o bônus de receita ([06](../docs/06-BUSINESS-SYSTEMS.md) §7).
 
 ## Roadmap curto (próximos passos)
 - Mais profundidade por setor (mecânicas próprias reais, não só parâmetros).
 - Integração de holdings explícitas e conselhos/sócios.
-- Mapa visual dos distritos de Meridian (já existe a versão 3D em [`../world`](../world)).
+- Mapa visual das regiões de Nova York (já existe a versão 3D em [`../world`](../world)).
 
 *Divirta-se construindo seu império. 🏙️*

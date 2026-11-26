@@ -7,7 +7,7 @@
 
 ## 1. O Pitch em uma frase
 
-> **Auvra Club é "Grand Theft Auto encontra um simulador econômico da Paradox, povoado por NPCs com cérebro de IA" — um RPG de vida empresarial em mundo aberto onde você começa falido num apartamento apertado e tenta construir, em décadas de tempo de jogo, um império de negócios numa metrópole global viva que existe com ou sem você.**
+> **Auvra Club é "Grand Theft Auto encontra um simulador econômico da Paradox, povoado por NPCs com cérebro de IA" — um RPG de vida empresarial em mundo aberto onde você começa falido num apartamento apertado e tenta construir, em décadas de tempo de jogo, um império de negócios em **Nova York** — começando em **Wall Street** — uma cidade viva que existe com ou sem você.**
 
 ## 2. O Pitch em um parágrafo
 

@@ -33,8 +33,8 @@ Imóveis cumprem **quatro papéis** simultâneos, e o design os mantém entrela�
 | **Vender / Flipar** | Realizar lucro de valorização | Mercado imobiliário, timing de ciclo |
 
 ### 2.2 O mercado imobiliário (dinâmico)
-- Preços por **localização** ([04-World](04-WORLD-DESIGN.md): um andar em Sterling Heights ≠ um galpão em Ironside), **tipo**, **estado** e **ciclo econômico** ([05](05-ECONOMY-DESIGN.md)).
-- **Valorização/desvalorização** reais: gentrificação (você pode *causá-la* comprando e reformando uma área de Ironside/Boroughs), boom/bolha imobiliária, recessão.
+- Preços por **localização** ([04-World](04-WORLD-DESIGN.md): um andar na Wall Street ≠ um galpão no Brooklyn Waterfront), **tipo**, **estado** e **ciclo econômico** ([05](05-ECONOMY-DESIGN.md)).
+- **Valorização/desvalorização** reais: gentrificação (você pode *causá-la* comprando e reformando uma área do Brooklyn Waterfront/Boroughs), boom/bolha imobiliária, recessão.
 - **Renda de aluguel** como fluxo passivo (a base do arquétipo "rentista"/investidor imobiliário).
 - **Incorporação** como negócio (construir para vender/alugar — ver setor Imobiliário/Construção em [06](06-BUSINESS-SYSTEMS.md)).
 
@@ -42,8 +42,8 @@ Imóveis cumprem **quatro papéis** simultâneos, e o design os mantém entrela�
 O lugar onde você mora é o **termômetro emocional** mais imediato da sua ascensão:
 
 ```
-Quarto/apê minúsculo (Boroughs)  →  apê melhor  →  casa  →
-loft no Grid  →  cobertura  →  mansão em Goldhaven  →  múltiplas residências globais
+Quarto/apê minúsculo (Queens)  →  apê melhor  →  casa  →
+loft em Silicon Alley  →  cobertura  →  casa no Upper East Side / Hamptons  →  múltiplas residências globais
 ```
 
 > Voltar ao apartamento inicial depois de rico é um dos momentos emocionais mais potentes planejados ([04-World](04-WORLD-DESIGN.md) §3.5). O "antes e depois" é design deliberado.
@@ -58,9 +58,9 @@ A evolução do espaço de trabalho **é** a narrativa visual do sucesso:
 | Fase | Espaço | O que o jogador vê |
 |------|--------|--------------------|
 | **1. Sobrevivência** | Mesa no quarto / um PC velho | Solidão, aperto, o computador antigo |
-| **2. Crescimento** | Mesa em coworking → 1ª sala alugada (The Grid) | Os primeiros 2-3 funcionários, a primeira recepção |
+| **2. Crescimento** | Mesa em coworking → 1ª sala alugada (Silicon Alley) | Os primeiros 2-3 funcionários, a primeira recepção |
 | **3. Escala** | Andar próprio, várias equipes | Open space cheio, salas de reunião, áreas, recepção com sua marca |
-| **4. Influência** | Sede corporativa (Sterling Heights), múltiplos andares | Lobby imponente, sua sala no topo, conselho |
+| **4. Influência** | Sede corporativa (torre em Wall Street), múltiplos andares | Lobby imponente, sua sala no topo, conselho |
 | **5. Legado** | HQ-ícone na skyline + campi globais | Um prédio com seu nome; seu logo na cidade |
 
 ### 3.2 O escritório como espaço vivo
@@ -73,7 +73,7 @@ Ao caminhar pelo escritório, o jogador **vê e sente** a empresa:
 
 ### 3.3 Escritório como sistema (não só cenário)
 - **Capacidade** — o espaço limita quantos funcionários cabem; crescer exige expandir/mudar (gancho do loop de escala — [03](03-GAMEPLAY-DESIGN.md)).
-- **Localização** — endereço afeta custo, prestígio, atração de talento e acesso (estar em Sterling impressiona investidores; The Grid atrai talento tech).
+- **Localização** — endereço afeta custo, prestígio, atração de talento e acesso (estar em Wall Street impressiona investidores; Silicon Alley atrai talento tech).
 - **Layout & amenities** — investimentos que afetam produtividade, moral, retenção e status (afetam reputação com funcionários — [07](07-NPC-AI-ARCHITECTURE.md) §6).
 - **Branding do espaço** — sua marca visível no ambiente (reforça reputação de marca — [06](06-BUSINESS-SYSTEMS.md) §9).
 - **Personalização** — do funcional ao ostentatório; ganchos cosméticos premium ([12](12-BUSINESS-PLAN.md)).
@@ -115,7 +115,7 @@ Status Percebido = f(endereço, veículo, vestuário, companhia,
 
 - **Lido pelos agentes** para modular interações sociais e de negócios ([07](07-NPC-AI-ARCHITECTURE.md) §5).
 - **Diegético:** nunca mostrado como "número de status" cru; é *sentido* via como o mundo te trata (ver [09-UX-UI](09-UX-UI.md)).
-- **Contextual:** o status "certo" varia por círculo (ostentação funciona em Goldhaven; em The Grid, autenticidade tech pode valer mais).
+- **Contextual:** o status "certo" varia por círculo (ostentação funciona no Upper East Side; em Silicon Alley, autenticidade tech pode valer mais).
 - **Tensão:** investir em status consome capital que poderia ir para o negócio — uma escolha estratégica real, não vaidade gratuita.
 
 ## 6. Conexões de Produção
