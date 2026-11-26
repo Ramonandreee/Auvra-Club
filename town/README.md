@@ -47,7 +47,7 @@ história real; a **Bolsa** abre o pregão (Mercado) e o **23 Wall** abre o banc
 
 Controles (celular): **joystick** à esquerda anda (na borda = corre) · **arrastar** a tela gira a
 câmera · **pinça** = zoom · tocar num prédio/pessoa/chão = ir até lá · **botão dourado** à direita =
-entrar / conversar / conhecer. No computador: **WASD/setas**, mouse arrasta a câmera, roda = zoom,
+entrar / conversar / conhecer. No computador: **WASD/setas** andam, **Shift** corre, mouse arrasta a câmera, roda = zoom,
 **E** interage, **Espaço** pausa, **1/2/3** velocidade, **Esc** abre o menu. O tempo **pausa** com
 menu ou painel aberto.
 
@@ -81,7 +81,8 @@ histerese na troca. A malha usa uma chamada de desenho no passe principal por pe
 O marcador de contato precisa de uma chamada adicional quando está visível.
 
 Na caminhada e na corrida, joelhos e tornozelos acompanham uma trajetória de apoio e
-retorno. A passada do protagonista usa o deslocamento realizado no mundo, incluindo
+retorno. Na caminhada, o calcanhar toca primeiro, o pé assenta e a ponta termina o apoio.
+A passada do protagonista usa o deslocamento realizado no mundo, incluindo
 quando ele desliza ao longo de uma parede ou para diante de um obstáculo.
 
 Em **Roupa**, **Aplicar visual da fase** sugere uma combinação coerente com a progressão.

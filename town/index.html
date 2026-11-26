@@ -1657,14 +1657,22 @@ const THIGH_LENGTH=BONES[BI.thL][3]-BONES[BI.shL][3];
 const SHIN_LENGTH=BONES[BI.shL][3]-BONES[BI.footL][3];
 const ANKLE_HEIGHT=BONES[BI.footL][3]-.013;
 const MAX_LEG_REACH=THIGH_LENGTH+SHIN_LENGTH-.006;
-function gaitFoot(cycle,stance,distance,lift,stride){
+function gaitFoot(cycle,stance,distance,lift,stride,run){
+  const support=cl(cycle/stance,0,1);
   const swing=cl((cycle-stance)/(1-stance),0,1);
   const returnProgress=swing*swing*(3-2*swing);
-  const roll=-.25*stride*Math.sin(2*Math.PI*swing);
-  const soleClearance=roll>=0?.145*Math.sin(roll):-.065*Math.sin(roll);
+  const heelStrike=-.16*(1-sstep(0,.19,support));
+  const toeOff=.24*sstep(.77,1,support);
+  const walkRoll=cycle<stance?heelStrike+toeOff:lerp(.24,-.16,sstep(0,.78,swing));
+  const runRoll=-.25*Math.sin(2*Math.PI*swing);
+  const roll=lerp(walkRoll,runRoll,run)*stride;
+  // Keeping the sole pivot on the ground prevents heel and toe roll from dragging the shoe.
+  const pivot=roll>=0?.134:-.049;
+  const sine=Math.sin(roll),cosine=Math.cos(roll);
+  const pivotShift=(ANKLE_HEIGHT*sine+pivot*(1-cosine))*(1-run);
   return {
-    z:distance*(stance*.5-cycle+returnProgress),
-    y:ANKLE_HEIGHT+lift*Math.sin(Math.PI*swing)**2+soleClearance,
+    z:distance*(stance*.5-cycle+returnProgress)+pivotShift,
+    y:ANKLE_HEIGHT*cosine+pivot*sine+lift*Math.sin(Math.PI*swing)**2,
     roll
   };
 }
@@ -1683,34 +1691,37 @@ function animPerson(g,movementSpeed,dt,dialog=false){
   const {acc}=data.look,t=data.t+=dt;
   // World speed is in metres/s. The pose is solved in the avatar's unscaled space.
   data.gaitSpeed+=(movementSpeed/g.scale.y-data.gaitSpeed)*(1-Math.exp(-dt*14));
-  const speed=data.gaitSpeed,run=sstep(2.5,6.2,speed),stride=sstep(.05,1.45,speed);
-  const cadence=lerp(.75,1.38,sstep(.1,2.5,speed))+run*.72;
+  const speed=data.gaitSpeed,run=sstep(2.4,6.2,speed),stride=sstep(.04,.85,speed);
+  const walkCadence=.60+.47*sstep(.20,1.45,speed)+.61*sstep(1.25,2.55,speed);
+  const cadence=lerp(walkCadence,1.38+run*.72,run);
   data.gaitPhase=(data.gaitPhase+dt*cadence*stride)%1;
-  const cycle=data.gaitPhase,phase=cycle*2*Math.PI,swing=Math.sin(phase)*stride;
-  const stance=lerp(.63,.36,run),distance=speed/cadence,lift=(.085+run*.125)*stride;
-  const feet=[gaitFoot(cycle,stance,distance,lift,stride),gaitFoot((cycle+.5)%1,stance,distance,lift,stride)];
+  const cycle=data.gaitPhase,phase=cycle*2*Math.PI;
+  const swing=lerp(Math.cos(phase-.27),Math.sin(phase),run)*stride;
+  const stance=lerp(.62,.36,run),distance=speed/cadence,lift=lerp(.050,.210,run)*stride;
+  const feet=[gaitFoot(cycle,stance,distance,lift,stride,run),gaitFoot((cycle+.5)%1,stance,distance,lift,stride,run)];
   const yaw=g.rotation.y,turn=data.lastYaw===null?0:Math.atan2(Math.sin(yaw-data.lastYaw),Math.cos(yaw-data.lastYaw));
   data.lastYaw=yaw;
   const set=(bone,axis,v)=>{bone.rotation[axis]+=(v-bone.rotation[axis])*k;};
   const drink=acc==='coffee'&&!movementSpeed&&!dialog?sstep(.66,.78,Math.sin(t*.7)):0;
   const phone=acc==='phone'&&!dialog?1:0;
   const speak=dialog?sstep(.04,.82,Math.sin(t*2.4))*.83:0;
-  const bob=(Math.abs(Math.cos(phase))-.5)*(.025+run*.060)*stride;
+  const bob=lerp(-.010*Math.cos(2*phase-.55), (Math.abs(Math.cos(phase))-.5)*.085,run)*stride;
   // Lower the pelvis at long strides so neither boot is pulled off its path.
   const heightLimit=foot=>foot.y+.01+Math.sqrt(Math.max(.10,MAX_LEG_REACH**2-foot.z**2));
-  R.hips.position.y=Math.min(.895+bob-.050*run, heightLimit(feet[0]),heightLimit(feet[1]));
-  set(R.spine,'x',run*.20+stride*.04);
-  set(R.spine,'z',cl(turn*2,-.20,.20)*stride);
-  set(R.chest,'y',-swing*.16);set(R.chest,'x',Math.sin(t*1.8)*.019);
-  set(R.head,'y',Math.sin(t*.49)*.22*(1-stride)+phone*.12);
+  R.hips.position.y=Math.min(.902+bob-.057*run, heightLimit(feet[0]),heightLimit(feet[1]));
+  set(R.spine,'x',run*.20+stride*.018);
+  set(R.spine,'z',cl(turn*2,-.20,.20)*stride+Math.sin(phase-.45)*.027*stride*(1-run));
+  set(R.chest,'y',-swing*lerp(.12,.16,run));set(R.chest,'x',Math.sin(t*1.8)*.019);
+  set(R.head,'y',Math.sin(t*.49)*.22*(1-stride)+swing*.043*(1-run)+phone*.12);
   set(R.head,'x',drink*.23-phone*.09+speak*Math.sin(t*6)*.10);
   set(R.jaw,'x',Math.max(phone*.40,speak)*(Math.sin(t*14)*.070+.080));
   for(const [i,side] of ['L','R'].entries()){
     const s=i*2-1,right=s===1,gesture=right?Math.max(phone,drink):speak*.74;
     poseLeg(R,side,feet[i]);
-    set(R['ua'+side],'x',lerp(-s*swing*(.40+run*.29),-.43,gesture));
-    set(R['ua'+side],'z',-s*(.08+gesture*.28));
-    set(R['fa'+side],'x',lerp(-.12-stride*(.24+run*.46),right?-1.74:-1.28,gesture));
+    set(R['ua'+side],'x',lerp(-s*swing*lerp(.25,.69,run),-.43,gesture));
+    set(R['ua'+side],'z',-s*(.045+run*.035+gesture*.28));
+    const walkElbow=.075+Math.max(0,s*swing)*.12;
+    set(R['fa'+side],'x',lerp(-.12-stride*lerp(walkElbow,.70,run),right?-1.74:-1.28,gesture));
     set(R['hand'+side],'x',gesture*.18);
     set(R['fingers'+side],'x',right&&acc?-.27:-.08);
     const eye=R['eye'+side],glance=Math.sin(t*.87)*.004;
@@ -1969,7 +1980,7 @@ function avatarLook(){
 }
 const PREVIEW_MOTIONS={
   idle:{label:'Parado',speed:0},
-  walk:{label:'Caminhada',speed:2.4},
+  walk:{label:'Caminhada',speed:1.50},
   run:{label:'Corrida',speed:6.2}
 };
 let avatarTab='Corpo', avatarUndo=[], preview=null, previewAngle=.14, previewClose=null, previewMotion='idle';
@@ -2062,10 +2073,13 @@ let joy={x:0,y:0,id:null}, keys={}, dragCam=false;
 function makeHero(x,y){hero={x,y,tx:x,ty:y,moving:false,heading:Math.PI,onArrive:null,auto:false,stuck:0};if(heroMesh){heroMesh.position.set(M(x),0,M(y));}}
 function goTo(x,y,cb){if(!hero)return cb&&cb();if(Math.hypot(hero.x-x,hero.y-y)<30){hero.auto=false;return cb&&cb();}hero.tx=x;hero.ty=y;hero.onArrive=cb||null;hero.auto=true;hero.stuck=0;}
 function updateHero(dt){if(!hero||!heroMesh)return;let vx=0,vz=0,spd=0;const canMove=started&&!menuOpen&&!modalOpen();
-  let ix=joy.x+((keys.d||keys.arrowright)?1:0)-((keys.a||keys.arrowleft)?1:0),iy=joy.y+((keys.s||keys.arrowdown)?1:0)-((keys.w||keys.arrowup)?1:0);
+  const keyX=((keys.d||keys.arrowright)?1:0)-((keys.a||keys.arrowleft)?1:0);
+  const keyY=((keys.s||keys.arrowdown)?1:0)-((keys.w||keys.arrowup)?1:0);
+  const ix=joy.x+keyX,iy=joy.y+keyY;
   const mag=Math.min(1,Math.hypot(ix,iy));
   if(canMove&&mag>0.08){hero.auto=false;hero.onArrive=null;const fx=-Math.sin(CAM.yaw),fz=-Math.cos(CAM.yaw),rx=-fz,rz=fx;
-    vx=(rx*ix-fx*iy);vz=(rz*ix-fz*iy);const l=Math.hypot(vx,vz)||1;vx/=l;vz/=l;spd=(mag>0.75?6.2:2.4)*Math.max(0.35,mag);
+    vx=(rx*ix-fx*iy);vz=(rz*ix-fz*iy);const l=Math.hypot(vx,vz)||1;vx/=l;vz/=l;
+    spd=keyX||keyY?(keys.shift?6.2:1.9):lerp(2.4*mag,6.2,sstep(.70,1,mag));
     if(placing)placeManual=null;
     if(!dragCam){const want=Math.atan2(-vx,-vz);let dy=((want-CAM.yaw+Math.PI*3)%(Math.PI*2))-Math.PI;if(Math.abs(dy)<2.6)CAM.yaw+=dy*Math.min(1,dt*0.9*mag);}}
   else if(canMove&&hero.auto){const dx=M(hero.tx-hero.x),dz=M(hero.ty-hero.y),d=Math.hypot(dx,dz);
@@ -2806,7 +2820,7 @@ function pageHTML(page){
       '<div class="mact">'+(isStandalone()?'':'<button class="mbtn" id="sInstall"><b>📲 Instalar app</b><span>Ícone na tela inicial, abre em tela cheia</span></button>')+
       (started?'<button class="mbtn" id="sSave"><b>💾 Salvar agora</b><span>Neste aparelho e na nuvem</span></button>':'')+'</div><p class="small" style="margin-top:10px">Multiplayer: '+esc(MP.status)+'</p>';}
   if(page==='help')return '<div class="ph1">❓ Como jogar</div><div class="mb">'+
-    '<p><b>Controles:</b> joystick à esquerda anda (empurre até a borda para correr) · arraste a tela para girar a câmera · pinça = zoom · toque num prédio, pessoa ou no chão para ir até lá · o botão dourado à direita entra / conversa.</p>'+
+    '<p><b>Controles:</b> joystick à esquerda anda (empurre até a borda para correr) · arraste a tela para girar a câmera · pinça = zoom · toque num prédio, pessoa ou no chão para ir até lá · o botão dourado à direita entra / conversa. No teclado, ande com WASD ou as setas e segure Shift para correr.</p>'+
     '<p><b>Começo:</b> você chega com $3k. Vá até sua ⭐ <b>sede</b> (placa dourada) e faça <b>freelas</b> até juntar caixa para fundar a 1ª empresa com <b>🔨 Construir</b> — os terrenos verdes ficam liberados.</p>'+
     '<p><b>Wall Street de verdade:</b> a <b>Bolsa</b> (colunas, bandeira) abre o pregão · o <b>23 Wall</b> é o banco · na praça em frente à Bolsa estão os contatos (anel dourado): investidora, banqueiro, mentor, cliente, headhunter.</p>'+
     '<p><b>Crescer:</b> expanda e contrate dentro de cada empresa — o prédio cresce junto. Compre concorrentes (placa vermelha), abra capital e cuidado com aquisições hostis dos amigos.</p>'+
