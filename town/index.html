@@ -969,7 +969,7 @@ addEventListener('pagehide',saveLocal);
 
 /* ============================ MULTIPLAYER (Supabase: save na nuvem, ranking, M&A entre amigos, presença e chat) ============================ */
 /* Preencha com a URL e a publishable/anon key do seu projeto Supabase (são públicas por design — a segurança vem do RLS em supabase/schema.sql). */
-const MP_CONFIG={url:'',key:''};
+const MP_CONFIG={url:'https://pfjzbfnmarywacznmxqx.supabase.co',key:'sb_publishable_ABdjfCyWQlBBxKp0pwp7Ow_uD8FydqS'};
 const MP={sb:null,uid:null,on:false,status:'offline (servidor não configurado)',online:{},chat:[],unread:0,deals:[],listings:[],board:[],ch:null,busy:false,
   configured(){return !!(MP_CONFIG.url&&MP_CONFIG.key);},
   async init(){if(!this.configured())return false;if(!(window.supabase&&window.supabase.createClient)){this.status='offline (não carregou a biblioteca de rede)';return false;}
