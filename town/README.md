@@ -30,6 +30,16 @@ Controles: toque/clique no chão = andar · num prédio/pessoa = ir até lá e i
 câmera · roda do mouse / pinça = zoom · **Espaço** pausa · **1/2/3** velocidade · **Esc** fecha ·
 📍 volta para você. O tempo **pausa** enquanto um painel está aberto.
 
+## No celular (app instalável)
+
+O `town/` é um **PWA**: `manifest.webmanifest` + `sw.js` + ícones. No jogo, **⚙️ Ajustes → 📲 Instalar app**
+(Android/Chrome abre o instalador; no iPhone mostra o passo *Compartilhar → Adicionar à Tela de Início*).
+Instalado, abre em tela cheia, respeita notch/barra de gestos e abre mesmo sem internet (save local).
+O service worker busca o HTML na rede primeiro (atualizações chegam na hora) e **nunca** faz cache das
+chamadas ao Supabase. Mudou o shell ou uma lib de CDN? Suba a versão de `CACHE` em `sw.js`.
+
+> No iPhone, o app instalado tem armazenamento separado do Safari: é outro jogador (identidade é por navegador).
+
 ## Multiplayer (opção 3: mundo compartilhado assíncrono + tempo real)
 
 | Camada | O que faz | Onde |

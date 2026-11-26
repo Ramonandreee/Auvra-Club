@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Auvra Club — Meridian</title>
+<meta name="theme-color" content="#1a140e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Auvra Club">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <!-- Three.js: usado só p/ "assar" luz/sombra 3D real nos sprites de prédio (uma vez, no carregamento).
      O jogo em si continua 100% Canvas 2D — se isto não carregar (offline/CDN fora), os prédios caem
      de volta pro desenho 2D atual automaticamente (ver bakeAllBuildingSprites no script principal). -->
@@ -91,6 +100,24 @@
   .stitle{color:var(--gold);font-weight:800;font-size:24px}.ssub{color:var(--dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-top:-6px}
   @media (max-width:640px){ .tool{width:46px;height:52px}.tool .ti{font-size:19px}.tool .tl{font-size:8.5px} .obj{display:none} .quest{top:auto;bottom:80px;max-width:calc(100vw - 172px);padding:6px 8px}.quest .q{font-size:12.5px} .hint{bottom:auto;top:128px;max-width:92vw;text-align:center} .hud-top{font-size:12px;gap:8px;max-width:calc(100vw - 204px)} .hud-day{min-width:120px;font-size:12px} .tray{flex-wrap:wrap;width:94vw;justify-content:center} .card{width:80px} }
   @media (max-height:470px){ .mini{display:none} .obj{width:210px} }
+  /* celular: barra cabe sempre na tela, HUD compacto, respeita notch e barra de gestos */
+  .chatin input{min-width:0}
+  .hud-top{top:calc(10px + env(safe-area-inset-top));left:calc(10px + env(safe-area-inset-left))}
+  .hud-day{top:calc(10px + env(safe-area-inset-top));right:calc(10px + env(safe-area-inset-right))}
+  .toolbar{bottom:calc(12px + env(safe-area-inset-bottom))}
+  @media (max-width:640px){
+    .toolbar{width:calc(100vw - 12px - env(safe-area-inset-left) - env(safe-area-inset-right));max-width:520px;gap:4px;padding:6px 5px;bottom:calc(6px + env(safe-area-inset-bottom))}
+    .tool{flex:1 1 0;min-width:0;width:auto;height:52px}.tool .tl{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .hud-top{display:grid;grid-template-columns:auto auto;column-gap:8px;row-gap:2px;font-size:12px;padding:6px 8px;max-width:calc(100vw - 168px)}
+    .hud-top .res{gap:4px}.hud-top .res .ic{width:14px;height:14px}
+    .hud-day{min-width:0;width:148px;padding:6px 8px}
+    #speed button{padding:3px 5px}
+    .quest{bottom:calc(74px + env(safe-area-inset-bottom));left:calc(8px + env(safe-area-inset-left))}
+    .mini{bottom:calc(74px + env(safe-area-inset-bottom));right:calc(8px + env(safe-area-inset-right));width:112px;height:88px}
+    .tray{bottom:calc(74px + env(safe-area-inset-bottom))}
+    .modal{max-height:calc(100dvh - 150px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+  }
+  @media (max-width:380px){ .tool .tl{font-size:7.5px} .tool .ti{font-size:17px} .hud-top{max-width:calc(100vw - 160px)} .hud-day{width:140px} .quest{max-width:calc(100vw - 140px)} }
 </style>
 </head>
 <body>
@@ -891,6 +918,7 @@ function openObjectives(){const o=currentObjective();modal('📋','Objetivos · 
   '<div class="sec">📰 NOTÍCIAS</div>'+(FEED.slice(0,12).map(f=>'<div class="small">Dia '+f.d+' · '+esc(f.h)+'</div>').join('')||'<div class="dim">Nada ainda.</div>'),[{t:'↩ Fechar',fn:closeModal}]);}
 function openSettings(){modal('⚙️','Ajustes','<p class="small">Auvra Club · distrito 2D. Atalhos: <b>Espaço</b> pausa · <b>1/2/3</b> velocidade · <b>+/−</b> ou roda do mouse = zoom · <b>Esc</b> fecha.</p><p class="small">Multiplayer: '+esc(MP.status)+'</p>',
   [{t:'🔍 Zoom +',fn:()=>setZoom(ZOOM*1.25)},{t:'🔎 Zoom −',fn:()=>setZoom(ZOOM/1.25)},
+   ...(isStandalone()?[]:[{t:'📲 Instalar app',d:'Ícone na tela inicial, tela cheia, abre até sem internet',fn:installApp}]),
    {t:'💾 Salvar agora',fn:async()=>{saveLocal();await MP.saveCloud();toast('💾 Salvo');}},
    {t:'🔄 Novo jogo',d:'Apaga o save deste aparelho e recomeça',fn:()=>modal('⚠️','Recomeçar do zero?','<p>Seu império atual será perdido.</p>',[{t:'Sim, recomeçar',fn:()=>{wipeSave();location.reload();}},{t:'Cancelar',fn:openSettings}])},
    {t:'↩ Fechar',fn:closeModal}]);}
@@ -938,9 +966,9 @@ function onTool(k,el){if(!started)return;document.querySelectorAll('.tool').forE
 function openBuildTray(){const tray=document.getElementById('tray');tray.classList.add('on');
   tray.innerHTML=BUILD.map(d=>{const no=S.cash<d.cost?' no':'';return '<div class="card'+no+'" data-t="'+d.id+'"><canvas width="56" height="56" data-spr="'+d.spr+'"></canvas><div class="cn">'+d.ic+' '+d.name+'</div><div class="cc">'+money(d.cost)+'</div></div>';}).join('');
   tray.querySelectorAll('canvas').forEach(cn=>{const s=BSPRITES[cn.dataset.spr];const g=cn.getContext('2d');g.imageSmoothingEnabled=false;const sc=Math.min(56/s.c.width,56/s.c.height);const w=s.c.width*sc,h=s.c.height*sc;g.drawImage(s.c,(56-w)/2,(56-h)/2,w,h);});
-  tray.querySelectorAll('.card').forEach(cd=>{if(cd.classList.contains('no'))return;cd.onclick=()=>{placing=BUILD.find(d=>d.id===cd.dataset.t);tray.classList.remove('on');showHint('Toque numa área livre e clara do distrito · '+placing.name+' ('+money(placing.cost)+') · Esc cancela');};});}
+  tray.querySelectorAll('.card').forEach(cd=>{if(cd.classList.contains('no'))return;cd.onclick=()=>{placing=BUILD.find(d=>d.id===cd.dataset.t);tray.classList.remove('on');showHint('Toque numa área livre e clara do distrito · '+placing.name+' ('+money(placing.cost)+') · '+(matchMedia('(pointer:coarse)').matches?'🔨 de novo cancela':'Esc cancela'));};});}
 function tryPlace(gx,gy){const d=placing;if(!canBuild(d.spr,gx,gy))return toast(lotFree(d.spr,gx,gy)?'🔒 Área ainda não liberada — suba de fase':'Espaço ocupado');if(S.cash<d.cost)return toast('Caixa insuficiente');
-  const co=foundCompany(d.id,gx,gy);placing=null;toast(co.name+' fundada · −'+money(d.cost));MP.news(S.name+' fundou a '+co.name);checkPhase();refreshHUD();refreshObj();}
+  const co=foundCompany(d.id,gx,gy);placing=null;document.getElementById('hint').classList.remove('on');toast(co.name+' fundada · −'+money(d.cost));MP.news(S.name+' fundou a '+co.name);checkPhase();refreshHUD();refreshObj();}
 
 /* ============================ SAVE (local + nuvem) ============================ */
 const SAVE_KEY='bs_town_v2';
@@ -1108,6 +1136,19 @@ async function boot(){genWorld();centerCam();buildToolbar();bakeAllBuildingSprit
     if(local&&!(local.S&&local.S.over)){modal('⚠️','Começar um novo império?','<p>O save atual deste aparelho (dia '+((local.S&&local.S.day)||1)+') será substituído.</p>',[{t:'Sim, começar do zero',fn:()=>{closeModal();startNew(nm);}},{t:'Cancelar',fn:closeModal}]);return;}
     startNew(nm);};
   void st;}
+/* ============================ APP (PWA) ============================ */
+let installEvt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;});
+window.addEventListener('appinstalled',()=>{installEvt=null;toast('📲 Auvra Club instalado');});
+function isStandalone(){return (window.matchMedia&&matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches)||navigator.standalone===true;}
+function installApp(){
+  if(installEvt){const ev=installEvt;installEvt=null;closeModal();ev.prompt();return;}
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  modal('📲','Instalar Auvra Club',ios
+    ?'<p>No Safari: toque em <b>Compartilhar</b> (o quadrado com a seta ↑) → <b>Adicionar à Tela de Início</b> → <b>Adicionar</b>.</p><p class="small">O jogo abre em tela cheia, como um app.</p>'
+    :'<p>No Chrome: toque no menu <b>⋮</b> → <b>Instalar app</b> (ou <b>Adicionar à tela inicial</b>).</p><p class="small">O jogo abre em tela cheia, como um app.</p>',
+    [{t:'↩ Voltar',fn:openSettings}]);}
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW',e));
 boot();
 window.__townReady=true;
 </script>
