@@ -145,7 +145,7 @@ DLC **expande a fantasia**, nunca a recorta para revender. Três tamanhos:
 | **Ano 3 pós** | "Dynasty" (sucessão/legado geracional aprofundado), "Green Empire" (energia/ESG/sustentabilidade) | Expansões |
 | **Contínuo** | Pacotes setoriais, sazonais, cosméticos, eventos | Content/Cosmetic Packs |
 
-> Cada nova **cidade** é o maior multiplicador de LTV: reabre o mundo inteiro, gera pico de vendas e reengajamento — e a arquitetura modular de Meridian + o aeroporto-portal foram desenhados exatamente para isso ([04-World](04-WORLD-DESIGN.md), [10](10-TECHNICAL-ARCHITECTURE.md)).
+> Cada nova **cidade** é o maior multiplicador de LTV: reabre o mundo inteiro, gera pico de vendas e reengajamento — e a estrutura modular de Nova York + o JFK como portal foram desenhados exatamente para isso ([04-World](04-WORLD-DESIGN.md), [10](10-TECHNICAL-ARCHITECTURE.md)).
 
 ## 8. KPIs & Métricas de Sucesso (Live)
 - **Aquisição:** unidades vendidas, CAC, conversão de wishlist/beta.
@@ -162,7 +162,7 @@ DLC **expande a fantasia**, nunca a recorta para revender. Três tamanhos:
 Provar o serviço: estabilizar, entregar as primeiras grandes expansões, consolidar a comunidade, validar unit economics de IA. **Meta:** Auvra Club reconhecido como *o* AAA life-business sim.
 
 ### Fase B — Expandir (Anos 2–3 pós)
-- **Go Global:** novas cidades jogáveis (Meridian vira a primeira de um *mundo*).
+- **Go Global:** novas cidades jogáveis (Nova York vira a primeira de um *mundo* de capitais reais do dinheiro — Londres, Tóquio, São Paulo, Dubai).
 - **Aprofundar pilares:** mídia/influência, dinastia/legado, energia/ESG.
 - **Camada online madura:** mundos compartilhados, temporadas, coop — a dimensão social como segundo motor de retenção.
 - **Plataformas:** cloud, próxima geração de consoles.

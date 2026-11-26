@@ -43,7 +43,7 @@ ANO 1        ANO 2         ANO 3         ANO 4         ANO 5         ANO 6
 ### 3.1 Workstreams de protótipo (paralelos)
 - **Economy Prototype** — modelo econômico jogável (primeiro em *planilha/paper*, depois sim digital headless e protótipo jogável simples). Mitiga o risco "fun-finding" ([12-Risk](12-BUSINESS-PLAN.md)). **Entregável: a economia é divertida e estável por décadas simuladas.**
 - **Agent AI Prototype** — agentes Tier 2/3 com memória + Big Five + diálogo híbrido, provando **credibilidade a custo/latência viáveis** ([07](07-NPC-AI-ARCHITECTURE.md), [10](10-TECHNICAL-ARCHITECTURE.md)). **Entregável: um NPC que lembra de você e parece vivo, dentro do budget de custo.**
-- **"Feel" Prototype (fantasia)** — um quarteirão jogável de Meridian: caminhar, entrar num café, ter um encontro de networking, fechar um micro-deal. Prova o Pilar I. **Entregável: playtesters dizem "senti que era um empresário".**
+- **"Feel" Prototype (fantasia)** — um quarteirão jogável de Wall Street: caminhar, entrar num café, ter um encontro de networking, fechar um micro-deal. Prova o Pilar I. **Entregável: playtesters dizem "senti que era um empresário".**
 - **Tech Spike** — World Partition + Mass Entity + MetaHuman em escala; provar densidade urbana com agentes.
 
 ### 3.2 Equipe (Ano 1): pequena e sênior
@@ -58,11 +58,11 @@ ANO 1        ANO 2         ANO 3         ANO 4         ANO 5         ANO 6
 ### 4.1 Definição do Vertical Slice (o contrato de qualidade)
 Uma experiência curta (~30–60 min) mas **com acabamento de lançamento**, demonstrando *todos os pilares*:
 
-- **Um pedaço de Meridian** (1–2 distritos, ex.: The Grid + parte dos Boroughs) com acabamento final (Nanite/Lumen, densidade, interiores).
+- **Um pedaço de Nova York** (1–2 regiões, ex.: Wall Street + parte dos Boroughs) com acabamento final (Nanite/Lumen, densidade, interiores).
 - **A fantasia ponta-a-ponta em pequena escala:** começar pequeno → 1º freela → fundar 1ª empresa → 1ª contratação (entrevista diegética) → 1º cliente → um encontro de networking que importa.
 - **Agentes de verdade:** ~3–5 NPCs Tier 3 com memória e diálogo híbrido funcionando; multidão Mass Entity ao redor.
 - **Economia real (slice):** um setor funcionando com oferta/demanda e ao menos um rival-IA agindo.
-- **UX diegética:** MeridianOS + um consultor-IA + uma cena de negociação polida.
+- **UX diegética:** AuvraOS + um consultor-IA + uma cena de negociação polida.
 - **Um "momento épico":** um marco com tratamento cinematográfico (ex.: assinar o primeiro grande contrato).
 
 > **O slice é o pitch jogável** para o publisher/investidores e o **benchmark de qualidade** para toda a produção. É também o principal artefato de marketing inicial.
@@ -93,7 +93,7 @@ Times de produção de conteúdo em escala (mundo, agentes, nichos, missões/eve
 
 **Objetivo:** **produção de conteúdo em massa** sobre o esqueleto provado.
 
-- **Mundo:** Meridian completa, todos os distritos com arte final, densidade-alvo, interiores.
+- **Mundo:** Nova York completa (Manhattan + boroughs), todas as regiões com arte final, densidade-alvo, interiores.
 - **Conteúdo:** todos os setores/nichos do lançamento ([06](06-BUSINESS-SYSTEMS.md) §3.1); biblioteca completa de agentes-template; catálogos (imóveis/veículos/roupas/arte); eventos de mundo; narrativa/tutorial diegético; missões/arcos de "tempero".
 - **Sistemas:** features secundárias, polimento de IA, balanceamento econômico contínuo (sim acelerada — [10](10-TECHNICAL-ARCHITECTURE.md) §4).
 - **Online:** backend e camada online assíncrona em desenvolvimento ([10](10-TECHNICAL-ARCHITECTURE.md) §6).

@@ -45,11 +45,11 @@ Cada setor é uma "família" com múltiplos nichos. Lista do core game (expansí
 | **Energia** | Geração, distribuição, renováveis | Capex enorme, concessões, regulação, horizonte longo |
 | **Educação** | Escolas, edtech, cursos | Marca/reputação, escala, ciclos sazonais |
 | **Saúde** | Clínicas, healthtech, farma | Regulação, confiança, margens, ético-sensível |
-| **Logística** | Entregas, frota, armazéns | Rede física, otimização de rotas, ligada a [04-World](04-WORLD-DESIGN.md) Ironside |
+| **Logística** | Entregas, frota, armazéns | Rede física, otimização de rotas, ligada a [04-World](04-WORLD-DESIGN.md) Brooklyn Waterfront |
 | **Varejo** | Lojas, e-commerce, marcas | Localização, estoque, margem fina, volume |
 | **Agronegócio** | Produção, trading de commodities | Ciclos de safra, clima, commodities, exportação |
 | **Mídia & Entretenimento** | Estúdios, streaming, eventos | Hits & misses, IP, influência cultural (sinergia com reputação) |
-| **Hospitality & Luxo** | Hotéis, restaurantes, clubes | Status, localização (Goldhaven), experiência, sinergia com networking |
+| **Hospitality & Luxo** | Hotéis, restaurantes, clubes | Status, localização (Upper East Side / Hudson Yards), experiência, sinergia com networking |
 | **Indústria / Manufatura** | Fábricas, bens de consumo | Cadeia de suprimentos, capex, escala |
 | **Imobiliário** | Incorporação, locação, REITs | Cruza com [08-Assets](08-ASSETS-SYSTEMS.md); ativos físicos no mapa |
 

@@ -2,6 +2,16 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## [1.3.0] — 2026-11-26 — *O mundo é Nova York, a partir de Wall Street*
+### Decisões
+- **Mundo:** sai a cidade fictícia **Meridian**; entra **Nova York real**, começando em **Wall Street (Lower Manhattan)**. Subtítulo: *Construa seu império em Wall Street*.
+- **Regra de autenticidade:** lugares, ruas e marcos fiéis; **empresas e marcas 100% fictícias** (nenhum logo real em fachadas, letreiros ou na economia); revisão jurídica de uso de imagem antes do lançamento comercial.
+- **Regiões (mesmos papéis de jogo):** Sterling Heights → **Financial District/Wall Street** · The Grid → **Silicon Alley** · Ironside Docklands → **Brooklyn Waterfront** · The Boroughs → **The Boroughs (Queens · Bronx · Brooklyn)** · Goldhaven → **Upper East Side · Hudson Yards** · MER → **JFK** · MerEx → **a Bolsa** · MeridianOS → **AuvraOS**. Apex Club permanece (fictício).
+- **Expansões:** outras capitais reais do dinheiro (Londres, Tóquio, São Paulo, Dubai), com a mesma regra.
+### Alterações
+- `04-WORLD-DESIGN` reescrito (§1 filosofia, §3 geografia e marcos, §8 expansões); `00, 05, 06, 07, 08, 09, 10, 11, 12, 13`, `GLOSSARY` e `README` alinhados.
+- O jogo (`town/`) já é Wall Street em 3D, terceira pessoa. `world/` e `ue5/` ainda usam o nome Meridian no código (protótipo/scaffold) — registrado no glossário como aposentado.
+
 ## [1.2.0] — 2026-11-26 — *Nome oficial*
 ### Decisões
 - **Título oficial: Auvra Club.** Subtítulo: *Construa seu império em Meridian*. Slogan mantido: *"Você não administra um império. Você vive um."*

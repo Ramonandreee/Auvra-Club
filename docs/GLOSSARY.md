@@ -5,21 +5,23 @@
 ## Projeto & Mundo
 | Termo | Definição |
 |-------|-----------|
-| **Auvra Club** | Título oficial do jogo. Subtítulo: *Construa seu império em Meridian.* Slogan: *"Você não administra um império. Você vive um."* |
-| **Meridian** | O mundo/cidade onde o jogo acontece (Meridian City). |
+| **Auvra Club** | Título oficial do jogo. Subtítulo: *Construa seu império em Wall Street.* Slogan: *"Você não administra um império. Você vive um."* |
+| **Nova York** | O mundo do jogo: a cidade real, com lugares e marcos fiéis e empresas/marcas 100% fictícias. Ver [04-World](04-WORLD-DESIGN.md). |
+| **Wall Street** | Ponto de partida e primeiro mapa jogável (Financial District, Lower Manhattan). |
 | **Project ATLAS** | Codinome interno de produção (só em documentação de equipe). |
 | **MOGUL** *(aposentado)* | Título de trabalho antigo. Permanece apenas como identificador técnico do módulo C++ em `ue5/` (renomear exigiria migrar o projeto Unreal). |
 | **Business Simulator** *(aposentado)* | Nome provisório dos protótipos; abandonado por conflito com um jogo homônimo na Steam. |
 | **Project ATLAS** | Codinome interno de produção. |
-| **Meridian City** | A metrópole global fictícia onde o jogo se passa. Ver [04-World](04-WORLD-DESIGN.md). |
-| **Sterling Heights** | Distrito Financeiro. |
-| **The Grid** | Distrito Tecnológico. |
-| **Ironside Docklands** | Distrito Industrial/portuário. |
-| **The Boroughs** | Distrito Residencial (onde o jogador começa). |
-| **Goldhaven** | Distrito de Luxo. |
-| **MER / Meridian International** | Aeroporto internacional; portal para expansão global. |
-| **MerEx** | Meridian Exchange — a bolsa de valores. |
-| **Apex Club** | Clube de elite em Goldhaven; símbolo-meta de chegada ao topo. |
+| **Financial District** | Região financeira (Wall Street); Bolsa, bancos, M&A. |
+| **Silicon Alley** | Região tecnológica (Flatiron · Chelsea · Union Square). |
+| **Brooklyn Waterfront** | Região industrial/portuária (Navy Yard · Red Hook). |
+| **The Boroughs** | Região residencial (Queens · Bronx · Brooklyn); onde o jogador mora no início. |
+| **Upper East Side · Hudson Yards** | Região de luxo (+ Hamptons nos fins de semana). |
+| **JFK** | Aeroporto internacional; portal para expansão global. |
+| **A Bolsa** | A bolsa de valores do jogo — o prédio de colunas na Wall St × Broad St (empresas e índices fictícios). |
+| **Apex Club** | Clube de elite fictício no Upper East Side; símbolo-meta de chegada ao topo. |
+| **AuvraOS** | O smartphone in-fiction do jogador (hub diegético — [09-UX](09-UX-UI.md) §3.1). |
+| **Meridian** *(aposentado)* | Cidade fictícia das versões anteriores da bíblia (e de `world/`, `ue5/`). Substituída por Nova York/Wall Street em nov/2026. |
 
 ## Design
 | Termo | Definição |
@@ -55,7 +57,7 @@
 | **M&A** | Mergers & Acquisitions — fusões e aquisições. |
 | **Due Diligence** | Investigação do valor/risco real de um alvo de aquisição. |
 | **Valuation** | Avaliação de quanto vale uma empresa. |
-| **IPO** | Initial Public Offering — abrir capital na MerEx. |
+| **IPO** | Initial Public Offering — abrir capital na Bolsa. |
 | **Sinergia** | Valor extra de combinar empresas (vertical/horizontal/capital/dados). |
 | **Sink / Source** | Sumidouro / fonte de moeda no modelo econômico. |
 | **Net Worth** | Patrimônio líquido pessoal — métrica de status #1. |

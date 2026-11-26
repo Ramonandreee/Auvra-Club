@@ -33,7 +33,7 @@ Três princípios governam o design econômico:
 ## 3. Camada Macro — A Economia Viva
 
 ### 3.1 Variáveis macroeconômicas simuladas
-Um **Banco Central de Meridian (NPC institucional)** e o agregado de agentes produzem:
+Um **Banco Central (NPC institucional, inspirado no Fed de Nova York)** e o agregado de agentes produzem:
 
 | Variável | O que modela | Impacto no jogo |
 |----------|--------------|-----------------|
@@ -69,7 +69,7 @@ Cada um dos **setores/nichos** (ver [06-Business](06-BUSINESS-SYSTEMS.md) §3) t
 A economia não é uma equação — é o **agregado de comportamentos de agentes** (ver [07-AI](07-NPC-AI-ARCHITECTURE.md)):
 
 ### 5.1 Consumidores-IA (a demanda)
-A população de Meridian são consumidores com renda, preferências, e sensibilidade a preço/qualidade/marca/status. Eles **escolhem** de quem comprar (você ou um rival) com base em preço, qualidade, reputação de marca e conveniência. Modelados em escala via Mass Entity (agregados) + amostragem de agentes profundos.
+A população de Nova York são consumidores com renda, preferências, e sensibilidade a preço/qualidade/marca/status. Eles **escolhem** de quem comprar (você ou um rival) com base em preço, qualidade, reputação de marca e conveniência. Modelados em escala via Mass Entity (agregados) + amostragem de agentes profundos.
 
 ### 5.2 Empresas-IA (a concorrência — ver [06](06-BUSINESS-SYSTEMS.md) §8)
 Centenas de empresas controladas por IA que **operam de verdade**: contratam, demitem, investem, lançam produtos, sobem/baixam preços, expandem, fazem M&A, **falem** e **crescem** — tudo **sem depender do jogador**. Elas competem com você pelos mesmos consumidores, talentos e ativos.
@@ -105,7 +105,7 @@ Crucial para M&A, IPO, investimento e venda. Múltiplos métodos (o jogo usa um 
 | **Investimento anjo** | Fase 2 | Diluição, mas traz mentor/contatos |
 | **Venture Capital (seed/A/B/C)** | Fase 2–4 | Diluição + pressão por crescimento + assento no conselho |
 | **Private Equity** | Fase 3–4 | Grande capital, controle, alavancagem |
-| **IPO (abrir capital na MerEx)** | Fase 4 | Liquidez massiva, mas escrutínio público, mídia, voláteis acionistas |
+| **IPO (abrir capital na Bolsa)** | Fase 4 | Liquidez massiva, mas escrutínio público, mídia, voláteis acionistas |
 | **Dívida corporativa / bonds** | Fase 4–5 | Captação em escala para conglomerados |
 
 ## 7. Camada Pessoal — Finanças do Avatar
@@ -119,9 +119,9 @@ O jogador é uma pessoa com finanças pessoais **separadas** das empresas (uma l
 - **A "muralha" entre PJ e PF:** misturar finanças pessoais e da empresa é possível mas perigoso (risco legal/reputacional — ver [06](06-BUSINESS-SYSTEMS.md) e [07-Reputação](07-NPC-AI-ARCHITECTURE.md)).
 - **Tela de "net worth" diegética:** seu patrimônio é visível e *sentido* — pelo bairro onde mora, pelo carro, por como NPCs te tratam.
 
-## 8. Mercado de Capitais (a MerEx)
+## 8. Mercado de Capitais (a Bolsa de Wall Street)
 
-A **Meridian Exchange (MerEx)** é a bolsa de valores — um sistema de endgame (Fase 4–5):
+**A Bolsa** — o prédio de colunas na esquina da Wall St com a Broad St — é a bolsa de valores do jogo (empresas e índices fictícios; sem marcas reais) — um sistema de endgame (Fase 4–5):
 
 - **Ações de empresas públicas** (suas, de rivais-IA, e "blue chips" do mundo) com preços que flutuam por desempenho, macro, e *sentimento* (mídia, boatos, manada).
 - **Investir** em outras empresas (incl. comprar participações em rivais — gancho para aquisições).

@@ -12,7 +12,7 @@ ambição AAA. O repositório contém **duas coisas**:
 1. **A bíblia de design** (`docs/`) — especificação de pré-produção completa (13 documentos + glossário).
 2. **Protótipos jogáveis** — provas de conceito que rodam no navegador (publicados na Vercel a partir do `index.html` da raiz):
    - `town/index.html` — **O JOGO**: Wall Street em 3D, terceira pessoa, celular na horizontal + multiplayer (Supabase). A raiz `index.html` redireciona para cá. Ver `town/README.md`.
-   - `world/index.html` — Meridian City em 3D (Three.js via CDN) — *referência, single-player*.
+   - `world/index.html` — primeira cidade 3D (ainda com a cidade fictícia antiga, Meridian) — *referência, single-player*.
    - `game/index.html` — protótipo de sistemas 2D (offline) — *referência, single-player*.
 
 > A fonte canônica de fatos (nome, escopo, orçamento, plataformas) é o topo do [`README.md`](README.md).
@@ -49,6 +49,7 @@ CONTRIBUTING.md        Como colaborar (humanos + IA, via GitHub/PRs)
 - **Protótipos:** manter **single-file, sem build, sem dependências**. Exceções via CDN (versão fixada, sempre com fallback offline): Three.js (3D e o "assar" de sprites do town) e `@supabase/supabase-js` (multiplayer do town — sem ele o jogo roda offline com save local).
 - **Multiplayer:** escrita só no que é do próprio jogador (RLS); transferência entre jogadores só via RPC em `supabase/schema.sql`. Qualquer texto vindo de outro jogador (nome, chat, empresa) passa por `esc()` antes de ir para `innerHTML`.
 - **Economia é data-driven e balanceada por simulação** — ver "Validação" abaixo.
+- **Mundo = Nova York real, começando em Wall Street.** Ruas, marcos e arquitetura fiéis (quarteirões comprimidos); **empresas, bancos-NPC e marcas sempre fictícios** — nunca um logo/nome de empresa real em fachada, letreiro ou economia. Fatos históricos dos marcos só se verificados. Ver [docs/04](docs/04-WORLD-DESIGN.md) §1. ("Meridian" é o nome aposentado da cidade fictícia antiga.)
 
 ## Validação antes de commit/push (OBRIGATÓRIO para mudanças nos protótipos)
 

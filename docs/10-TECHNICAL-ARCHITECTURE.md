@@ -19,7 +19,7 @@
 
 | Tecnologia UE5 | Uso em Auvra Club | Doc relacionado |
 |----------------|--------------|-----------------|
-| **World Partition** | Streaming da cidade aberta (Meridian) sem loadings; carregamento por distrito | [04-World](04-WORLD-DESIGN.md) |
+| **World Partition** | Streaming da cidade aberta (Nova York, a partir de Wall Street) sem loadings; carregamento por distrito | [04-World](04-WORLD-DESIGN.md) |
 | **Nanite** | Geometria massiva (skyline, interiores detalhados) sem custo de LOD manual | [04](04-WORLD-DESIGN.md), [08](08-ASSETS-SYSTEMS.md) |
 | **Lumen** | Iluminação global dinâmica (ciclo dia/noite, interiores, clima) | [04-World](04-WORLD-DESIGN.md) §5 |
 | **Mass Entity (ECS)** | Multidões e tráfego em escala (Tier 0/1 de agentes); simulação de população | [07-AI](07-NPC-AI-ARCHITECTURE.md) §2 |
