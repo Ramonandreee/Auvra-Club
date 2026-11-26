@@ -53,11 +53,30 @@ menu ou painel aberto.
 
 ## Menu principal
 
-▶ Jogar / Continuar · 🌱 Novo jogo · 👤 **Personagem** (nome, pele, cabelo, roupa, calça, silhueta,
-altura — com prévia 3D) · 👥 **Amigos** (online, ranking, chat, ofertas) · 📊 **Indicadores**
-(patrimônio, caixa, dívida, lucro/dia, ranking, gráfico do patrimônio, tabela das empresas) ·
-⚙️ **Ajustes** (qualidade gráfica baixa/média/alta, sensibilidade, inverter câmera, ciclo dia/noite,
-trânsito, tela cheia, instalar app, salvar) · ❓ **Como jogar**. O distrito fica vivo atrás do menu.
+**Jogar / Continuar**, **Novo jogo**, **Personagem**, **Amigos**, **Indicadores**, **Ajustes** e
+**Como jogar**. Indicadores reúne patrimônio, caixa, dívida, lucro por dia, ranking e a tabela das empresas.
+Ajustes reúne qualidade gráfica, câmera, ciclo dia/noite, trânsito, tela cheia, instalação e save.
+
+## Interface e personagens
+
+O HUD, a barra de ferramentas, o menu e os modais usam superfícies azul-carvão, texto claro e
+dourado para ações e foco. O CSS concentra a grade de 8 px, os raios, a elevação, a tipografia e as
+transições de 140 ms. Os controles principais têm área de toque de pelo menos 44 px e respeitam as
+safe areas. A preferência por movimento reduzido desativa as animações da interface.
+
+Em **Personagem**, as abas **Corpo**, **Rosto**, **Cabelo**, **Roupa** e **Acessórios** editam a aparência
+ao lado da prévia 3D. Arraste a prévia para girar e use **Aproximar** para enquadrar o rosto. **Aleatório**
+gera um visual completo e **Desfazer** restaura até 24 mudanças de aparência da sessão. O nome
+é editado separadamente. Aparências antigas no save e em `auvra_avatar` recebem os campos novos com
+valores padrão.
+
+O corpo usa anéis de vértices conectados entre tronco, membros e cabeça, com pesos de skinning
+interpolados nas articulações. O rosto usa um atlas de Canvas, o cabelo usa cascas e as camadas
+de roupa e acessórios acompanham o mesmo esqueleto. A prévia usa o LOD0. No distrito, a qualidade
+baixa força LOD2 e desativa sombras. A média atualiza as sombras a até 8 Hz. Média e alta escolhem
+LOD0, LOD1 ou LOD2 pela distância da câmera, com margem nos limiares para evitar alternância rápida.
+A malha de cada pessoa usa uma draw call no passe principal. Contatos podem ter uma chamada adicional
+para o marcador.
 
 ## No celular (app instalável)
 
@@ -103,5 +122,8 @@ o plano grátis do Supabase **pausa o projeto após 1 semana sem uso** (reative 
 - O bloco de economia fica entre os marcadores `/*@ECON-BEGIN*/` e `/*@ECON-END*/` — mantenha-os.
 - 3D/UI: smoke test com Playwright em celular emulado na horizontal (carrega, menu, personagem,
   freela, construir, painéis, 4×, recarregar/continuar, aviso de girar o celular) — no scratchpad.
-- Desempenho: ~200 draw calls na qualidade média (cidade estática fundida por material; pessoas e
-  carros com 1 material de cores por vértice). Saves do mapa 2D antigo são re-assentados em Wall St.
+- Para medir o passe principal, consulte `window.__game.STATS()` depois de entrar no distrito.
+  Os campos `calls` e `triangles` vêm de `renderer.info.render`. O Three.js reinicia esses
+  contadores após o passe de sombras. Em média, o orçamento é 250 chamadas e 400 mil triângulos,
+  com pools de 26 NPCs e 18 pedestres de multidão. A meta de 30 FPS exige teste em aparelho físico.
+- Saves do mapa 2D antigo são re-assentados em Wall St.
