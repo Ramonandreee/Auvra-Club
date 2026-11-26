@@ -25,7 +25,7 @@ Bússola estética (em ordem de prioridade):
 
 | Camada | Onde vive | Teto de qualidade realista |
 |--------|-----------|-----------------------------|
-| **UI / HUD / menus** | O jogo web `town/` (HTML/CSS) | **AAA de verdade já agora** — design system premium completo (§3) |
+| **UI / HUD / menus** | O jogo web `town/` (HTML/CSS) | Interface premium responsiva (§3) |
 | **Mundo 3D jogável hoje** | `town/` — Wall Street (Three.js/WebGL) | Estilizado-realista; tone mapping, bloom, env reflections, fog, materiais PBR-ish. **Não** é fotorrealismo |
 | **Fotorrealismo pleno** | Produção futura em **UE5.6** — ver [doc 10](10-TECHNICAL-ARCHITECTURE.md), [doc 11](11-PRODUCTION-PLAN.md) | MetaHuman, Nanite, Lumen/GI, vegetação por folha, materiais PBR completos |
 
@@ -33,35 +33,54 @@ Bússola estética (em ordem de prioridade):
 
 ## 3. Design System (UI) — a linguagem única
 
-Aplicado no HUD e nos menus do jogo (`town/`). Tudo deriva de **design tokens**; nada tem medida arbitrária.
+Aplicado no HUD e nos menus do jogo (`town/`). Os componentes principais compartilham **design tokens**.
 
 ### 3.1 Grid & espaçamento
 - **Base 8px.** Escala: 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64.
 - Respiros generosos; densidade controlada; nada apertado, nada esparso.
 
 ### 3.2 Raios (cantos)
-`--r-sm:8px · --r-md:12px · --r-lg:16px · --r-xl:22px` · chips/pills 999px. Um raio por função, sempre o mesmo.
+`--r-sm` de 8 px para controles, `--r-md` de 12 px para painéis e `--r-lg` de 16 px para as janelas do editor.
 
 ### 3.3 Elevação (sombras) & profundidade
-Três níveis: `--e-1` (sutil), `--e-2` (cards/topbar), `--e-3` (modais). Superfícies em **vidro** (blur + saturação) com **hairlines** (rgba branco .05–.13) e realce superior. Vinheta sutil de fundo para profundidade.
+A elevação usa `--e-1` nos controles, `--e-2` nos painéis e `--e-3` nos modais. Superfícies azul-carvão e bordas sólidas mantêm o texto legível sobre a cidade.
 
 ### 3.4 Cor (paleta refinada, pouca cor)
-- **Base:** near-black levemente azulado (`#070a0e` → `#0e131a`), em camadas de superfície translúcida.
-- **Acento único:** **ouro discreto** (`#e7cb86` / `#c9a24e`) — usado só para destacar o que importa (valores, foco, marca).
-- **Funcionais (econômicas):** verde (`#48d49a`), vermelho (`#f0726a`), azul (`#6aa8f0`).
-- **Texto:** alto contraste off-white (`#eef2f7`), muted, dim. **Muito branco negativo, muito espaço.**
+- **Base:** near-black levemente azulado (`#080c12` → `#121a24`), em camadas de superfície translúcida.
+- **Acento único:** **ouro discreto** (`#edd18e` / `#caa762`) — usado só para destacar o que importa (valores, foco, marca).
+- **Funcionais (econômicas):** verde (`#77deb0`), vermelho (`#ff9b96`), azul (`#9acaff`).
+- **Texto:** alto contraste off-white (`#f0f3f7`), muted, dim. A cor de legenda é `#bcc7d3` sobre as superfícies escuras.
 
 ### 3.5 Tipografia
-- Stack premium (Inter/SF Pro/system). Hierarquia clara: **display** (hero, tracking largo), **título**, **subtítulo**, **corpo**, **legenda**, **valor**.
+- Georgia em títulos e marca, com fonte de sistema em controles, texto e valores. Corpo de 14 px e legendas de 11 px.
 - **Números sempre `tabular-nums`** (alinhamento de valores monetários).
 - Poucos tamanhos; peso e tracking fazem a hierarquia, não dezenas de tamanhos.
 
 ### 3.6 Movimento
-- Tokens: `--ease:cubic-bezier(.22,.61,.36,1)`, durações `--fast .14s` / `--med .22s`.
-- **Nada instantâneo:** hover (lift sutil), fade, scale, slide. Modais entram com scale+fade. Focus com anel dourado acessível.
+- `--motion` usa 140 ms com `ease-out` nos controles e nos avisos. O foco por teclado usa um anel dourado.
+- `prefers-reduced-motion` desliga transições e animações da interface.
 
 ### 3.7 Componentes (todos conversam entre si)
 Topbar (glass) · Cards (glass + realce) · Tabs (segmented control) · Botões (primary/gold, secondary, ghost, small; estados hover/active/focus/disabled) · Inputs · Modais · Rows/listas · KPIs · Tags/pills · Barras · Toast (glass) · Radar/HUD · Prompt contextual. **Um só vocabulário visual.**
+
+### 3.8 Personagens no jogo web
+
+O editor usa abas de Corpo, Rosto, Cabelo, Roupa e Acessórios, com prévia 3D independente da
+iluminação da cidade. A câmera se aproxima nas abas de rosto e cabelo. Os controles principais
+ocupam pelo menos 44 px, com safe areas nos quatro lados para telas de 640 × 360 a 932 × 430.
+
+A silhueta segue uma proporção de aproximadamente 7,5 cabeças e permite ajustar massa, altura,
+ombros, quadril, cintura e traços faciais. Anéis conectados formam o tronco e os membros, com
+pesos suaves no ombro, cotovelo, quadril, joelho e pescoço. Mãos, dedos agrupados, pés e mandíbula
+têm ossos próprios. Variação de cor por vértice e sombreamento no atlas de rosto dão profundidade
+à pele. Cabelo em cascas usa variação direcional de brilho e recorte alpha nas pontas.
+Lã, algodão e couro têm regiões de rugosidade próprias no atlas. As camadas de vestuário e os
+acessórios seguem o rig em uma única malha por pessoa.
+
+Parado, o personagem respira, muda o apoio e move a cabeça. A velocidade altera a passada durante
+a caminhada e a corrida. O rig mistura essas poses com os gestos de telefone e café. O LOD0
+preserva detalhes de rosto, cabelo e roupa. O LOD1 reduz a malha e o LOD2 simplifica a silhueta
+da multidão. O cache reutiliza geometrias por aparência e LOD e compartilha materiais por atlas.
 
 ## 4. Direção de Arte 3D (alvo fotorrealista — produção UE5)
 
