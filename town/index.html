@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Auvra Club — Meridian</title>
-<meta name="description" content="Auvra Club — construa um império em Meridian, em 3D, com seus amigos.">
+<title>Auvra Club — Wall Street</title>
+<meta name="description" content="Auvra Club — construa um império em Wall Street, em 3D, com seus amigos.">
 <meta name="theme-color" content="#0e0b08">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -165,8 +165,8 @@
 <div id="menu" class="off"></div>
 
 <div id="rotate"><div class="ph">📱</div><b style="color:var(--gold);font-size:20px">Gire o celular</b><div class="small">Auvra Club é jogado na horizontal.</div></div>
-<div id="loading"><b style="color:var(--gold);font-size:26px;letter-spacing:.5px">Auvra Club</b><div class="small" id="loadTxt">Construindo Meridian em 3D…</div><div class="lb"><i></i></div></div>
-<div id="fatal" hidden><b style="color:var(--gold);font-size:20px">Não deu para abrir Meridian</b><p class="small"></p><button onclick="location.reload()">Tentar de novo</button></div>
+<div id="loading"><b style="color:var(--gold);font-size:26px;letter-spacing:.5px">Auvra Club</b><div class="small" id="loadTxt">Construindo Wall Street em 3D…</div><div class="lb"><i></i></div></div>
+<div id="fatal" hidden><b style="color:var(--gold);font-size:20px">Não deu para abrir Wall Street</b><p class="small"></p><button onclick="location.reload()">Tentar de novo</button></div>
 
 <script>
 /* Rede de segurança (script clássico: roda mesmo se o módulo 3D falhar ao baixar). */
@@ -961,7 +961,7 @@ const skillAvg=()=>(S.skills.negotiation+S.skills.charisma+S.skills.finance+S.sk
 function gainSkill(k,a){S.skills[k]=Math.min(100,S.skills[k]+a*(1-S.skills[k]/120));}
 function repUp(k,a){S.rep[k]=clamp(S.rep[k]+a,0,100);}
 const roleFit=(e,n)=>!n?1:e.fam==="any"?1.05:e.fam===n.family?1.18:0.9;
-function coName(n){const a=["Nova","Apex","Vertex","Lumen","Iron","Atlas","Meridian","Cobalt","Halcyon","Orion","Vanta","Praxis","Zenith","Aurora","Quanta","Solace"];const b={tech:["Labs","AI","Soft","Stack","Systems"],real:["Group","Works","Ind.","Log.","Build"],soft:["Media","Health","Studio","House"]};return pick(a)+" "+pick(b[n.family]);}
+function coName(n){const a=["Nova","Apex","Vertex","Lumen","Iron","Atlas","Beacon","Cobalt","Halcyon","Orion","Vanta","Praxis","Zenith","Aurora","Quanta","Solace"];const b={tech:["Labs","AI","Soft","Stack","Systems"],real:["Group","Works","Ind.","Log.","Build"],soft:["Media","Health","Studio","House"]};return pick(a)+" "+pick(b[n.family]);}
 function coSynergy(co){const n=companies.length;if(n<=1)return 1;let s=1+Math.min(0.22,(n-1)*0.045);const nn=NICHE[co.niche];if(companies.some(c=>c!==co&&NICHE[c.niche].family===nn.family))s+=0.06;return s;}
 function competition(co){let w=0;for(const r of rivals)if(r.niche===co.niche)w+=Math.min(1.5,0.3+r.value/Math.max(60000,coValueRaw(co)*2));return 1/(1+0.07*w);}
 function coRevenueRaw(co,comp){const n=NICHE[co.niche];let emp=0;co.employees.forEach(e=>emp+=e.competence*0.013*roleFit(e,n));const rep=1+(S.rep.market-5)*0.012+(S.rep.public-5)*0.006;const ops=0.45+co.ops/100*0.95;const f=1+(skillAvg()-8)*0.01;

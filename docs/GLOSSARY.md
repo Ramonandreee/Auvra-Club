@@ -9,7 +9,7 @@
 | **Nova York** | O mundo do jogo: a cidade real, com lugares e marcos fiéis e empresas/marcas 100% fictícias. Ver [04-World](04-WORLD-DESIGN.md). |
 | **Wall Street** | Ponto de partida e primeiro mapa jogável (Financial District, Lower Manhattan). |
 | **Project ATLAS** | Codinome interno de produção (só em documentação de equipe). |
-| **MOGUL** *(aposentado)* | Título de trabalho antigo. Permanece apenas como identificador técnico do módulo C++ em `ue5/` (renomear exigiria migrar o projeto Unreal). |
+| **MOGUL** *(aposentado)* | Título de trabalho antigo (também o nome do scaffold UE5 removido em nov/2026). |
 | **Business Simulator** *(aposentado)* | Nome provisório dos protótipos; abandonado por conflito com um jogo homônimo na Steam. |
 | **Project ATLAS** | Codinome interno de produção. |
 | **Financial District** | Região financeira (Wall Street); Bolsa, bancos, M&A. |
@@ -21,7 +21,7 @@
 | **A Bolsa** | A bolsa de valores do jogo — o prédio de colunas na Wall St × Broad St (empresas e índices fictícios). |
 | **Apex Club** | Clube de elite fictício no Upper East Side; símbolo-meta de chegada ao topo. |
 | **AuvraOS** | O smartphone in-fiction do jogador (hub diegético — [09-UX](09-UX-UI.md) §3.1). |
-| **Meridian** *(aposentado)* | Cidade fictícia das versões anteriores da bíblia (e de `world/`, `ue5/`). Substituída por Nova York/Wall Street em nov/2026. |
+| **Meridian** *(aposentado)* | Cidade fictícia das versões anteriores da bíblia e dos protótipos removidos. Substituída por Nova York/Wall Street em nov/2026. |
 
 ## Design
 | Termo | Definição |

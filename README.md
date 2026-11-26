@@ -1,11 +1,11 @@
 # Auvra Club
 ### *Construa seu império em Wall Street*
 
-> **Codinome de produção:** Project ATLAS *(uso interno)* · **Nomes aposentados:** “MOGUL” e “Business Simulator” — o scaffold UE5 mantém `MOGUL` só como identificador técnico do módulo C++.
+> **Codinome de produção:** Project ATLAS *(uso interno)* · **Nomes aposentados:** “MOGUL”, “Business Simulator” e a cidade fictícia “Meridian”.
 > **Tagline:** *"Você não administra um império. Você vive um."*
-> **Documento:** Bíblia de Pré-Produção — v1.0 (Confidencial)
-> **Data:** Junho de 2026
-> **Status:** Concept Complete → Pré-Produção
+> **Documento:** Bíblia de Pré-Produção — v1.3 (Confidencial) · histórico em [docs/CHANGELOG.md](docs/CHANGELOG.md)
+> **Data:** Novembro de 2026
+> **Status:** jogo **online e jogável** (Wall Street 3D, navegador/celular) · versão AAA em pré-produção
 
 ---
 
@@ -17,15 +17,23 @@
 Você chega a **Wall Street** com **$3k**, na esquina da Wall com a Broad, em frente à Bolsa. Joystick, câmera em terceira pessoa e Lower Manhattan fiel: Trinity Church, Federal Hall, a Bolsa, 40 Wall, 70 Pine, Bowling Green, o East River. Freelas na sua sede → **funda empresas** em terrenos à venda (o prédio cresce com a escala) → **expande e contrata** → enfrenta **concorrentes vivos** → **networking** na praça da Bolsa → **eventos com escolhas** → M&A, IPO e a área liberada cresce a cada fase até o Legado. Menu com **Personagem**, **Amigos**, **Indicadores** e **Ajustes**.
 **Multiplayer (Supabase):** mundo compartilhado assíncrono (ranking, save na nuvem, ofertas pelas empresas dos amigos, **aquisição hostil** de empresas abertas) + tempo real (quem está online, chat, notícias ao vivo). Sem servidor, roda offline com save local. Detalhes: [`town/README.md`](town/README.md).
 
-*Protótipos de referência (fora do site, só no repositório):* [`world/`](world/index.html) — a primeira cidade 3D em primeira pessoa (ainda com a cidade fictícia antiga) · [`game/`](game/index.html) — o simulador de sistemas 2D, só painéis.
+*Decisão de direção (nov/2026): o jogo é **Wall Street em 3D** ([`town/`](town/README.md)) — as versões anteriores (distrito 2D, `world/`, `game/`, scaffold `ue5/`) foram removidas e vivem só no histórico do git. Economia validada por simulação headless permanente ([`tools/sim-town.js`](tools/sim-town.js)) e backend por testes de RLS/RPC ([`supabase/schema.sql`](supabase/schema.sql)) — a disciplina de [de-risk early](docs/11-PRODUCTION-PLAN.md).*
 
-*Decisão de direção (nov/2026): o **`town/`** é o jogo — Wall Street em 3D; `world/` e `game/` ficam como referência e não recebem mais balanceamento. Economia validada por simulação headless permanente ([`tools/sim-town.js`](tools/sim-town.js)) e o backend por testes de RLS/RPC — a disciplina de [de-risk early](docs/11-PRODUCTION-PLAN.md).*
+### 📁 O que tem neste repositório
+| Caminho | O que é |
+|---------|---------|
+| [`town/`](town/README.md) | **O jogo** — `index.html` (3D, economia, multiplayer, menu), `sw.js` + `manifest.webmanifest` + ícones (app instalável) |
+| [`supabase/schema.sql`](supabase/schema.sql) | Backend multiplayer: tabelas, RLS e RPCs (projeto `auvra-club`, região São Paulo) |
+| [`tools/sim-town.js`](tools/sim-town.js) | Simulação headless da economia (validação obrigatória) |
+| [`docs/`](docs/) | A bíblia de pré-produção (00–13, glossário, changelog) |
+| `index.html` | Redireciona a raiz do site para o jogo (deploy estático na Vercel) |
+| [`CLAUDE.md`](CLAUDE.md) · [`CONTRIBUTING.md`](CONTRIBUTING.md) | Regras do projeto e como colaborar via PR |
 
 ---
 
 ## O que é Auvra Club
 
-**Auvra Club** é um simulador de vida empresarial em mundo aberto, single-player no núcleo e com uma camada online persistente, construído na **Unreal Engine 5.6**. O jogador não opera planilhas: ele encarna um ser humano que parte de um apartamento minúsculo e de um computador velho e, ao longo de décadas de tempo de jogo, ascende — ou fracassa — na tentativa de construir um império de negócios em **Nova York** — começando em **Wall Street**, em Lower Manhattan — uma cidade viva que existe com ou sem ele.
+**Auvra Club** é um simulador de vida empresarial em mundo aberto, single-player no núcleo e com uma camada online persistente, com a versão AAA planejada na **Unreal Engine 5.6** — e uma versão jogável hoje no navegador e no celular ([`town/`](town/README.md)). O jogador não opera planilhas: ele encarna um ser humano que parte de um apartamento minúsculo e de um computador velho e, ao longo de décadas de tempo de jogo, ascende — ou fracassa — na tentativa de construir um império de negócios em **Nova York** — começando em **Wall Street**, em Lower Manhattan — uma cidade viva que existe com ou sem ele.
 
 A fantasia central não é "ganhar dinheiro". É **sentir a ascensão**: a primeira contratação, o primeiro escritório, a primeira aquisição hostil, a primeira capa de revista, a primeira fundação filantrópica, o primeiro herdeiro. Cada conquista é **visível no mundo**. Cada erro gera **consequências persistentes**.
 
@@ -86,7 +94,8 @@ Todos os documentos derivam destes fatos. Alterações aqui propagam para toda a
 | **Mundo** | Nova York — começando em Wall Street (Lower Manhattan) |
 | **Codinome** | Project ATLAS |
 | **Gênero** | Open-World Business Life Simulation RPG |
-| **Engine** | Unreal Engine 5.6 |
+| **Versão jogável atual** | Web 3D (Three.js) + Supabase · navegador e celular na horizontal (PWA) · [auvraclub.vercel.app](https://auvraclub.vercel.app) |
+| **Engine (produção AAA)** | Unreal Engine 5.6 |
 | **Plataformas (lançamento)** | PC (Steam/Epic), PlayStation 5 / 5 Pro, Xbox Series X\|S |
 | **Plataformas (pós)** | Cloud streaming, plataforma de geração seguinte |
 | **Modos** | Single-player (núcleo) + Persistent Online Layer (assíncrono/coop) |

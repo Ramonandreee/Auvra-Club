@@ -2,6 +2,13 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## [1.3.1] — 2026-11-26 — *Repositório = o que está rodando*
+- **Removidos** (ficam só no histórico do git): o protótipo 3D `world/` (cidade fictícia antiga), o simulador de sistemas `game/` e o scaffold Unreal `ue5/`. O distrito 2D já tinha sido substituído pelo `town/` 3D.
+- O repositório passa a ter só: `town/` (o jogo), `supabase/`, `tools/`, `docs/`, `index.html`, `CLAUDE.md`, `CONTRIBUTING.md`.
+- `README` (status, versão jogável atual, mapa do repositório), `CLAUDE.md`, `CONTRIBUTING`, template de PR (prefixo `feat(town):`, validação do jogo 3D), `GLOSSARY` e `13-ART-DIRECTION` alinhados.
+- A Unreal Engine 5.6 continua como **plano** de produção AAA (docs 10/11), não como código no repositório.
+- No jogo: título e telas de carregamento/erro dizem "Wall Street" (o último "Meridian" saiu).
+
 ## [1.3.0] — 2026-11-26 — *O mundo é Nova York, a partir de Wall Street*
 ### Decisões
 - **Mundo:** sai a cidade fictícia **Meridian**; entra **Nova York real**, começando em **Wall Street (Lower Manhattan)**. Subtítulo: *Construa seu império em Wall Street*.
