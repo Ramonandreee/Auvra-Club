@@ -2,6 +2,16 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## [1.1.0] — 2026-11-26 — *Protótipo principal + multiplayer*
+### Decisões
+- **`town/` vira o jogo principal** (2D top-down, mais viável); `world/` e `game/` ficam como referência.
+- **Deploy:** site estático na **Vercel** (raiz `index.html`), sem build.
+- **Multiplayer (alinhado à docs/10):** mundo compartilhado **assíncrono** (ranking, save na nuvem, ofertas e aquisição hostil entre jogadores) + camada **em tempo real** (presença, chat, notícias) sobre **Supabase**. Fallback offline obrigatório.
+### Alterado no `town/`
+- Começo falido ($3k), freelas/cursos/banco na Sede, energia diária, habilidades que evoluem com o uso.
+- Economia rebalanceada por simulação (`tools/sim-town.js`): saturação de escala, juros sensíveis à alavancagem, IPO com diluição real, otimização de operação com custo e recarga, limite de equipe aplicado.
+- Concorrentes com prédio no mapa (roubo de talento, guerra de preço, falência, ex-funcionários abrindo concorrentes); contatos de networking na praça com memória; eventos com escolhas e consequência persistente; distrito que expande por fase; tela de Legado; save local; pausa/velocidade/zoom/pinça.
+
 ## [1.0.0] — 2026-06-23 — *Concept Complete / Pré-Produção*
 ### Adicionado
 - **Estrutura completa da bíblia** (13 documentos + glossário + changelog).

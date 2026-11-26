@@ -10,9 +10,10 @@
 ambição AAA. O repositório contém **duas coisas**:
 
 1. **A bíblia de design** (`docs/`) — especificação de pré-produção completa (13 documentos + glossário).
-2. **Protótipos jogáveis** — provas de conceito que rodam no navegador:
-   - `game/index.html` — protótipo de **sistemas** (2D, 100% offline, sem deps).
-   - `world/index.html` — **Meridian City em 3D** navegável (Three.js via CDN).
+2. **Protótipos jogáveis** — provas de conceito que rodam no navegador (publicados na Vercel a partir do `index.html` da raiz):
+   - `town/index.html` — **JOGO PRINCIPAL**: distrito 2D pixel art + multiplayer (Supabase). Ver `town/README.md`.
+   - `world/index.html` — Meridian City em 3D (Three.js via CDN) — *referência, single-player*.
+   - `game/index.html` — protótipo de sistemas 2D (offline) — *referência, single-player*.
 
 > A fonte canônica de fatos (nome, escopo, orçamento, plataformas) é o topo do [`README.md`](README.md).
 > Mudou um fato lá → propague para os documentos afetados.
@@ -21,6 +22,10 @@ ambição AAA. O repositório contém **duas coisas**:
 
 ```
 README.md              Índice mestre + fatos canônicos
+index.html             Página inicial (deploy na Vercel, estático, sem build)
+town/                  JOGO PRINCIPAL: distrito 2D + multiplayer (+ town/README.md)
+supabase/schema.sql    Backend multiplayer: tabelas, RLS e RPCs (aplicar no SQL Editor)
+tools/sim-town.js      Simulação headless permanente da economia do town/
 docs/00..12            A bíblia (visão, mercado, gameplay, mundo, economia, negócios,
                        IA, ativos, UX, técnica, produção, plano de negócio)
 docs/GLOSSARY.md       Termos canônicos
@@ -41,7 +46,8 @@ CONTRIBUTING.md        Como colaborar (humanos + IA, via GitHub/PRs)
 ## Convenções
 
 - **Idioma:** documentação e textos de jogo em **PT-BR**; termos técnicos de indústria em inglês quando for o padrão. Código/comentários técnicos podem ser em inglês.
-- **Protótipos:** manter **single-file, sem build, sem dependências** (o 3D usa Three.js via CDN/importmap — é a única exceção, e precisa ter fallback de erro/offline).
+- **Protótipos:** manter **single-file, sem build, sem dependências**. Exceções via CDN (versão fixada, sempre com fallback offline): Three.js (3D e o "assar" de sprites do town) e `@supabase/supabase-js` (multiplayer do town — sem ele o jogo roda offline com save local).
+- **Multiplayer:** escrita só no que é do próprio jogador (RLS); transferência entre jogadores só via RPC em `supabase/schema.sql`. Qualquer texto vindo de outro jogador (nome, chat, empresa) passa por `esc()` antes de ir para `innerHTML`.
 - **Economia é data-driven e balanceada por simulação** — ver "Validação" abaixo.
 
 ## Validação antes de commit/push (OBRIGATÓRIO para mudanças nos protótipos)
@@ -49,14 +55,14 @@ CONTRIBUTING.md        Como colaborar (humanos + IA, via GitHub/PRs)
 Não faça push de protótipo sem validar. O padrão usado neste repo:
 
 1. **Sintaxe:** extrair o `<script>` do HTML e rodar `node --check` (para o 3D, salvar como `.mjs`).
-2. **Economia headless:** extrair a lógica de economia, stubar `document`/`localStorage`, e rodar
+2. **Economia headless:** no `town/`, rode `node tools/sim-town.js 200 700` (extrai o bloco entre `/*@ECON-BEGIN*/` e `/*@ECON-END*/`). Nos outros protótipos: extrair a lógica de economia, stubar `document`/`localStorage`, e rodar
    centenas de "dias" simulados verificando que (a) não lança exceção, (b) progride pelas 5 fases,
    (c) falência é possível mas não garantida (sobrevivência tensa, justa).
 3. **UI smoke test:** stubar o DOM e exercitar render/modais/eventos/game-over sem lançar.
 
-> Exemplos desses harnesses já foram usados nos commits de `game/` e `world/`. Replicar o mesmo
-> padrão. Use o diretório scratchpad da sessão para arquivos temporários, **nunca** comite testes
-> temporários no repo.
+> `tools/sim-town.js` é o harness **permanente** (versionado). Demais testes pontuais (smoke de UI com
+> Playwright, testes de SQL com PGlite) vão no scratchpad da sessão — **nunca** comite testes temporários.
+4. **Backend:** mudou `supabase/schema.sql`? Teste RLS/RPC (ex.: PGlite com `auth.uid()` stubado) antes do push.
 
 ## Git / colaboração
 

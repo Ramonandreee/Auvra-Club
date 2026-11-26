@@ -3,10 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Business Simulator — Distrito (protótipo 2D)</title>
+<title>Business Simulator — Meridian</title>
 <!-- Three.js: usado só p/ "assar" luz/sombra 3D real nos sprites de prédio (uma vez, no carregamento).
      O jogo em si continua 100% Canvas 2D — se isto não carregar (offline/CDN fora), os prédios caem
      de volta pro desenho 2D atual automaticamente (ver bakeAllBuildingSprites no script principal). -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" onerror="window.__noSupabase=true"></script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js"}}</script>
 <style>
   :root{
@@ -74,6 +75,21 @@
   .lrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px;border-bottom:1px dashed #3a2919;cursor:pointer;font-size:13px}
   .lrow:hover{background:rgba(255,255,255,.04)} .dim{color:var(--dim)} .small{font-size:12px;color:var(--dim)}
   .lab{display:flex;justify-content:space-between;font-size:12.5px;margin:6px 0 3px}
+  .dprog{height:4px;background:#241810;border-radius:3px;margin:4px 0;overflow:hidden}.dprog i{display:block;height:100%;width:0;background:var(--gold)}
+  #speed{display:flex;gap:3px;justify-content:flex-end}#speed button{background:#2a1d12;border:1px solid var(--wood-hi);color:var(--cream);border-radius:5px;font-size:11px;padding:2px 6px;cursor:pointer}
+  #speed button.on{background:var(--gold);color:#2a1d12;border-color:var(--gold)}
+  .hud-day .net{font-size:11px;color:var(--dim);margin-top:3px}
+  .hud-top{flex-wrap:wrap;max-width:calc(100vw - 200px);row-gap:4px}
+  .tool{position:relative}.tool .badge{position:absolute;top:2px;right:4px;margin:0}
+  .sec{color:var(--gold);font-size:11px;letter-spacing:1px;margin:12px 0 2px;font-weight:700}
+  .sbtn{background:#2a1d12;border:1px solid var(--wood-hi);color:var(--cream);border-radius:5px;padding:3px 7px;font:inherit;font-size:12px;cursor:pointer;margin-left:4px}
+  .chat{max-height:150px;overflow:auto;background:#241810;border-radius:6px;padding:6px;font-size:12.5px;margin-top:4px;user-select:text}
+  .chatin{display:flex;gap:4px;margin-top:5px}.chatin input,#start input{flex:1;background:#241810;border:1px solid var(--wood-hi);color:var(--cream);border-radius:6px;padding:7px;font:inherit;user-select:text}
+  #start{position:fixed;inset:0;background:rgba(10,7,4,.62);z-index:40;display:flex;align-items:center;justify-content:center}#start.off{display:none}
+  #start .sbox{position:relative;width:min(400px,92vw);display:flex;flex-direction:column;gap:8px;padding:16px}
+  #start input{width:100%}#start label{font-size:12px;color:var(--dim)}
+  .stitle{color:var(--gold);font-weight:800;font-size:24px}.ssub{color:var(--dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-top:-6px}
+  @media (max-width:640px){ .tool{width:46px;height:52px}.tool .ti{font-size:19px}.tool .tl{font-size:8.5px} .obj{display:none} .quest{top:auto;bottom:80px;max-width:calc(100vw - 172px);padding:6px 8px}.quest .q{font-size:12.5px} .hint{bottom:auto;top:128px;max-width:92vw;text-align:center} .hud-top{font-size:12px;gap:8px;max-width:calc(100vw - 204px)} .hud-day{min-width:120px;font-size:12px} .tray{flex-wrap:wrap;width:94vw;justify-content:center} .card{width:80px} }
   @media (max-height:470px){ .mini{display:none} .obj{width:210px} }
 </style>
 </head>
@@ -81,7 +97,8 @@
 <canvas id="c"></canvas>
 
 <div class="panel hud-top" id="hudTop"></div>
-<div class="panel hud-day"><div id="dayTxt">Dia 1 · Primavera</div><div class="ph" id="phaseTxt">Sobrevivência</div></div>
+<div class="panel hud-day"><div id="dayTxt">Dia 1 · Primavera</div><div class="ph" id="phaseTxt">Sobrevivência</div><div class="dprog"><i id="dayProg"></i></div>
+  <div id="speed"><button data-s="0" title="Pausar (Espaço)">⏸</button><button data-s="1" title="1× (1)">▶</button><button data-s="2" title="2× (2)">▶▶</button><button data-s="4" title="4× (3)">⏩</button><button id="heroBtn" title="Ir até você">📍</button></div><div class="net" id="netState">⚪ offline</div></div>
 <div class="panel quest"><div class="t">Missão atual</div><div class="q" id="questTxt">Funde sua primeira empresa</div></div>
 <div class="panel obj" id="objPanel"></div>
 
@@ -90,6 +107,14 @@
 <div class="panel mini"><canvas id="mini" width="132" height="104"></canvas></div>
 <div class="hint" id="hint"></div>
 <div id="toast"></div>
+<div id="start"><div class="panel sbox">
+  <div class="stitle">Business Simulator</div><div class="ssub">Meridian · o distrito</div>
+  <p>Você chega com <b>$3k</b> e um notebook velho. Faça freelas, funde empresas, roube talentos, compre concorrentes — inclusive as empresas dos seus amigos.</p>
+  <label>Seu nome de empresário(a)</label><input id="nameIn" maxlength="24" placeholder="ex.: Ramon">
+  <button class="mbtn" id="btnCont"><b>▶ Continuar império</b><span>Retoma o save deste aparelho (ou da nuvem)</span></button>
+  <button class="mbtn" id="btnNew"><b>🌱 Novo jogo</b><span>Começa falido(a) nos Boroughs</span></button>
+  <div class="small" id="startNet"></div>
+</div></div>
 
 <script>
 /* ============================================================
@@ -99,7 +124,8 @@
    ============================================================ */
 const cv=document.getElementById('c'), ctx=cv.getContext('2d');
 let W=innerWidth, H=innerHeight, DPR=Math.min(devicePixelRatio||1,2);
-function resize(){W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);ctx.imageSmoothingEnabled=false;}
+var ZOOM=1, VW=W, VH=H; // zoom da câmera (VW/VH = viewport em px de mundo)
+function resize(){W=innerWidth;H=innerHeight;VW=W/ZOOM;VH=H/ZOOM;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);ctx.imageSmoothingEnabled=false;}
 addEventListener('resize',resize);resize();
 
 /* ---- pixel helpers ---- */
@@ -472,17 +498,18 @@ function genWorld(){
   // fountain centerpiece in the plaza
   decor.push({kind:'fountain',gx:cxA,gy:cyA,spr:fountain});
   // sede do jogador (marco) + empresas iniciais do distrito — fundadas com a economia Business Simulator de verdade
-  placeSede(cxA-4,cyA-4);
-  const starters=[['ai',cxA+3,cyA-5,3],['saas',cxA-8,cyA+3,2],['logi',cxA+3,cyA+3,4],['retail',cxA-5,cyA+3,2],['fintech',cxA-8,cyA-5,2],['media',cxA+7,cyA+3,2],['health',cxA+7,cyA-5,3]];
-  for(const st of starters){const co=foundCompany(st[0],st[1],st[2],0,true);for(let k=0;k<st[3];k++)addEmployee(co);}
+  // (sede, concorrentes iniciais e VOCÊ são criados em newGame()/loadGame() — o terreno é determinístico)
+  const SEDE_AT=[cxA-4,cyA-4], STARTER_LOTS=[[cxA+3,cyA-5],[cxA-8,cyA+3],[cxA+3,cyA+3],[cxA-5,cyA+3],[cxA-8,cyA-5],[cxA+7,cyA+3],[cxA+7,cyA-5]];
+  const resv=[SEDE_AT,...STARTER_LOTS]; // reserva os lotes para postes/props não nascerem neles
+  const nearLot=(x,y)=>resv.some(l=>x>=l[0]-1&&x<l[0]+4&&y>=l[1]-1&&y<l[1]+3);
   // postes de luz ao longo das avenidas (só em grama livre, fora de prédios)
-  for(let x=3;x<MAPW-2;x+=5){for(const gy of [cyA-1,cyA+2]){if(map[gy]&&map[gy][x]===0&&!buildingAt(x,gy))decor.push({kind:'lamp',gx:x,gy,spr:lamp});}}
-  for(let y=3;y<MAPH-2;y+=5){for(const gx of [cxA-1,cxA+2]){if(map[y]&&map[y][gx]===0&&!buildingAt(gx,y))decor.push({kind:'lamp',gx,gy:y,spr:lamp});}}
+  for(let x=3;x<MAPW-2;x+=5){for(const gy of [cyA-1,cyA+2]){if(map[gy]&&map[gy][x]===0&&!nearLot(x,gy))decor.push({kind:'lamp',gx:x,gy,spr:lamp});}}
+  for(let y=3;y<MAPH-2;y+=5){for(const gx of [cxA-1,cxA+2]){if(map[y]&&map[y][gx]===0&&!nearLot(gx,y))decor.push({kind:'lamp',gx,gy:y,spr:lamp});}}
   // hortas/campos (como a vila de referência)
   for(const cp of [[cxA-13,cyA+6],[cxA-13,cyA+9]]){for(let y=0;y<3;y++)for(let x=0;x<4;x++){const gx=cp[0]+x,gy=cp[1]+y;if(map[gy]&&map[gy][gx]===0){map[gy][gx]=4;for(let i=decor.length-1;i>=0;i--)if(decor[i].gx===gx&&decor[i].gy===gy)decor.splice(i,1);}}}
   // props: poço, cerca na horta, barris e engradados (fidelidade ao print)
   fenceRing(cxA-13,cyA+6,4,6);
-  const putDecor=(gx,gy,spr)=>{if(map[gy]&&map[gy][gx]===0&&!buildingAt(gx,gy)){for(let i=decor.length-1;i>=0;i--)if(decor[i].gx===gx&&decor[i].gy===gy)decor.splice(i,1);decor.push({kind:'prop',gx,gy,spr});}};
+  const putDecor=(gx,gy,spr)=>{if(map[gy]&&map[gy][gx]===0&&!nearLot(gx,gy)){for(let i=decor.length-1;i>=0;i--)if(decor[i].gx===gx&&decor[i].gy===gy)decor.splice(i,1);decor.push({kind:'prop',gx,gy,spr});}};
   putDecor(cxA-3,cyA-3,well);
   [[cxA+2,cyA-6],[cxA+6,cyA+2],[cxA-6,cyA+2],[cxA-9,cyA-6],[cxA+9,cyA+6]].forEach(p=>putDecor(p[0],p[1],barrel));
   [[cxA-7,cyA+2],[cxA+7,cyA+2],[cxA+2,cyA+6],[cxA-3,cyA-6]].forEach(p=>putDecor(p[0],p[1],crate));
@@ -496,12 +523,9 @@ function genWorld(){
     for(const gx of [-1,-2]){const j=rb()*0.7-0.35; if(rb()<0.55)decor.push({kind:'mtn',gx,gy:y+j,spr:pick(mountainSprites)});else decor.push({kind:'ftree',gx,gy:y+j,spr:pick(denseTreeSprites)});}
     for(const gx of [MAPW,MAPW+1]){const j=rb()*0.7-0.35; if(rb()<0.85)decor.push({kind:'ftree',gx,gy:y+j,spr:pick(denseTreeSprites)});}
   }
-  // pedestres ambientes (vida na praça)
-  const sedeB=buildings[0];for(let k=0;k<8;k++)spawnWorker(sedeB,null);
-  // VOCÊ — o herói, no centro do distrito (perto da fonte)
-  hero={x:(cxA+0.5)*TILE, y:(cyA+3.4)*TILE, tx:0,ty:0, spd:70, moving:false, face:1, ph:Math.random()*6};
-  hero.tx=hero.x; hero.ty=hero.y;
+  WORLD={cxA,cyA,SEDE_AT,STARTER_LOTS};
 }
+let WORLD=null;
 function footprintFree(type,gx,gy){const s=BSPRITES[type];for(let y=gy;y<gy+s.ht;y++)for(let x=gx;x<gx+s.wt;x++){if(x<0||y<0||x>=MAPW||y>=MAPH)return false;if(map[y][x]===3)return false;}
   for(const b of buildings){const bs=BSPRITES[b.type];if(gx<b.gx+bs.wt&&gx+s.wt>b.gx&&gy<b.gy+bs.ht&&gy+s.ht>b.gy)return false;}return true;}
 function placeBuilding(type,gx,gy){const s=BSPRITES[type];
@@ -513,6 +537,7 @@ function spawnWorker(b,co){const s=BSPRITES[b.type];const cx=(b.gx+s.wt/2)*TILE,
   const w={x:cx+(Math.random()*2-1)*TILE,y:cy+(Math.random()*1.5)*TILE,tx:0,ty:0,spd:16+Math.random()*10,spr:workerCache[(Math.random()*workerCache.length)|0],home:{cx,cy},co:co||null,ph:Math.random()*6,moving:false,face:1,pause:0};
   pickTarget(w);workers.push(w);return w;}
 function removeWorker(co){for(let i=workers.length-1;i>=0;i--){if(workers[i].co===co){workers.splice(i,1);return;}}}
+function removeWorkersOf(key,val){for(let i=workers.length-1;i>=0;i--)if(workers[i][key]===val)workers.splice(i,1);}
 function pickTarget(w){w.tx=w.home.cx+(Math.random()*4-2)*TILE;w.ty=w.home.cy+(Math.random()*3-0.5)*TILE;}
 
 /* ============================ CAMERA ============================ */
@@ -525,13 +550,14 @@ function ensureVignette(){ // cacheada; só regenera no resize (1 gradiente, nã
   vg.addColorStop(0,'rgba(10,14,8,0)');vg.addColorStop(1,'rgba(6,10,5,0.4)');
   g.fillStyle=vg;g.fillRect(0,0,W,H);vignetteImg=c;
 }
-function clampCam(){const worldW=MAPW*TILE,worldH=MAPH*TILE;camX=Math.max(-40,Math.min(worldW-W+40,camX));camY=Math.max(-40,Math.min(worldH-H+40,camY));}
-function centerCam(){camX=(MAPW*TILE-W)/2;camY=(MAPH*TILE-H)/2-40;clampCam();}
-function centerOnHero(){if(!hero)return centerCam();camX=hero.x-W/2;camY=hero.y-H/2;clampCam();}
+function clampCam(){const worldW=MAPW*TILE,worldH=MAPH*TILE;camX=Math.max(-40,Math.min(Math.max(-40,worldW-VW+40),camX));camY=Math.max(-40,Math.min(Math.max(-40,worldH-VH+40),camY));}
+function centerCam(){camX=(MAPW*TILE-VW)/2;camY=(MAPH*TILE-VH)/2-40;clampCam();}
+function centerOnHero(){if(!hero)return centerCam();camX=hero.x-VW/2;camY=hero.y-VH/2;clampCam();}
 
 /* ============================ RENDER ============================ */
 function draw(){
-  ctx.clearRect(0,0,W,H);
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.setTransform(DPR*ZOOM,0,0,DPR*ZOOM,0,0);ctx.imageSmoothingEnabled=false;
+  const W=VW,H=VH; // viewport em px de mundo (zoom)
   // sky/ground base
   ctx.fillStyle='#2a3a1e';ctx.fillRect(0,0,W,H);
   const vx0=Math.floor(camX/TILE), vy0=Math.floor(camY/TILE);
@@ -561,11 +587,13 @@ function draw(){
         if(ex<E+3||ex>TILE-E-3||ey<E+3||ey>TILE-E-3)ctx.fillRect(px+ex,py+ey,2,2);}
     }
   }
+  // distrito ainda não liberado (expande a cada fase)
+  ctx.fillStyle='rgba(12,9,5,0.42)';for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++)if(!tileUnlocked(x,y))ctx.fillRect(Math.round(x*TILE-camX),Math.round(y*TILE-camY),TILE,TILE);
   // depth-sorted sprites (decor + buildings + workers) by baseline y
   const ents=[];
   for(const d of decor){if(d.gx<x0-2||d.gx>x1+2||d.gy<y0-2||d.gy>y1+2)continue;ents.push({y:d.gy*TILE+TILE,draw:()=>{const sx=Math.round(d.gx*TILE-camX+TILE/2-d.spr.ox*AP),sy=Math.round(d.gy*TILE-camY+TILE-d.spr.oy*AP);ctx.drawImage(d.spr.c,sx,sy);}});}
-  for(const b of buildings){const s=BSPRITES[b.type];ents.push({y:(b.gy+s.ht)*TILE,draw:()=>{const sx=Math.round(b.gx*TILE-camX+ (s.wt*TILE)/2 - s.ox*AP),sy=Math.round((b.gy+s.ht)*TILE-camY - s.oy*AP);ctx.drawImage(s.c,sx,sy);}});}
-  for(const w of workers){ents.push({y:w.y,draw:()=>{const sp=w.spr;const bob=w.moving?Math.round(Math.abs(Math.sin(performance.now()*0.011+w.ph))*2*AP):0;
+  for(const b of buildings){const s=BSPRITES[b.type];ents.push({y:(b.gy+s.ht)*TILE,draw:()=>{const sx=Math.round(b.gx*TILE-camX+ (s.wt*TILE)/2 - s.ox*AP),sy=Math.round((b.gy+s.ht)*TILE-camY - s.oy*AP);ctx.drawImage(s.c,sx,sy);drawFlag(b,s);}});}
+  for(const w of workers){ents.push({y:w.y,draw:()=>{if(w.contact)drawContactMark(w);const sp=w.spr;const bob=w.moving?Math.round(Math.abs(Math.sin(performance.now()*0.011+w.ph))*2*AP):0;
     const dx=Math.round(w.x-camX-6*AP),dy=Math.round(w.y-camY-16*AP)-bob;
     if(w.face<0){ctx.save();ctx.translate(dx+sp.width,dy);ctx.scale(-1,1);ctx.drawImage(sp,0,0);ctx.restore();}else ctx.drawImage(sp,dx,dy);}});}
   if(hero){const H=hero;ents.push({y:H.y+2,draw:()=>{
@@ -589,154 +617,294 @@ function draw(){
   // placement ghost
   if(placing){drawGhost();}
   // vinheta sutil (moldura do enquadramento — cacheada, 1 blit por frame)
-  ensureVignette();ctx.drawImage(vignetteImg,0,0);
+  ctx.setTransform(DPR,0,0,DPR,0,0);ensureVignette();ctx.drawImage(vignetteImg,0,0);
 }
 
 /* ---- placement ---- */
-let placing=null; // building type string
+let placing=null; // {id,spr,name,cost}
 let mouseGX=0,mouseGY=0;
-function drawGhost(){const s=BSPRITES[placing.spr];const ok=footprintFree(placing.spr,mouseGX,mouseGY);
+function drawGhost(){const s=BSPRITES[placing.spr];const ok=canBuild(placing.spr,mouseGX,mouseGY);
   for(let y=0;y<s.ht;y++)for(let x=0;x<s.wt;x++){ctx.fillStyle=ok?'rgba(120,220,120,0.35)':'rgba(220,90,90,0.35)';
     ctx.fillRect(Math.round((mouseGX+x)*TILE-camX),Math.round((mouseGY+y)*TILE-camY),TILE-2,TILE-2);}
   ctx.globalAlpha=.7;const sx=Math.round(mouseGX*TILE-camX+(s.wt*TILE)/2-s.ox*AP),sy=Math.round((mouseGY+s.ht)*TILE-camY-s.oy*AP);ctx.drawImage(s.c,sx,sy);ctx.globalAlpha=1;}
+/* bandeirinha sobre o prédio: dourada = seu, vermelha = concorrente (NPC ou amigo) */
+function drawFlag(b,s){if(!b.co&&!b.rv)return;
+  const top=Math.round((b.gy+s.ht)*TILE-camY-s.oy*AP)+2;const x=Math.round(b.gx*TILE-camX)+8;
+  ctx.fillStyle='#2a1d12';ctx.fillRect(x,top,3,22);ctx.fillStyle=b.co?(b.co.public?'#8fd0ff':'#e8c060'):'#d0503a';
+  ctx.beginPath();ctx.moveTo(x+3,top+1);ctx.lineTo(x+17,top+6);ctx.lineTo(x+3,top+11);ctx.fill();}
+function drawContactMark(w){const rx=Math.round(w.x-camX),ry=Math.round(w.y-camY);const pulse=0.5+0.3*Math.sin(performance.now()*0.004+w.ph);
+  ctx.save();ctx.globalAlpha=pulse;ctx.strokeStyle='#e8c060';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(rx,ry,13,5,0,0,7);ctx.stroke();ctx.restore();
+  const c=w.contact;ctx.font='14px sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(c.ico,rx,Math.round(w.y-camY-17*AP));}
 
-/* ============================ UPDATE ============================ */
-let last=performance.now();
-function loop(now){const dt=Math.min((now-last)/1000,0.05);last=now;
-  for(const w of workers){const dx=w.tx-w.x,dy=w.ty-w.y,d=Math.hypot(dx,dy);
-    if(d<3){w.moving=false;if(w.pause>0){w.pause-=dt;}else if(Math.random()<0.03){pickTarget(w);w.pause=rnd(0.4,2.2);}}
-    else{w.moving=true;if(Math.abs(dx)>0.5)w.face=dx<0?-1:1;w.x+=dx/d*w.spd*dt;w.y+=dy/d*w.spd*dt;}}
-  if(hero){const dx=hero.tx-hero.x,dy=hero.ty-hero.y,d=Math.hypot(dx,dy);
-    if(d<2){hero.moving=false;}else{hero.moving=true;if(Math.abs(dx)>0.5)hero.face=dx<0?-1:1;const step=Math.min(hero.spd*dt,d);hero.x+=dx/d*step;hero.y+=dy/d*step;}}
-  draw();drawMini();
-  requestAnimationFrame(loop);}
+/* ============================ DISTRITO (expande por fase) ============================ */
+const UNLOCK_R=[0,9,13,17,22,99];
+function tileUnlocked(x,y){if(!WORLD||!started)return true;const r=UNLOCK_R[S.phase]||99;return Math.max(Math.abs(x-WORLD.cxA-0.5),Math.abs(y-WORLD.cyA-0.5))<=r+0.5;}
+function lotFree(type,gx,gy){if(!footprintFree(type,gx,gy))return false;const s=BSPRITES[type];for(let y=gy;y<gy+s.ht;y++)for(let x=gx;x<gx+s.wt;x++){const t=map[y][x];if(t===1||t===2||t===4)return false;}return true;}
+function canBuild(type,gx,gy){if(!lotFree(type,gx,gy))return false;const s=BSPRITES[type];for(let y=gy;y<gy+s.ht;y++)for(let x=gx;x<gx+s.wt;x++)if(!tileUnlocked(x,y))return false;return true;}
+function findFreeSpot(type,mustUnlock){const bx=sede?sede.gx:MAPW>>1,by=sede?sede.gy:MAPH>>1;for(let rad=3;rad<26;rad++)for(let a=0;a<18;a++){const gx=clamp(bx+Math.round((Math.random()*2-1)*rad),1,MAPW-4),gy=clamp(by+Math.round((Math.random()*2-1)*rad),1,MAPH-4);if(mustUnlock?canBuild(type,gx,gy):lotFree(type,gx,gy))return {gx,gy};}return null;}
 
-/* ============================ MINIMAP ============================ */
-const mini=document.getElementById('mini'),mg=mini.getContext('2d');mg.imageSmoothingEnabled=false;
-function drawMini(){const sx=mini.width/MAPW,sy=mini.height/MAPH;mg.fillStyle='#3a5a2a';mg.fillRect(0,0,mini.width,mini.height);
-  for(let y=0;y<MAPH;y++)for(let x=0;x<MAPW;x++){const t=map[y][x];if(t===0)continue;mg.fillStyle=t===1?'#9a7a4a':t===2?'#b9a888':t===3?'#4a82ad':t===4?'#7a5a38':'#3a5a2a';mg.fillRect(x*sx,y*sy,Math.ceil(sx),Math.ceil(sy));}
-  for(const b of buildings){mg.fillStyle=b.type==='hq'?'#e8c060':'#d08a4a';mg.fillRect(b.gx*sx,b.gy*sy,sx*2,sy*2);}
-  // viewport rect
-  mg.strokeStyle='#f2e4c8';mg.lineWidth=1;mg.strokeRect(camX/TILE*sx,camY/TILE*sy,W/TILE*sx,H/TILE*sy);}
-
-/* ============================ INPUT ============================ */
-let dragging=false,dragMoved=false,lastX=0,lastY=0;
-cv.addEventListener('pointerdown',e=>{dragging=true;dragMoved=false;lastX=e.clientX;lastY=e.clientY;cv.classList.add('drag');cv.setPointerCapture(e.pointerId);});
-cv.addEventListener('pointermove',e=>{
-  mouseGX=Math.floor((e.clientX+camX)/TILE);mouseGY=Math.floor((e.clientY+camY)/TILE);
-  if(dragging){const dx=e.clientX-lastX,dy=e.clientY-lastY;if(Math.abs(dx)+Math.abs(dy)>3)dragMoved=true;camX-=dx;camY-=dy;lastX=e.clientX;lastY=e.clientY;clampCam();}});
-cv.addEventListener('pointerup',e=>{dragging=false;cv.classList.remove('drag');
-  const gx=Math.floor((e.clientX+camX)/TILE),gy=Math.floor((e.clientY+camY)/TILE);
-  if(placing&&!dragMoved){tryPlace(gx,gy);return;}
-  if(!dragMoved){const b=buildingAt(gx,gy);if(b){if(b.co)openCompany(b.co);else if(b.sede)openSede();return;}
-    if(hero){hero.tx=e.clientX+camX;hero.ty=e.clientY+camY;}}}); // toca no chão -> você anda até lá
-
-/* ============================ ECONOMIA Business Simulator (portada e validada) ============================ */
+/* ============================ ECONOMIA (data-driven; validada por simulação headless — ver tools/sim-town.js) ============================ */
+/*@ECON-BEGIN*/
 const rnd=(a,b)=>a+Math.random()*(b-a), ri=(a,b)=>a+((Math.random()*(b-a+1))|0), chance=p=>Math.random()<p, clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), pick=a=>a[(Math.random()*a.length)|0];
-function money(n){n=Math.round(n);const s=n<0?'-':'';n=Math.abs(n);if(n>=1e6)return s+'$'+(n/1e6).toFixed(n>=1e7?0:1)+'M';if(n>=1e3)return s+'$'+(n/1e3).toFixed(n>=1e4?0:1)+'k';return s+'$'+n;}
+function money(n){n=Math.round(n);const s=n<0?'-':'';n=Math.abs(n);if(n>=1e9)return s+'$'+(n/1e9).toFixed(1)+'B';if(n>=1e6)return s+'$'+(n/1e6).toFixed(n>=1e7?0:1)+'M';if(n>=1e3)return s+'$'+(n/1e3).toFixed(n>=1e4?0:1)+'k';return s+'$'+n;}
 function moneyFull(n){n=Math.round(n);const s=n<0?'-':'';return s+'$'+Math.abs(n).toLocaleString('pt-BR');}
+function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 const NICHES=[
-  {id:"saas",name:"SaaS B2B",ico:"🧩",spr:"startup",cost:[3000,5000],base:[60,110],risk:.10,growth:1.18,family:"tech"},
-  {id:"ai",name:"IA / Deep Tech",ico:"🧠",spr:"office",cost:[6000,9000],base:[90,160],risk:.22,growth:1.30,family:"tech"},
-  {id:"fintech",name:"Fintech",ico:"💳",spr:"office",cost:[5000,8000],base:[80,140],risk:.18,growth:1.22,family:"tech"},
-  {id:"retail",name:"Varejo",ico:"🛍️",spr:"cafe",cost:[2500,4500],base:[55,95],risk:.12,growth:1.10,family:"real"},
-  {id:"logi",name:"Logística",ico:"🚚",spr:"factory",cost:[4000,7000],base:[70,120],risk:.13,growth:1.12,family:"real"},
-  {id:"energy",name:"Energia",ico:"⚡",spr:"factory",cost:[9000,15000],base:[130,210],risk:.14,growth:1.16,family:"real"},
-  {id:"media",name:"Mídia",ico:"🎬",spr:"cafe",cost:[4000,7000],base:[60,150],risk:.24,growth:1.20,family:"soft"},
-  {id:"health",name:"Saúde",ico:"🩺",spr:"office",cost:[6000,10000],base:[100,170],risk:.12,growth:1.14,family:"soft"},
+  {id:"retail",name:"Varejo",ico:"🛍️",spr:"cafe",cost:3500,base:[55,95],risk:.12,growth:1.10,family:"real"},
+  {id:"saas",name:"SaaS B2B",ico:"🧩",spr:"startup",cost:4000,base:[60,110],risk:.10,growth:1.18,family:"tech"},
+  {id:"logi",name:"Logística",ico:"🚚",spr:"factory",cost:5500,base:[70,120],risk:.13,growth:1.12,family:"real"},
+  {id:"media",name:"Mídia",ico:"🎬",spr:"cafe",cost:5500,base:[60,150],risk:.24,growth:1.20,family:"soft"},
+  {id:"fintech",name:"Fintech",ico:"💳",spr:"office",cost:6500,base:[80,140],risk:.18,growth:1.22,family:"tech"},
+  {id:"ai",name:"IA / Deep Tech",ico:"🧠",spr:"office",cost:7500,base:[90,160],risk:.22,growth:1.30,family:"tech"},
+  {id:"health",name:"Saúde",ico:"🩺",spr:"office",cost:8000,base:[100,170],risk:.12,growth:1.14,family:"soft"},
+  {id:"energy",name:"Energia",ico:"⚡",spr:"factory",cost:12000,base:[130,210],risk:.14,growth:1.16,family:"real"},
 ];
-const PHASES=[{n:1,name:"Sobrevivência",net:0},{n:2,name:"Crescimento",net:60000,need:"company"},{n:3,name:"Escala",net:1200000},{n:4,name:"Influência",net:20000000},{n:5,name:"Legado",net:150000000}];
+const NICHE={};NICHES.forEach(n=>NICHE[n.id]=n);
+const PHASES=[{n:1,name:"Sobrevivência",net:0},{n:2,name:"Crescimento",net:25000,need:"company"},{n:3,name:"Escala",net:300000},{n:4,name:"Influência",net:5000000},{n:5,name:"Legado",net:30000000}];
+const IPO_MIN=350000, YEAR=40, SAT=10; // 1 ano de jogo = 4 estações × 10 dias
 const FIRST=["Alex","Sam","Noa","Liv","Cris","Vic","Dani","Theo","Mara","Iris","Leo","Nina","Caio","Bia","Hugo","Lara","Rafa","Yuki","Omar","Sofia","Marco","Eva","Priya","Enzo","Mila"];
 const LAST=["Moreau","Sterling","Okafor","Vance","Reyes","Cho","Bianchi","Haddad","Costa","Nakamura","Adeyemi","Volkov","Mensah","Duarte","Khan","Romano","Silva","Aoki","Vega","Brandt"];
 const ROLES=[{t:"Engenheiro(a)",fam:"tech"},{t:"Cientista de Dados",fam:"tech"},{t:"Designer",fam:"tech"},{t:"Head de Vendas",fam:"soft"},{t:"Operações",fam:"real"},{t:"Marketing",fam:"soft"},{t:"Financeiro(a)",fam:"any"}];
 const SEASONS=["Primavera","Verão","Outono","Inverno"];
-let S={cash:8000,rep:{market:5,talent:5,public:6},skills:{negotiation:10,charisma:12,finance:8,leadership:8},
-  market:{cycle:"estável",mult:1.0,rate:6.0,mood:0,target:1.0},phase:1,phaseName:"Sobrevivência",
-  day:1,season:"Primavera",over:false,won:false,peakNet:0,founded:0,hires:0,rivals:[]};
-let companies=[]; let sede=null; const FEED=[]; function log(h){FEED.unshift({d:S.day,h});if(FEED.length>30)FEED.length=30;}
+const CONTACT_DEFS=[{kind:'investor',role:'Investidora anjo',ico:'💼'},{kind:'banker',role:'Gerente do banco',ico:'🏦'},{kind:'mentor',role:'Mentor de negócios',ico:'🎓'},{kind:'client',role:'Cliente corporativo',ico:'🤝'},{kind:'headhunter',role:'Headhunter',ico:'🎯'}];
+function newState(name){return {v:2,name:name||'Você',cash:3000,debt:0,escrow:0,energy:100,rep:{market:5,talent:5,public:6},skills:{negotiation:10,charisma:12,finance:8,leadership:8},
+  market:{cycle:"estável",mult:1.0,rate:6.0,mood:0,target:1.0},phase:1,phaseName:"Sobrevivência",day:1,season:"Primavera",over:false,won:false,wonSeen:false,
+  peakNet:0,founded:0,hires:0,negDays:0,speed:1,flags:{},stats:{freelas:0,acq:0,ipos:0,events:0}};}
+let S=newState(); let companies=[]; let rivals=[]; let contacts=[]; let sede=null; let started=false; const FEED=[];
+function log(h){FEED.unshift({d:S.day,h});if(FEED.length>40)FEED.length=40;}
 const skillAvg=()=>(S.skills.negotiation+S.skills.charisma+S.skills.finance+S.skills.leadership)/4;
+function gainSkill(k,a){S.skills[k]=Math.min(100,S.skills[k]+a*(1-S.skills[k]/120));}
+function repUp(k,a){S.rep[k]=clamp(S.rep[k]+a,0,100);}
 const roleFit=(e,n)=>!n?1:e.fam==="any"?1.05:e.fam===n.family?1.18:0.9;
-function coName(n){const a=["Nova","Apex","Vertex","Lumen","Iron","Atlas","Meridian","Cobalt","Halcyon","Orion","Vanta","Praxis","Zenith"];const b={tech:["Labs","AI","Soft","Stack","Systems"],real:["Group","Works","Ind.","Log.","Build"],soft:["Media","Health","Studio","House"]};return pick(a)+" "+pick(b[n.family]);}
-function coSynergy(co){const n=companies.length;if(n<=1)return 1;let s=1+Math.min(0.22,(n-1)*0.045);const nn=NICHES.find(x=>x.id===co.niche);if(nn&&companies.some(c=>c!==co&&(NICHES.find(x=>x.id===c.niche)||{}).family===nn.family))s+=0.06;return s;}
-function coRevenue(co){const n=NICHES.find(x=>x.id===co.niche);let emp=0;co.employees.forEach(e=>emp+=e.competence*0.012*roleFit(e,n));const rep=1+(S.rep.market-5)*0.012+(S.rep.public-5)*0.006;const ops=0.45+co.ops/100*0.95;const f=1+(skillAvg()-8)*0.01;return Math.max(0,co.baseRev*(1+emp)*ops*S.market.mult*rep*f*co.scale*coSynergy(co));}
-function coCosts(co){let s=0;co.employees.forEach(e=>s+=e.salary);return s+co.overhead;}
+function coName(n){const a=["Nova","Apex","Vertex","Lumen","Iron","Atlas","Meridian","Cobalt","Halcyon","Orion","Vanta","Praxis","Zenith","Aurora","Quanta","Solace"];const b={tech:["Labs","AI","Soft","Stack","Systems"],real:["Group","Works","Ind.","Log.","Build"],soft:["Media","Health","Studio","House"]};return pick(a)+" "+pick(b[n.family]);}
+function coSynergy(co){const n=companies.length;if(n<=1)return 1;let s=1+Math.min(0.22,(n-1)*0.045);const nn=NICHE[co.niche];if(companies.some(c=>c!==co&&NICHE[c.niche].family===nn.family))s+=0.06;return s;}
+function competition(co){let w=0;for(const r of rivals)if(r.niche===co.niche)w+=Math.min(1.5,0.3+r.value/Math.max(60000,coValueRaw(co)*2));return 1/(1+0.07*w);}
+function coRevenueRaw(co,comp){const n=NICHE[co.niche];let emp=0;co.employees.forEach(e=>emp+=e.competence*0.013*roleFit(e,n));const rep=1+(S.rep.market-5)*0.012+(S.rep.public-5)*0.006;const ops=0.45+co.ops/100*0.95;const f=1+(skillAvg()-8)*0.01;
+  return Math.max(0,co.baseRev*effScale(co)*(1+emp)*ops*S.market.mult*rep*f*coSynergy(co)*comp);}
+/* saturação de mercado: escala tem retorno decrescente (evita crescimento explosivo no fim do jogo) */
+function effScale(co){return co.scale/(1+co.scale/SAT);}
+function coRevenue(co){return coRevenueRaw(co,competition(co));}
+function coCosts(co){let s=0;co.employees.forEach(e=>s+=e.salary);return s+co.overhead*Math.pow(co.scale,1.05);}
 function coProfit(co){return coRevenue(co)-coCosts(co);}
-function coValue(co){const n=NICHES.find(x=>x.id===co.niche);const annual=coProfit(co)*365;const mult=(6+(n?n.growth:1)*4)*(0.7+S.market.mult*0.4);return Math.max(0,Math.round(Math.max(coRevenue(co)*36,annual*mult/12)));}
-function dailyExpenses(){return 40+6+S.phase*S.phase*4;}
-function netWorth(){let n=S.cash;companies.forEach(c=>n+=coValue(c));return Math.round(n);}
+function valueFrom(co,rev,prof){const n=NICHE[co.niche];const mult=(2+n.growth*1.5)*(0.7+S.market.mult*0.4);return Math.max(0,Math.round(Math.max(rev*30,prof*YEAR*mult)));}
+function coValueRaw(co){const rev=coRevenueRaw(co,1);return valueFrom(co,rev,rev-coCosts(co));}
+function coValue(co){const rev=coRevenue(co);return valueFrom(co,rev,rev-coCosts(co));}
+const stakeOf=co=>co.stake==null?1:co.stake;
+function maxStaff(co){return 2+Math.floor(effScale(co)*2.2)+(co.managed?1:0);}
+function staffCap(){return 6+S.phase*12;}
+function totalStaff(){return companies.reduce((a,c)=>a+c.employees.length,0);}
+function expandCost(co){return Math.round(co.baseRev*co.scale*60*(1+(co.expandN||0)*0.18));}
+function opsCost(co){return Math.round(150+co.baseRev*co.scale*4);}
+function dailyExpenses(){return 45+S.phase*S.phase*8+companies.length*8;}
+function equity(){let n=0;companies.forEach(c=>n+=coValue(c)*stakeOf(c));return n;}
+function netWorth(){return Math.round(S.cash+S.escrow+equity()-S.debt);}
+function loanLimit(){return Math.round((2000+Math.max(0,S.cash+S.escrow+equity()-S.debt)*0.22+S.rep.market*80)*(S.flags.banker?1.2:1));} // baseado no patrimônio LÍQUIDO (empréstimo não infla o próprio limite)
+function loanRate(){const lev=S.debt/Math.max(1,loanLimit());return S.market.rate*(1+1.5*lev*lev)*(S.flags.banker?0.7:1);} // juros sobem com a alavancagem
+function dailyInterest(){return S.debt*loanRate()/100/YEAR;}
 function checkPhase(){const net=netWorth();for(let i=PHASES.length-1;i>=0;i--){const p=PHASES[i];if(net>=p.net&&(p.need!=="company"||companies.length>0)){if(p.n>S.phase){S.phase=p.n;S.phaseName=p.name;onPhaseUp(p);}break;}}}
-function onPhaseUp(p){toast('🏆 Nova fase: '+p.name);if(p.n===5)S.won=true;}
-function genPerson(){const role=pick(ROLES);return {id:'p'+Date.now()+ri(0,99999),name:pick(FIRST)+' '+pick(LAST),role:role.t,fam:role.fam,competence:ri(50,92),ambition:ri(35,90),salary:Math.round(rnd(80,200)),happy:60,tenure:0};}
-/* founding & staffing (liga empresa <-> prédio <-> funcionários-sprites) */
-function foundCompany(nicheId,gx,gy,cost,free){const n=NICHES.find(x=>x.id===nicheId);const base=rnd(n.base[0],n.base[1])*(0.9+skillAvg()*0.01);const b=placeBuilding(n.spr,gx,gy);
-  const co={id:'co'+Date.now()+ri(0,999),niche:nicheId,name:coName(n),baseRev:base,ops:42,scale:1,employees:[],overhead:Math.round(base*0.3),age:0,b};b.co=co;companies.push(co);if(!free)S.cash-=cost;S.founded++;return co;}
+function genPerson(star){const role=pick(ROLES);const t=S.rep.talent;const comp=star?ri(85,98):ri(Math.round(45+t/4),Math.round(85+t/6));
+  return {id:'p'+Date.now()+ri(0,99999),name:pick(FIRST)+' '+pick(LAST),role:role.t,fam:role.fam,competence:Math.min(99,comp),ambition:ri(35,90),salary:Math.round((15+comp*0.8)*rnd(0.9,1.15)*(1+(S.phase-1)*0.15)),happy:62,tenure:0};}
+/* fundação / equipe (empresa <-> prédio <-> funcionários-sprites) */
+function makeCompany(nicheId,b){const n=NICHE[nicheId];const base=rnd(n.base[0],n.base[1])*(0.9+skillAvg()*0.01);
+  const co={id:'co'+Date.now()+ri(0,99999),niche:nicheId,name:coName(n),baseRev:base,ops:42,scale:1,employees:[],overhead:Math.round(base*0.3),age:0,stake:1,expandN:0,b};if(b)b.co=co;return co;}
+function foundCompany(nicheId,gx,gy){const n=NICHE[nicheId];const b=placeBuilding(n.spr,gx,gy);const co=makeCompany(nicheId,b);companies.push(co);S.cash-=n.cost;S.founded++;log('🏗️ Você fundou a '+co.name+'.');return co;}
 function placeSede(gx,gy){const b=placeBuilding('hq',gx,gy);b.sede=true;sede=b;return b;}
-function addEmployee(co,e){e=e||genPerson();co.employees.push(e);spawnWorker(co.b,co);S.hires++;return e;}
-function removeCompany(co){companies=companies.filter(c=>c!==co);const bi=buildings.indexOf(co.b);if(bi>=0)buildings.splice(bi,1);for(let i=workers.length-1;i>=0;i--)if(workers[i].co===co)workers.splice(i,1);}
-function findFreeSpot(type){const bx=sede?sede.gx:MAPW>>1,by=sede?sede.gy:MAPH>>1;for(let rad=3;rad<22;rad++)for(let a=0;a<14;a++){const gx=clamp((bx+Math.round((Math.random()*2-1)*rad)),1,MAPW-4),gy=clamp((by+Math.round((Math.random()*2-1)*rad)),1,MAPH-4);if(footprintFree(type,gx,gy))return {gx,gy};}return {gx:2,gy:2};}
-/* daily tick */
+function addEmployee(co,e){e=e||genPerson();co.employees.push(e);if(co.b)spawnWorker(co.b,co);S.hires++;return e;}
+function removeCompany(co){companies=companies.filter(c=>c!==co);const bi=buildings.indexOf(co.b);if(bi>=0)buildings.splice(bi,1);removeWorkersOf('co',co);}
+/* ajusta a escala p/ o valuation bater com um alvo (aquisições: preço justo, não dinheiro grátis) */
+function calibrate(co,target){co.scale=clamp(1+target/400000,1,6);for(let k=0;k<10;k++){const v=coValue(co);if(v<=0){co.baseRev*=1.6;continue;}co.baseRev=co.baseRev*Math.pow(target/v,0.85);}co.overhead=Math.round(co.baseRev*0.3);for(let k=0;k<6;k++){const v=coValue(co);if(v>0)co.baseRev*=Math.pow(target/v,0.85);}}
+/* tick diário */
 function endDay(){if(S.over)return;let coNet=0;
-  companies.forEach(co=>{co.age++;coNet+=coProfit(co);co.ops=clamp(co.ops-(co.managed?rnd(0.05,0.4):rnd(0.4,1.2)),0,100);co.scale*=rnd(0.998,1.004);const n=NICHES.find(x=>x.id===co.niche);if(chance(n.risk*0.05))co.scale*=rnd(.82,.93);});
-  S.cash+=coNet;S.cash-=dailyExpenses();employeeTick();marketTick();rivalTick();
-  if(S.day>2&&chance(0.3))fireEvent();
+  companies.forEach(co=>{co.age++;coNet+=coProfit(co)*stakeOf(co);co.ops=clamp(co.ops-(co.managed?rnd(0.05,0.35):rnd(0.4,1.1)),0,100);co.scale*=rnd(0.998,1.003);
+    if(chance(NICHE[co.niche].risk*0.05)){co.scale*=rnd(.86,.94);log('⚠️ '+co.name+' perdeu um cliente grande.');}});
+  S.cash+=coNet-dailyExpenses()-dailyInterest();S.energy=100;
+  employeeTick();marketTick();rivalTick();contactTick();
+  if(S.flags.scandal>0){S.flags.scandal--;repUp('public',-0.3);}
   S.day++;if(S.day%10===0)S.season=SEASONS[(SEASONS.indexOf(S.season)+1)%4];
-  if(S.cash<-3000)S.over=true;
-  S.peakNet=Math.max(S.peakNet,netWorth());checkPhase();refreshHUD();refreshObj();
-  if(S.over)gameOver();}
-function employeeTick(){companies.forEach(co=>{for(let i=co.employees.length-1;i>=0;i--){const e=co.employees[i];e.tenure++;const lead=(S.skills.leadership-8)*0.2;e.happy=clamp((e.happy||60)+(co.ops>55?1:-1)+lead*0.3+rnd(-2,2),0,100);if(e.happy<28&&chance(0.13)){co.employees.splice(i,1);removeWorker(co);}}});}
-function marketTick(){const m=S.market;m.mood=clamp(m.mood+rnd(-.1,.1),-1,1);if(chance(0.045)){const r=Math.random();if(r<.33){m.cycle="recessão";m.target=.78;m.rate=clamp(m.rate+rnd(.5,2),1,18);log('📉 Recessão em Meridian.');}else if(r<.66){m.cycle="aquecido";m.target=1.28;m.rate=clamp(m.rate-rnd(.3,1.2),1,18);log('📈 Boom! Capital barato.');}else{m.cycle="estável";m.target=1.0;}}m.mult+=(m.target-m.mult)*0.15+m.mood*0.01;m.mult=clamp(m.mult,0.6,1.5);}
-function genRival(){const n=pick(NICHES);return {id:'rv'+Date.now()+ri(0,99999),name:coName(n),niche:n.id,value:Math.round(rnd(40000,500000)),drift:rnd(0.985,1.04)};}
-function rivalTick(){if(!S.rivals)S.rivals=[];const mf=0.55+S.market.mult*0.45;for(let i=S.rivals.length-1;i>=0;i--){const r=S.rivals[i];r.value=Math.max(8000,Math.round(r.value*r.drift*rnd(0.97,1.04)*mf));if(chance(0.012))S.rivals.splice(i,1);}if(S.rivals.length<6&&chance(0.12))S.rivals.push(genRival());}
-function fireEvent(){const big=companies.filter(c=>coValue(c)>120000).sort((a,b)=>coValue(b)-coValue(a))[0];
-  if(big&&chance(0.4)){const off=Math.round(coValue(big)*rnd(1.2,1.9));return modal('🦈','Oferta de aquisição','<p>Um conglomerado quer comprar a <b>'+big.name+'</b> por <b style="color:var(--gold)">'+moneyFull(off)+'</b> — acima do valuation.</p>',[{t:'💰 Vender por '+money(off),d:'Exit agora',fn:()=>{S.cash+=off;removeCompany(big);toast('Exit: '+money(off));checkPhase();refreshHUD();closeModal();}},{t:'🛡️ Recusar',d:'Vale mais à frente',fn:()=>{S.rep.market=clamp(S.rep.market+3,0,100);closeModal();}}]);}
-  if(companies.length&&chance(.5)){const co=pick(companies);co.scale*=rnd(1.04,1.14);toast('📣 '+co.name+' viralizou! Demanda subiu.');}}
-/* M&A / IPO / gerente / venda */
-function doAcquire(r){const idx=S.rivals.indexOf(r);if(idx<0)return null;const price=Math.round(r.value*1.35);if(S.cash<price)return null;S.cash-=price;const n=NICHES.find(x=>x.id===r.niche);const spot=findFreeSpot(n.spr);const b=placeBuilding(n.spr,spot.gx,spot.gy);
-  const co={id:'co'+Date.now()+ri(0,999),niche:r.niche,name:r.name,baseRev:rnd(n.base[0],n.base[1])*(1+r.value/250000),ops:55,scale:1+r.value/400000,employees:[],overhead:0,age:30,acquired:true,b};b.co=co;co.overhead=Math.round(coRevenue(co)*0.32);
-  for(let k=0;k<ri(2,5);k++)addEmployee(co);companies.push(co);S.rivals.splice(idx,1);S.rep.market=clamp(S.rep.market+3,0,100);S.founded++;return co;}
-function sellCo(co){const v=coValue(co);modal('🏷️','Vender '+co.name,'<p>Comprador avalia em <b style="color:var(--gold)">'+moneyFull(v)+'</b>.</p>',[{t:'✅ Vender por '+money(v),d:'Exit',fn:()=>{S.cash+=v;removeCompany(co);toast('Exit: '+money(v));checkPhase();refreshHUD();closeModal();}},{t:'↩ Manter',fn:()=>openCompany(co)}]);}
-function ipo(co){if(co.public)return;const val=coValue(co);if(val<500000)return toast('Pequena demais p/ IPO (mín '+money(500000)+')');const raise=Math.round(val*1.4);modal('📊','Abrir capital — '+co.name,'<p>IPO na Meridian Exchange capta <b style="color:var(--gold)">'+moneyFull(raise)+'</b>. Em troca: diluição e escrutínio público.</p>',[{t:'📈 Fazer IPO ('+money(raise)+')',fn:()=>{S.cash+=raise;co.public=true;co.scale*=0.9;S.rep.market=clamp(S.rep.market+5,0,100);S.rep.public=clamp(S.rep.public+8,0,100);toast('IPO! +'+money(raise));checkPhase();refreshHUD();closeModal();}},{t:'↩ Ainda não',fn:()=>openCompany(co)}]);}
-function manage(co){if(co.managed)return;const mgr=genPerson();mgr.role='Gerente Geral';mgr.fam='any';mgr.competence=Math.max(mgr.competence,68);mgr.salary=Math.round(80+coRevenue(co)*0.12);co.employees.push(mgr);co.managed=true;spawnWorker(co.b,co);S.hires++;toast('🧑‍✈️ Gerente contratado');}
-function hireInto(co){const cands=[genPerson(),genPerson(),genPerson()];
-  modal('🧑‍💼','Entrevistas · '+co.name,'<p class="small">Competência puxa receita; salário puxa custo.</p>',
-    cands.map(c=>({t:c.name+' — '+c.role,d:'Comp '+c.competence+' · '+moneyFull(c.salary)+'/dia',fn:()=>{const shave=clamp((S.skills.negotiation-8)*0.006,0,0.25);c.salary=Math.round(c.salary*(1-shave));addEmployee(co,c);toast('Contratado: '+c.name);refreshHUD();openCompany(co);}})).concat([{t:'↩ Voltar',fn:()=>openCompany(co)}]));}
+  if(S.cash<0){S.negDays++;if(S.negDays<5)toast('⚠️ Caixa negativo! Falência em '+(5-S.negDays)+' dia(s) — pegue empréstimo ou venda algo.');}else S.negDays=0;
+  if(S.negDays>=5)S.over=true;
+  S.peakNet=Math.max(S.peakNet,netWorth());checkPhase();
+  if(!S.over&&S.day>3&&chance(0.2))fireEvent();
+  afterDay();}
+function employeeTick(){companies.forEach(co=>{for(let i=co.employees.length-1;i>=0;i--){const e=co.employees[i];e.tenure++;const lead=(S.skills.leadership-8)*0.2;
+  e.happy=clamp((e.happy||60)+(co.ops>55?0.8:-1)+lead*0.3+rnd(-2,2),0,100);if(e.happy<28&&chance(0.13)){co.employees.splice(i,1);removeWorker(co);log('🚪 '+e.name+' pediu demissão da '+co.name+'.');}}});}
+function marketTick(){const m=S.market;m.mood=clamp(m.mood+rnd(-.1,.1),-1,1);if(chance(0.04)){const r=Math.random();if(r<.33){m.cycle="recessão";m.target=.78;m.rate=clamp(m.rate+rnd(.5,2),1,18);log('📉 Recessão em Meridian. Juros sobem.');}else if(r<.66){m.cycle="aquecido";m.target=1.28;m.rate=clamp(m.rate-rnd(.3,1.2),1,18);log('📈 Boom! Capital barato.');}else{m.cycle="estável";m.target=1.0;}}m.mult+=(m.target-m.mult)*0.15+m.mood*0.01;m.mult=clamp(m.mult,0.6,1.5);}
+/* concorrentes vivos: têm prédio no mapa, crescem, quebram, roubam gente, fazem guerra de preço */
+function maxRivals(){return 5+S.phase;}
+function rivalScale(){return Math.max(40000,netWorth()*0.08);}
+function genRival(n,value){n=n||pick(NICHES);return {id:'rv'+Date.now()+ri(0,99999),name:coName(n),niche:n.id,value:Math.round(value||rnd(0.4,1.4)*rivalScale()),drift:rnd(0.993,1.012),staff:ri(2,5),b:null};}
+function placeRival(r,gx,gy){const n=NICHE[r.niche];if(gx==null){const sp=findFreeSpot(n.spr,false);if(!sp)return r;gx=sp.gx;gy=sp.gy;}const b=placeBuilding(n.spr,gx,gy);b.rv=r;r.b=b;for(let k=0;k<r.staff;k++){const w=spawnWorker(b,null);w.rv=r;}return r;}
+function spawnRival(n,value,name){const r=genRival(n,value);if(name)r.name=name;rivals.push(r);placeRival(r);log('🏢 Nova concorrente no distrito: '+r.name+' ('+NICHE[r.niche].name+').');return r;}
+function removeRival(r){rivals=rivals.filter(x=>x!==r);if(r.b){const bi=buildings.indexOf(r.b);if(bi>=0)buildings.splice(bi,1);removeWorkersOf('rv',r);}}
+function rivalTick(){const mf=0.985+S.market.mult*0.015;for(const r of rivals.slice()){r.value=Math.max(8000,Math.round(r.value*r.drift*rnd(0.985,1.015)*mf));
+  if((r.value<=9000&&chance(0.2))||chance(0.003)){removeRival(r);log('💀 '+r.name+' fechou as portas.');}}
+  if(rivals.length<maxRivals()&&chance(0.07))spawnRival();}
+/* contatos (networking diegético: você caminha até eles na praça) */
+function genContact(def){return {id:'ct'+Date.now()+ri(0,99999),name:pick(FIRST)+' '+pick(LAST),kind:def.kind,role:def.role,ico:def.ico,rel:8,last:-99,lastDeal:-99,mem:[]};}
+function contactTick(){contacts.forEach(c=>{if(S.day-c.last>7)c.rel=Math.max(0,c.rel-0.3);});}
+function remember(c,t){c.mem.unshift('Dia '+S.day+': '+t);if(c.mem.length>4)c.mem.length=4;}
+/* ações do jogador (gastam energia — 100 por dia) */
+function useEnergy(n){if(S.energy<n){toast('😮‍💨 Sem energia hoje (precisa '+n+'). Avance o dia.');return false;}S.energy-=n;return true;}
+function actFreelance(){if(!useEnergy(30))return 0;const pay=Math.round(rnd(180,320)*(1+skillAvg()*0.02)*(S.phase===1?1:0.7));S.cash+=pay;gainSkill(pick(['negotiation','charisma','finance','leadership']),0.9);S.stats.freelas++;return pay;}
+function actStudy(k){const cost=150*S.phase;if(S.cash<cost){toast('Caixa insuficiente');return false;}if(!useEnergy(25))return false;S.cash-=cost;gainSkill(k,1.6);return true;}
+function actImproveOps(co){if(co.opsDay===S.day){toast('Já otimizou a '+co.name+' hoje.');return false;}const c=opsCost(co);if(S.cash<c){toast('Caixa insuficiente ('+money(c)+')');return false;}if(!useEnergy(20))return false;
+  S.cash-=c;co.opsDay=S.day;co.ops=clamp(co.ops+ri(8,14)+Math.round((S.skills.leadership-8)*0.15),0,100);gainSkill('leadership',0.5);return true;}
+function actExpand(co){const c=expandCost(co);if(S.cash<c){toast('Caixa insuficiente ('+money(c)+')');return false;}S.cash-=c;co.scale+=0.3;co.expandN=(co.expandN||0)+1;gainSkill('finance',0.4);log('🏗️ '+co.name+' expandiu a operação.');return true;}
+function actHire(co,e){if(co.employees.length>=maxStaff(co)){toast('Prédio lotado ('+maxStaff(co)+') — expanda a operação.');return false;}if(totalStaff()>=staffCap()){toast('Limite do distrito ('+staffCap()+') — suba de fase.');return false;}
+  const shave=clamp((S.skills.negotiation-8)*0.006,0,0.25);e.salary=Math.round(e.salary*(1-shave));addEmployee(co,e);gainSkill('negotiation',0.3);return true;}
+function actManager(co){if(co.managed)return false;if(co.employees.length>=maxStaff(co)+1)return false;const mgr=genPerson();mgr.role='Gerente Geral';mgr.fam='any';mgr.competence=Math.max(mgr.competence,68);mgr.salary=Math.round(80+coRevenue(co)*0.12);co.managed=true;addEmployee(co,mgr);return true;}
+function borrow(a){a=Math.min(a,loanLimit()-S.debt);if(a<=0){toast('Limite de crédito atingido');return 0;}S.debt+=a;S.cash+=a;return a;}
+function repay(a){a=Math.min(a,S.debt,Math.max(0,S.cash));if(a<=0)return 0;S.debt-=a;S.cash-=a;return a;}
+function rivalPrice(r){return Math.round(r.value*1.35*(1-clamp((S.skills.negotiation-10)*0.004,0,0.15)));}
+function doAcquire(r){if(!rivals.includes(r))return null;const price=rivalPrice(r);if(S.cash<price)return null;S.cash-=price;const n=NICHE[r.niche];
+  let b=r.b;if(!b){const sp=findFreeSpot(n.spr,false);b=placeBuilding(n.spr,sp?sp.gx:2,sp?sp.gy:2);}
+  const co=makeCompany(r.niche,b);co.name=r.name;co.ops=55;co.age=30;co.acquired=true;b.rv=null;
+  rivals=rivals.filter(x=>x!==r);removeWorkersOf('rv',r);
+  const staff=Math.min(r.staff,1+Math.floor(r.value/40000));for(let k=0;k<staff;k++)addEmployee(co);companies.push(co);calibrate(co,r.value*rnd(0.95,1.08));
+  repUp('market',3);S.founded++;S.stats.acq++;log('🦈 Você adquiriu a '+co.name+'.');gainSkill('negotiation',1);return co;}
+function sellValue(co){return Math.round(coValue(co)*stakeOf(co));}
+function doSell(co,price){S.cash+=price;removeCompany(co);log('🏷️ Você vendeu a '+co.name+' por '+money(price)+'.');}
+function doIPO(co){if(co.public)return 0;const val=coValue(co);if(val<IPO_MIN)return 0;const raise=Math.round(val*0.35*rnd(1.0,1.2));S.cash+=raise;co.public=true;co.stake=stakeOf(co)*0.65;repUp('market',5);repUp('public',8);S.stats.ipos++;log('📊 IPO da '+co.name+' captou '+money(raise)+'.');return raise;}
+function afterDay(){refreshHUD();refreshObj();if(S.day%3===0)saveLocal();MP.onDay();if(S.over)gameOver();}
+function onPhaseUp(p){toast('🏆 Nova fase: '+p.name+' — o distrito cresceu!');log('🏆 Fase '+p.n+': '+p.name+'.');MP.news(S.name+' chegou à fase '+p.name+'!');if(p.n===5)S.won=true;}
+
+/* ============================ EVENTOS COM ESCOLHAS (consequência persistente) ============================ */
+function bigCo(){return companies.filter(c=>coValue(c)>80000).sort((a,b)=>coValue(b)-coValue(a))[0];}
+function anyEmp(){const all=[];companies.forEach(c=>c.employees.forEach(e=>all.push([c,e])));return all;}
+const EVENTS=[
+ {w:()=>bigCo()?1.6:0,run(){const co=bigCo();const off=Math.round(sellValue(co)*rnd(1.2,1.6));eventModal('🦈','Oferta de aquisição','Um conglomerado quer comprar a <b>'+esc(co.name)+'</b> por <b style="color:var(--gold)">'+moneyFull(off)+'</b> — acima do valuation.',[
+   {t:'💰 Vender por '+money(off),d:'Exit agora',fn:()=>{doSell(co,off);toast('Exit: '+money(off));MP.news(S.name+' vendeu a '+co.name+' por '+money(off));}},
+   {t:'🛡️ Recusar',d:'+reputação de mercado',fn:()=>repUp('market',3)}]);}},
+ {w:()=>companies.length?1.6:0,run(){const co=pick(companies);co.scale*=rnd(1.04,1.14);toast('📣 '+co.name+' viralizou! Demanda subiu.');log('📣 '+co.name+' viralizou.');}},
+ {w:()=>companies.some(c=>c.employees.length>=3)?1.1:0,run(){const co=pick(companies.filter(c=>c.employees.length>=3));eventModal('✊','Greve na '+esc(co.name),'A equipe parou por melhores salários.',[
+   {t:'💸 Dar 10% de aumento',d:'Custo fixo sobe, moral sobe',fn:()=>{co.employees.forEach(e=>{e.salary=Math.round(e.salary*1.1);e.happy=clamp(e.happy+15,0,100);});repUp('talent',2);}},
+   {t:'🗣️ Negociar pessoalmente',d:'Chance ~'+Math.round(clamp(S.skills.negotiation/60,0.15,0.9)*100)+'% (negociação)',fn:()=>{if(chance(clamp(S.skills.negotiation/60,0.15,0.9))){toast('🤝 Acordo fechado sem custo.');gainSkill('negotiation',1.5);}else{co.ops=clamp(co.ops-15,0,100);co.employees.forEach(e=>e.happy-=8);toast('😠 Negociação falhou — operação caiu.');}}},
+   {t:'🙅 Ignorar',d:'Operação −25, reputação de talento cai',fn:()=>{co.ops=clamp(co.ops-25,0,100);co.employees.forEach(e=>e.happy-=15);repUp('talent',-4);}}]);}},
+ {w:()=>S.phase>=2?0.9:0,run(){const cost=Math.max(1500,Math.round(netWorth()*0.03));eventModal('📰','Escândalo na imprensa','Uma matéria acusa suas empresas de práticas duvidosas.',[
+   {t:'🧯 Contratar PR ('+money(cost)+')',d:'Abafa o caso',fn:()=>{if(S.cash>=cost){S.cash-=cost;}else{S.flags.scandal=20;repUp('public',-4);toast('Sem caixa p/ PR — o caso pegou.');}}},
+   {t:'🎤 Pedir desculpas em público',d:'Carisma decide',fn:()=>{if(chance(clamp(S.skills.charisma/55,0.2,0.9))){repUp('public',3);gainSkill('charisma',1.5);toast('👏 A cidade gostou da sinceridade.');}else{S.flags.scandal=12;repUp('public',-3);}}},
+   {t:'🙈 Ignorar',d:'Reputação pública sangra por 20 dias',fn:()=>{S.flags.scandal=20;repUp('public',-5);}}]);}},
+ {w:()=>S.phase>=2&&companies.length?0.8:0,run(){const co=pick(companies);const gain=Math.round(Math.max(3000,coValue(co)*0.08));eventModal('🏛️','Contrato com a prefeitura','A prefeitura oferece um contrato polêmico para a <b>'+esc(co.name)+'</b>.',[
+   {t:'✍️ Aceitar (+'+money(gain)+')',d:'Reputação pública −3',fn:()=>{S.cash+=gain;repUp('public',-3);repUp('market',2);}},
+   {t:'🚫 Recusar',d:'Reputação pública +3',fn:()=>repUp('public',3)}]);}},
+ {w:()=>{const all=anyEmp();return all.length&&rivals.length?1.0:0;},run(){const [co,e]=anyEmp().sort((a,b)=>b[1].competence-a[1].competence)[0];const r=pick(rivals);const raise=Math.round(e.salary*0.25);eventModal('🎯','Tentativa de roubo de talento','A <b>'+esc(r.name)+'</b> ofereceu um cargo para <b>'+esc(e.name)+'</b> (competência '+e.competence+'), da '+esc(co.name)+'.',[
+   {t:'💼 Contraproposta (+'+money(raise)+'/dia)',d:'Ela fica e fica feliz',fn:()=>{e.salary+=raise;e.happy=clamp(e.happy+20,0,100);}},
+   {t:'👋 Deixar ir',d:'A concorrente fica mais forte',fn:()=>{const i=co.employees.indexOf(e);if(i>=0){co.employees.splice(i,1);removeWorker(co);}r.value=Math.round(r.value*1.12);r.staff++;log('🎯 '+e.name+' foi para a '+r.name+'.');}}]);}},
+ {w:()=>companies.some(c=>rivals.some(r=>r.niche===c.niche))?1.0:0,run(){const co=pick(companies.filter(c=>rivals.some(r=>r.niche===c.niche)));const r=rivals.find(x=>x.niche===co.niche);const cost=Math.round(coRevenue(co)*8);eventModal('🏷️','Guerra de preços','A <b>'+esc(r.name)+'</b> cortou preços no mercado da <b>'+esc(co.name)+'</b>.',[
+   {t:'⚔️ Acompanhar ('+money(cost)+')',d:'Segura a fatia de mercado',fn:()=>{if(S.cash>=cost){S.cash-=cost;r.value=Math.round(r.value*0.92);}else{co.scale*=0.92;toast('Sem caixa — você perdeu clientes.');}}},
+   {t:'🧘 Manter preço',d:'Perde ~8% da escala',fn:()=>{co.scale*=0.92;}}]);}},
+ {w:()=>anyEmp().some(x=>x[1].ambition>72&&x[1].tenure>15)?0.9:0,run(){const [co,e]=pick(anyEmp().filter(x=>x[1].ambition>72&&x[1].tenure>15));const raise=Math.round(e.salary*0.15);eventModal('📈','Pedido de aumento',esc(e.name)+' ('+esc(e.role)+', '+esc(co.name)+') quer +'+money(raise)+'/dia. Ambição alta.',[
+   {t:'✅ Dar aumento',d:'Fica motivada',fn:()=>{e.salary+=raise;e.happy=clamp(e.happy+20,0,100);}},
+   {t:'❌ Recusar',d:'Pode sair e abrir uma concorrente',fn:()=>{e.happy-=25;if(chance(0.45)){const i=co.employees.indexOf(e);if(i>=0){co.employees.splice(i,1);removeWorker(co);}const r=spawnRival(NICHE[co.niche],Math.max(30000,coValue(co)*0.4),e.name.split(' ')[1]+' & Co.');toast('😤 '+e.name+' saiu e fundou a '+r.name+'!');log('😤 '+e.name+' saiu e fundou a '+r.name+' — concorrente direta.');}}}]);}},
+ {w:()=>companies.length?0.35:0,run(){const co=pick(companies);const cost=Math.round(expandCost(co)*0.3);eventModal('🔥','Incêndio na '+esc(co.name),'Um curto-circuito destruiu parte da operação.',[
+   {t:'🛠️ Reformar já ('+money(cost)+')',d:'Volta a operar normal',fn:()=>{if(S.cash>=cost)S.cash-=cost;else{co.ops=clamp(co.ops-30,0,100);toast('Sem caixa — operação parcial.');}}},
+   {t:'🩹 Operar parcial',d:'Operação −30',fn:()=>{co.ops=clamp(co.ops-30,0,100);}}]);}},
+ {w:()=>S.phase===1&&!companies.length&&S.day>6&&!S.flags.angelSeen?1.5:0,run(){S.flags.angelSeen=true;eventModal('👼','Um amigo acredita em você','Ele oferece emprestar '+money(3000)+' para você abrir o primeiro negócio (com juros normais).',[
+   {t:'🙏 Aceitar',d:'+'+money(3000)+' em caixa, +'+money(3000)+' de dívida',fn:()=>{S.debt+=3000;S.cash+=3000;}},
+   {t:'💪 Recusar',d:'Vou no meu ritmo',fn:()=>gainSkill('leadership',1)}]);}},
+];
+function fireEvent(){const pool=EVENTS.map(e=>({e,w:e.w()})).filter(x=>x.w>0);if(!pool.length)return;let t=Math.random()*pool.reduce((a,x)=>a+x.w,0);for(const x of pool){t-=x.w;if(t<=0){S.stats.events++;x.e.run();return;}}}
+function eventModal(ico,title,body,choices){modal(ico,title,'<p>'+body+'</p>',choices.map(c=>({t:c.t,d:c.d,fn:()=>{c.fn();closeModal();checkPhase();refreshHUD();refreshObj();}})));}
+
+/*@ECON-END*/
 /* ============================ MODAIS / PAINÉIS ============================ */
 function modal(ico,title,bodyHTML,actions){closeModal();const sc=document.createElement('div');sc.id='scrim';sc.className='scrim';
   const m=document.createElement('div');m.className='modal panel';m.innerHTML='<div class="mh">'+(ico||'')+' '+title+'</div><div class="mb">'+bodyHTML+'</div>';
   const ab=document.createElement('div');ab.className='mact';(actions||[{t:'Fechar',fn:closeModal}]).forEach(a=>{const btn=document.createElement('button');btn.className='mbtn'+(a.dis?' dis':'');btn.innerHTML='<b>'+a.t+'</b>'+(a.d?'<span>'+a.d+'</span>':'');if(!a.dis)btn.onclick=()=>a.fn&&a.fn();ab.appendChild(btn);});
-  m.appendChild(ab);sc.appendChild(m);document.body.appendChild(sc);sc.onclick=e=>{if(e.target===sc)closeModal();};}
+  m.appendChild(ab);sc.appendChild(m);document.body.appendChild(sc);sc.onclick=e=>{if(e.target===sc&&!m.dataset.locked)closeModal();};return m;}
 function closeModal(){const s=document.getElementById('scrim');if(s)s.remove();}
 function kpi(k,v,c){return '<div class="kpi"><div class="k">'+k+'</div><div class="v" style="color:'+(c||'var(--cream)')+'">'+v+'</div></div>';}
-function badges(co){return (co.managed?'<span class="tag">🧑‍✈️ gerida</span>':'')+(co.public?'<span class="tag">📊 aberta</span>':'')+(co.acquired?'<span class="tag">🦈 adquirida</span>':'');}
-function openCompany(co){const n=NICHES.find(x=>x.id===co.niche);const rev=coRevenue(co),prof=rev-coCosts(co),val=coValue(co),syn=coSynergy(co);
-  modal(n.ico,co.name+' · '+n.name,
-   '<div class="kpis">'+kpi('Valuation',money(val),'var(--gold)')+kpi('Lucro/dia',(prof>=0?'+':'')+money(prof),prof>=0?'var(--green)':'var(--red)')+kpi('Funcionários',co.employees.length)+kpi('Operação',Math.round(co.ops)+'%')+'</div>'+
-   '<div style="margin:6px 0">'+badges(co)+(syn>1.001?'<span class="tag" style="color:var(--gold)">✦ sinergia ×'+syn.toFixed(2)+'</span>':'')+'</div>',
-   [{t:'🧑‍💼 Contratar',d:'Talento puxa receita',fn:()=>hireInto(co)},
-    {t:'📈 Melhorar operação',d:'+eficiência',fn:()=>{co.ops=clamp(co.ops+ri(8,16),0,100);toast('Operação melhorada');openCompany(co);}},
-    co.managed?null:{t:'🧑‍✈️ Contratar gerente',d:'Para de decair sozinha',fn:()=>{manage(co);openCompany(co);}},
-    (val>=500000&&!co.public)?{t:'📊 IPO',d:'Abre capital ('+money(Math.round(val*1.4))+')',fn:()=>ipo(co)}:null,
-    {t:'🏷️ Vender',d:money(val),fn:()=>sellCo(co)},
+function badges(co){return (co.managed?'<span class="tag">🧑‍✈️ gerida</span>':'')+(co.public?'<span class="tag">📊 aberta · você tem '+Math.round(stakeOf(co)*100)+'%</span>':(stakeOf(co)<1?'<span class="tag">🤝 você tem '+Math.round(stakeOf(co)*100)+'%</span>':''))+(co.acquired?'<span class="tag">🦈 adquirida</span>':'');}
+const after=(fn)=>()=>{fn();checkPhase();refreshHUD();refreshObj();};
+function openCompany(co){if(!companies.includes(co))return closeModal();const n=NICHE[co.niche];const rev=coRevenue(co),prof=rev-coCosts(co),val=coValue(co),syn=coSynergy(co),comp=competition(co);
+  modal(n.ico,esc(co.name)+' · '+n.name,
+   '<div class="kpis">'+kpi('Valuation',money(val),'var(--gold)')+kpi('Lucro/dia',(prof>=0?'+':'')+money(prof),prof>=0?'var(--green)':'var(--red)')+kpi('Equipe',co.employees.length+'/'+maxStaff(co))+kpi('Operação',Math.round(co.ops)+'%')+'</div>'+
+   '<div style="margin:6px 0">'+badges(co)+(syn>1.001?'<span class="tag" style="color:var(--gold)">✦ sinergia ×'+syn.toFixed(2)+'</span>':'')+(comp<0.999?'<span class="tag" style="color:var(--red)">⚔️ concorrência −'+Math.round((1-comp)*100)+'%</span>':'')+'</div>'+
+   '<p class="small">Escala ×'+co.scale.toFixed(2)+' · Expandir aumenta a capacidade (receita e vagas). Funcionários só se pagam com escala.</p>',
+   [{t:'🧑‍💼 Contratar',d:'Vagas '+co.employees.length+'/'+maxStaff(co)+' · distrito '+totalStaff()+'/'+staffCap(),fn:()=>hireInto(co)},
+    {t:'🏗️ Expandir operação ('+money(expandCost(co))+')',d:'Escala +0,3',fn:after(()=>{if(actExpand(co))toast('🏗️ Expandiu!');openCompany(co);}),dis:S.cash<expandCost(co)},
+    {t:'📈 Otimizar operação ('+money(opsCost(co))+' · ⚡20)',d:co.opsDay===S.day?'Já feito hoje':'+eficiência (1×/dia)',fn:after(()=>{if(actImproveOps(co))toast('Operação otimizada');openCompany(co);}),dis:co.opsDay===S.day},
+    co.managed?null:{t:'🧑‍✈️ Contratar gerente',d:'Operação decai bem mais devagar',fn:after(()=>{if(!actManager(co))toast('Sem vaga p/ gerente');openCompany(co);})},
+    (!co.public&&S.phase>=3)?{t:'📊 IPO',d:val>=IPO_MIN?'Vende 35% na bolsa (~'+money(val*0.35)+')':'Precisa valer '+money(IPO_MIN),dis:val<IPO_MIN,fn:()=>ipoModal(co)}:null,
+    {t:'🏷️ Vender ('+money(sellValue(co))+')',d:'Exit para um fundo',fn:()=>sellModal(co)},
     {t:'↩ Fechar',fn:closeModal}].filter(Boolean));}
-function openSede(){modal('⭐','Sua Sede — Meridian','<p class="small">O coração do seu império.</p><div class="kpis">'+kpi('Patrimônio',money(netWorth()),'var(--gold)')+kpi('Empresas',companies.length)+kpi('Reputação',Math.round((S.rep.market+S.rep.public)/2))+kpi('Fase',S.phase+'/5')+'</div>',[{t:'🧑‍💼 Ver equipe',fn:openTeam},{t:'📈 Mercado & M&A',fn:openMarket},{t:'↩ Fechar',fn:closeModal}]);}
-function openTeam(){const tot=companies.reduce((a,c)=>a+c.employees.length,0);
-  modal('🧑‍💼','Equipe — '+tot+' funcionários',companies.length?companies.map(c=>{const n=NICHES.find(x=>x.id===c.niche);const pf=coProfit(c);return '<div class="lrow" data-co="'+c.id+'"><span>'+n.ico+' <b>'+c.name+'</b></span><span class="dim">'+c.employees.length+' func · <span style="color:'+(pf>=0?'var(--green)':'var(--red)')+'">'+(pf>=0?'+':'')+money(pf)+'/d</span></span></div>';}).join(''):'<div class="dim">Sem empresas. Use 🔨 Construir.</div>',[{t:'↩ Fechar',fn:closeModal}]);
+function sellModal(co){const v=sellValue(co);modal('🏷️','Vender '+esc(co.name),'<p>Um fundo avalia sua parte em <b style="color:var(--gold)">'+moneyFull(v)+'</b>.</p>',[{t:'✅ Vender por '+money(v),fn:after(()=>{doSell(co,v);toast('Exit: '+money(v));closeModal();})},{t:'↩ Manter',fn:()=>openCompany(co)}]);}
+function ipoModal(co){const val=coValue(co);modal('📊','Abrir capital — '+esc(co.name),'<p>A Meridian Exchange compra <b>35%</b> da empresa por ~<b style="color:var(--gold)">'+money(val*0.35)+'</b>. Você segue no comando, mas passa a ter '+Math.round(stakeOf(co)*65)+'% dos lucros e do valor.</p><p class="small">Empresas abertas podem sofrer <b>aquisição hostil</b> de outros jogadores.</p>',
+  [{t:'📈 Fazer IPO',fn:after(()=>{const r=doIPO(co);toast('IPO! +'+money(r));MP.news(S.name+' abriu o capital da '+co.name+' (+'+money(r)+')');closeModal();})},{t:'↩ Ainda não',fn:()=>openCompany(co)}]);}
+function hireInto(co){const cands=[genPerson(),genPerson(),genPerson()];
+  modal('🧑‍💼','Entrevistas · '+esc(co.name),'<p class="small">Competência puxa receita; salário puxa custo. Reputação de talento melhora os candidatos.</p>',
+    cands.map(c=>({t:esc(c.name)+' — '+c.role,d:'Competência '+c.competence+' · '+moneyFull(c.salary)+'/dia',fn:after(()=>{if(actHire(co,c))toast('Contratado: '+c.name);openCompany(co);})})).concat([{t:'↩ Voltar',fn:()=>openCompany(co)}]));}
+function openRival(r){if(!rivals.includes(r))return closeModal();const n=NICHE[r.niche];const price=rivalPrice(r);
+  modal(n.ico,esc(r.name)+' · concorrente','<div class="kpis">'+kpi('Valuation',money(r.value),'var(--red)')+kpi('Setor',n.name)+kpi('Equipe',r.staff)+kpi('Preço (M&A)',money(price),'var(--gold)')+'</div><p class="small">Concorrentes no mesmo setor reduzem sua receita. Comprar elimina a concorrência e o prédio vira seu.</p>',
+  [{t:'🦈 Adquirir por '+money(price),d:S.phase<2?'Liberado na fase Crescimento':(S.cash<price?'Caixa insuficiente':'O prédio e a equipe viram seus'),dis:S.phase<2||S.cash<price,fn:after(()=>{const co=doAcquire(r);if(co){toast('🦈 Adquiriu '+co.name);MP.news(S.name+' adquiriu a '+co.name);openCompany(co);}})},{t:'↩ Fechar',fn:closeModal}]);}
+function openSede(){modal('⭐','Sua Sede — '+esc(S.name),'<div class="kpis">'+kpi('Patrimônio',money(netWorth()),'var(--gold)')+kpi('Energia','⚡'+Math.round(S.energy))+kpi('Negociação / Carisma',Math.round(S.skills.negotiation)+' / '+Math.round(S.skills.charisma))+kpi('Finanças / Liderança',Math.round(S.skills.finance)+' / '+Math.round(S.skills.leadership))+'</div>',
+  [{t:'💻 Fazer freela (⚡30)',d:S.phase===1?'Dinheiro rápido para começar':'Rende menos agora que você é empresário',fn:after(()=>{const p=actFreelance();if(p)toast('💵 Freela: +'+money(p));openSede();})},
+   {t:'📚 Curso de finanças ('+money(150*S.phase)+' · ⚡25)',d:'Finanças melhora seus negócios',fn:after(()=>{if(actStudy('finance'))toast('📚 Finanças +');openSede();})},
+   {t:'🎖️ Curso de liderança ('+money(150*S.phase)+' · ⚡25)',d:'Equipes mais felizes e operação melhor',fn:after(()=>{if(actStudy('leadership'))toast('🎖️ Liderança +');openSede();})},
+   {t:'🏦 Banco',fn:openBank},{t:'↩ Fechar',fn:closeModal}]);}
+function openBank(){const lim=loanLimit(),avail=Math.max(0,lim-S.debt);
+  modal('🏦','Banco de Meridian','<div class="kpis">'+kpi('Dívida',money(S.debt),S.debt>0?'var(--red)':'var(--cream)')+kpi('Crédito livre',money(avail),'var(--green)')+kpi('Juros',loanRate().toFixed(1)+'% a.a.'+(S.flags.banker?' (−30%)':''))+kpi('Juros/dia',money(dailyInterest()))+'</div><p class="small">1 ano = 40 dias. Juros sobem na recessão e quanto mais você deve. Caixa negativo por 5 dias = falência.</p>',
+  [{t:'💵 Pegar '+money(Math.min(avail,Math.max(2000,Math.round(lim*0.25)))),dis:avail<=0,fn:after(()=>{const a=borrow(Math.max(2000,Math.round(lim*0.25)));if(a)toast('+'+money(a)+' emprestado');openBank();})},
+   {t:'💰 Pegar tudo ('+money(avail)+')',dis:avail<=0,fn:after(()=>{const a=borrow(avail);if(a)toast('+'+money(a)+' emprestado');openBank();})},
+   {t:'↩️ Pagar 25%',dis:S.debt<=0||S.cash<=0,fn:after(()=>{repay(Math.max(1,Math.round(S.debt*0.25)));openBank();})},
+   {t:'✅ Quitar tudo',dis:S.debt<=0||S.cash<S.debt,fn:after(()=>{repay(S.debt);toast('Dívida quitada!');openBank();})},{t:'↩ Fechar',fn:closeModal}]);}
+function openContact(c){const ok=S.day!==c.last;const rl=c.rel>=60?'aliado(a)':c.rel>=35?'próximo(a)':c.rel>=15?'conhecido(a)':'estranho(a)';const acts=[];
+  acts.push({t:'☕ Conversar (⚡15)',d:ok?'Relação +, carisma +':'Já conversaram hoje',dis:!ok,fn:after(()=>{if(!useEnergy(15))return;c.rel=clamp(c.rel+6+S.skills.charisma*0.08,0,100);c.last=S.day;gainSkill('charisma',0.6);remember(c,'tomamos um café');
+    if(c.kind==='mentor'){const k=pick(['finance','leadership']);gainSkill(k,c.rel>=20?1.4:0.5);toast('🎓 Mentoria: '+(k==='finance'?'finanças':'liderança')+' +');}else toast('☕ '+c.name.split(' ')[0]+' gostou da conversa');openContact(c);})});
+  if(c.kind==='investor'){const co=companies.filter(x=>stakeOf(x)>0.5).sort((a,b)=>coValue(b)-coValue(a))[0];const cd=S.day-c.lastDeal>=20;const amt=co?Math.round(Math.max(5000,coValue(co)*0.15*1.1)):0;
+    acts.push({t:'💼 Pedir aporte',d:!co?'Precisa de uma empresa':c.rel<45?'Relação mínima 45':!cd?'Ela investiu recentemente':'+'+money(amt)+' por 15% da '+esc(co.name),dis:!co||c.rel<45||!cd,fn:after(()=>{S.cash+=amt;co.stake=stakeOf(co)-0.15;c.lastDeal=S.day;remember(c,'investiu na '+co.name);toast('💼 Aporte de '+money(amt));openContact(c);})});}
+  if(c.kind==='banker')acts.push({t:'🏦 Pedir condições especiais',d:S.flags.banker?'Já concedidas (juros −30%, crédito +20%)':c.rel<30?'Relação mínima 30':'Juros −30% e crédito +20%',dis:!!S.flags.banker||c.rel<30,fn:after(()=>{S.flags.banker=true;remember(c,'liberou condições especiais');toast('🏦 Condições especiais!');openContact(c);})});
+  if(c.kind==='client'){const cd=S.day-c.lastDeal>=8;const pay=Math.round((500+S.skills.negotiation*15)*Math.pow(S.phase,1.6));acts.push({t:'🤝 Fechar contrato (⚡25)',d:c.rel<25?'Relação mínima 25':!cd?'Próximo contrato em '+(8-(S.day-c.lastDeal))+' dias':'+'+money(pay)+' e reputação de mercado',dis:c.rel<25||!cd,fn:after(()=>{if(!useEnergy(25))return;S.cash+=pay;c.lastDeal=S.day;repUp('market',1);gainSkill('negotiation',1);remember(c,'fechamos contrato');toast('🤝 Contrato: +'+money(pay));openContact(c);})});}
+  if(c.kind==='headhunter'){const fee=1500*S.phase;acts.push({t:'🎯 Buscar um talento estrela ('+money(fee)+')',d:c.rel<30?'Relação mínima 30':!companies.length?'Precisa de uma empresa':'Competência 85–98',dis:c.rel<30||!companies.length||S.cash<fee,fn:()=>{const star=genPerson(true);modal('🎯','Talento: '+esc(star.name),'<p>'+star.role+' · competência <b>'+star.competence+'</b> · '+moneyFull(star.salary)+'/dia</p>',companies.map(co=>({t:'Contratar na '+esc(co.name),d:co.employees.length+'/'+maxStaff(co),fn:after(()=>{if(actHire(co,star)){S.cash-=fee;remember(c,'achou '+star.name+' para você');toast('⭐ '+star.name+' contratada');}closeModal();})})).concat([{t:'↩ Voltar',fn:()=>openContact(c)}]));}});}
+  acts.push({t:'↩ Fechar',fn:closeModal});
+  modal(c.ico,esc(c.name)+' · '+c.role,'<div class="lab"><span>Relação: '+rl+'</span><b>'+Math.round(c.rel)+'/100</b></div><div class="bar"><i style="width:'+c.rel+'%"></i></div>'+(c.mem.length?'<p class="small" style="margin-top:8px">Lembra de: '+c.mem.map(esc).join(' · ')+'</p>':'<p class="small" style="margin-top:8px">Vocês ainda não se conhecem.</p>'),acts);}
+function openTeam(){const tot=totalStaff();
+  modal('🏢','Suas empresas — '+tot+'/'+staffCap()+' funcionários',companies.length?companies.map(c=>{const n=NICHE[c.niche];const pf=coProfit(c)*stakeOf(c);return '<div class="lrow" data-co="'+c.id+'"><span>'+n.ico+' <b>'+esc(c.name)+'</b></span><span class="dim">'+c.employees.length+' func · <span style="color:'+(pf>=0?'var(--green)':'var(--red)')+'">'+(pf>=0?'+':'')+money(pf)+'/d</span></span></div>';}).join(''):'<div class="dim">Sem empresas. Use 🔨 Construir (ou faça freelas na ⭐ Sede para juntar caixa).</div>',[{t:'↩ Fechar',fn:closeModal}]);
   document.querySelectorAll('.lrow[data-co]').forEach(el=>el.onclick=()=>{const c=companies.find(x=>x.id===el.dataset.co);if(c)openCompany(c);});}
 function openMarket(){const m=S.market;
-  modal('📈','Mercado — Meridian Exchange','<div class="kpis">'+kpi('Ciclo',m.cycle.toUpperCase(),m.cycle==='recessão'?'var(--red)':m.cycle==='aquecido'?'var(--green)':'var(--gold)')+kpi('Multiplic.','×'+m.mult.toFixed(2))+kpi('Juros',m.rate.toFixed(1)+'%')+kpi('Humor',m.mood>.2?'otimista':m.mood<-.2?'pessimista':'neutro')+'</div>'+
-   '<div style="color:var(--gold);font-size:11px;letter-spacing:1px;margin:10px 0 2px">🦈 ALVOS DE AQUISIÇÃO (M&A)</div>'+
-   ((S.rivals&&S.rivals.length)?S.rivals.slice().sort((a,b)=>b.value-a.value).map(r=>{const n=NICHES.find(x=>x.id===r.niche);const price=Math.round(r.value*1.35);return '<div class="lrow" data-rv="'+r.id+'"><span>'+n.ico+' <b>'+r.name+'</b></span><span class="dim">'+money(r.value)+' · comprar ~<b style="color:var(--gold)">'+money(price)+'</b></span></div>';}).join(''):'<div class="dim">Sem concorrentes no radar.</div>'),
-   [{t:'↩ Fechar',fn:closeModal}]);
-  document.querySelectorAll('.lrow[data-rv]').forEach(el=>el.onclick=()=>{const r=(S.rivals||[]).find(x=>x.id===el.dataset.rv);if(!r)return;const price=Math.round(r.value*1.35);if(S.cash<price)return toast('Caixa insuficiente');const co=doAcquire(r);if(co){toast('🦈 Adquiriu '+co.name);checkPhase();refreshHUD();openMarket();}});}
-function openObjectives(){const o=currentObjective();modal('📋','Objetivos · Fase '+S.phase+' ('+S.phaseName+')',o.objs.map(ob=>{const p=Math.min(100,ob.cur/ob.max*100);return '<div class="lab"><span>'+ob.lab+'</span><b>'+(ob.money?money(ob.cur)+'/'+money(ob.max):ob.cur+'/'+ob.max)+'</b></div><div class="bar g"><i style="width:'+p+'%"></i></div>';}).join(''),[{t:'↩ Fechar',fn:closeModal}]);}
-function openSettings(){modal('⚙️','Ajustes','<p class="small">Business Simulator · protótipo 2D top-down, com a economia validada rodando por baixo dos prédios.</p>',[{t:'🔄 Reiniciar jogo',d:'Começa do zero',fn:()=>location.reload()},{t:'↩ Fechar',fn:closeModal}]);}
-function gameOver(){modal('💀','Falência','<p>Os credores venceram. Patrimônio de pico: <b style="color:var(--gold)">'+money(S.peakNet)+'</b> · '+S.day+' dias.</p>',[{t:'🔄 Recomeçar',fn:()=>location.reload()}]);}
+  const npc=rivals.slice().sort((a,b)=>b.value-a.value).map(r=>{const n=NICHE[r.niche];return '<div class="lrow" data-rv="'+r.id+'"><span>'+n.ico+' <b>'+esc(r.name)+'</b></span><span class="dim">'+money(r.value)+' · ~<b style="color:var(--gold)">'+money(rivalPrice(r))+'</b></span></div>';}).join('')||'<div class="dim">Sem concorrentes no radar.</div>';
+  const fr=MP.on?(MP.listings.length?MP.listings.map(l=>{const n=NICHE[l.niche]||NICHES[0];return '<div class="lrow" data-ls="'+esc(l.id)+'"><span>'+n.ico+' <b>'+esc(l.name)+'</b> <span class="dim">de '+esc(l.owner_name)+'</span>'+(l.is_public?' <span class="tag">📊 aberta</span>':'')+'</span><span class="dim">'+money(l.value)+'</span></div>';}).join(''):'<div class="dim">Nenhuma empresa de amigos ainda.</div>'):'<div class="dim">Offline — entre online para negociar com amigos.</div>';
+  modal('📈','Mercado — Meridian Exchange','<div class="kpis">'+kpi('Ciclo',m.cycle.toUpperCase(),m.cycle==='recessão'?'var(--red)':m.cycle==='aquecido'?'var(--green)':'var(--gold)')+kpi('Multiplic.','×'+m.mult.toFixed(2))+kpi('Juros',m.rate.toFixed(1)+'% a.a.')+kpi('Humor',m.mood>.2?'otimista':m.mood<-.2?'pessimista':'neutro')+'</div>'+
+   '<div class="sec">🦈 CONCORRENTES (M&A'+(S.phase<2?' — liberado na fase 2':'')+')</div>'+npc+'<div class="sec">🌐 EMPRESAS DE AMIGOS</div>'+fr,[{t:'🔄 Atualizar',fn:async()=>{await MP.fetchListings();openMarket();}},{t:'↩ Fechar',fn:closeModal}]);
+  document.querySelectorAll('.lrow[data-rv]').forEach(el=>el.onclick=()=>{const r=rivals.find(x=>x.id===el.dataset.rv);if(r)openRival(r);});
+  document.querySelectorAll('.lrow[data-ls]').forEach(el=>el.onclick=()=>{const l=MP.listings.find(x=>x.id===el.dataset.ls);if(l)openListing(l);});}
+function openListing(l){const n=NICHE[l.niche]||NICHES[0];const hp=Math.ceil(l.value*1.5*l.stake);const offers=[1.1,1.3,1.6].map(f=>Math.ceil(l.value*f));
+  modal(n.ico,esc(l.name)+' · de '+esc(l.owner_name),'<div class="kpis">'+kpi('Valuation',money(l.value),'var(--gold)')+kpi('Lucro/dia',money(l.profit))+kpi('Equipe',l.employees)+kpi('Status',l.is_public?'Aberta ('+Math.round(l.stake*100)+'% do dono)':'Fechada')+'</div><p class="small">Ofertas ficam reservadas (o dinheiro sai do seu caixa) até '+esc(l.owner_name)+' responder. Recusou → você recebe de volta.</p>',
+   offers.map(p=>({t:'✉️ Oferecer '+money(p),d:S.phase<2?'Fase 2+':S.cash<p?'Caixa insuficiente':'Proposta amigável',dis:S.phase<2||S.cash<p,fn:async()=>{closeModal();await MP.makeOffer(l,p);}}))
+   .concat(l.is_public?[{t:'⚔️ Aquisição hostil ('+money(hp)+')',d:S.phase<3?'Fase 3+':S.cash<hp?'Caixa insuficiente':'Compra as ações na bolsa — sem pedir licença',dis:S.phase<3||S.cash<hp,fn:async()=>{closeModal();await MP.hostile(l,hp);}}]:[]).concat([{t:'↩ Voltar',fn:openMarket}]));}
+function openFriends(){MP.unread=0;buildToolbar();const on=Object.values(MP.online);const deals=MP.deals.filter(d=>d.status==='pending');
+  const inc=deals.filter(d=>d.seller===MP.uid),out=deals.filter(d=>d.buyer===MP.uid);
+  const body=!MP.on?'<p>'+esc(MP.status)+'</p><p class="small">O jogo funciona offline (save local). Para jogar com amigos, o servidor precisa estar configurado — ver <b>town/README.md</b>.</p>':
+   '<div class="sec">🟢 ONLINE AGORA ('+on.length+')</div>'+(on.map(p=>'<div class="lrow"><span><b>'+esc(p.name)+'</b>'+(p.id===MP.uid?' (você)':'')+'</span><span class="dim">Fase '+(p.phase|0)+' · '+money(p.net||0)+'</span></div>').join('')||'<div class="dim">Só você.</div>')+
+   (inc.length?'<div class="sec">✉️ OFERTAS RECEBIDAS</div>'+inc.map(d=>'<div class="lrow"><span><b>'+esc(d.buyer_name)+'</b> quer a <b>'+esc(d.company.name)+'</b></span><span><b style="color:var(--gold)">'+money(d.price)+'</b> <button class="sbtn" data-acc="'+d.id+'">Aceitar</button><button class="sbtn" data-dec="'+d.id+'">Recusar</button></span></div>').join(''):'')+
+   (out.length?'<div class="sec">📤 SUAS OFERTAS</div>'+out.map(d=>'<div class="lrow"><span>'+esc(d.company.name)+' de '+esc(d.seller_name)+'</span><span class="dim">'+money(d.price)+' · aguardando <button class="sbtn" data-can="'+d.id+'">Cancelar</button></span></div>').join(''):'')+
+   '<div class="sec">🏆 RANKING DE PATRIMÔNIO</div>'+(MP.board.map((p,i)=>'<div class="lrow"><span>'+(i+1)+'. <b>'+esc(p.name)+'</b>'+(p.id===MP.uid?' (você)':'')+'</span><span class="dim">Fase '+p.phase+' · '+money(p.net_worth)+'</span></div>').join('')||'<div class="dim">Carregando…</div>')+
+   '<div class="sec">💬 CHAT</div><div class="chat" id="chatBox">'+MP.chat.map(m=>'<div><b>'+esc(m.name)+':</b> '+esc(m.text)+'</div>').join('')+'</div><div class="chatin"><input id="chatIn" maxlength="200" placeholder="Mensagem para quem está online…"><button class="sbtn" id="chatSend">Enviar</button></div>';
+  modal('🌐','Amigos — Meridian online',body,[{t:'🔄 Atualizar',fn:async()=>{await MP.refreshAll();openFriends();}},{t:'↩ Fechar',fn:closeModal}]);
+  const cb=document.getElementById('chatBox');if(cb)cb.scrollTop=cb.scrollHeight;
+  const send=()=>{const i=document.getElementById('chatIn');if(i&&i.value.trim()){MP.say(i.value.trim());i.value='';}};
+  const sb=document.getElementById('chatSend');if(sb)sb.onclick=send;const ci=document.getElementById('chatIn');if(ci)ci.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter')send();};
+  document.querySelectorAll('[data-acc]').forEach(b=>b.onclick=()=>MP.respond(+b.dataset.acc,true));
+  document.querySelectorAll('[data-dec]').forEach(b=>b.onclick=()=>MP.respond(+b.dataset.dec,false));
+  document.querySelectorAll('[data-can]').forEach(b=>b.onclick=()=>MP.cancel(+b.dataset.can));}
+function openObjectives(){const o=currentObjective();modal('📋','Objetivos · Fase '+S.phase+' ('+S.phaseName+')','<p class="small">'+o.tip+'</p>'+o.objs.map(ob=>{const p=Math.min(100,ob.cur/ob.max*100);return '<div class="lab"><span>'+ob.lab+'</span><b>'+(ob.money?money(ob.cur)+'/'+money(ob.max):ob.cur+'/'+ob.max)+'</b></div><div class="bar g"><i style="width:'+p+'%"></i></div>';}).join('')+
+  '<div class="sec">📰 NOTÍCIAS</div>'+(FEED.slice(0,12).map(f=>'<div class="small">Dia '+f.d+' · '+esc(f.h)+'</div>').join('')||'<div class="dim">Nada ainda.</div>'),[{t:'↩ Fechar',fn:closeModal}]);}
+function openSettings(){modal('⚙️','Ajustes','<p class="small">Business Simulator · distrito 2D. Atalhos: <b>Espaço</b> pausa · <b>1/2/3</b> velocidade · <b>+/−</b> ou roda do mouse = zoom · <b>Esc</b> fecha.</p><p class="small">Multiplayer: '+esc(MP.status)+'</p>',
+  [{t:'🔍 Zoom +',fn:()=>setZoom(ZOOM*1.25)},{t:'🔎 Zoom −',fn:()=>setZoom(ZOOM/1.25)},
+   {t:'💾 Salvar agora',fn:async()=>{saveLocal();await MP.saveCloud();toast('💾 Salvo');}},
+   {t:'🔄 Novo jogo',d:'Apaga o save deste aparelho e recomeça',fn:()=>modal('⚠️','Recomeçar do zero?','<p>Seu império atual será perdido.</p>',[{t:'Sim, recomeçar',fn:()=>{wipeSave();location.reload();}},{t:'Cancelar',fn:openSettings}])},
+   {t:'↩ Fechar',fn:closeModal}]);}
+function gameOver(){saveLocal();const m=modal('💀','Falência','<p>Os credores venceram. Patrimônio de pico: <b style="color:var(--gold)">'+money(S.peakNet)+'</b> · '+S.day+' dias · fase '+S.phase+'.</p>',[{t:'🔄 Recomeçar',fn:()=>{wipeSave();location.reload();}}]);m.dataset.locked=1;MP.news(S.name+' faliu no dia '+S.day+'.');}
+function winModal(){S.wonSeen=true;modal('👑','LEGADO','<p>Você saiu dos freelas e virou uma lenda de Meridian.</p><div class="kpis">'+kpi('Patrimônio',money(netWorth()),'var(--gold)')+kpi('Dias',S.day)+kpi('Empresas fundadas',S.founded)+kpi('Aquisições',S.stats.acq)+kpi('IPOs',S.stats.ipos)+kpi('Contratações',S.hires)+'</div>',[{t:'♾️ Continuar construindo',fn:closeModal}]);MP.news('👑 '+S.name+' alcançou o LEGADO!');}
 /* objetivos dinâmicos (por fase) */
-function currentObjective(){const p=S.phase,net=netWorth();const np=PHASES.find(ph=>ph.n===p+1);const emp=workers.filter(w=>w.co).length;
-  const objs=[{lab:'Empresas no distrito',cur:companies.length,max:Math.max(companies.length,p+2)},{lab:'Funcionários',cur:emp,max:Math.max(30,emp)}];
-  if(np)objs.push({lab:'Patrimônio → '+np.name,cur:Math.min(net,np.net),max:np.net,money:true});
-  const quest=companies.length===0?'Funde sua primeira empresa':np?('Chegue à fase “'+np.name+'” ('+money(np.net)+')'):'Construa seu legado — você chegou ao topo';
-  return {quest,objs};}
+function currentObjective(){const p=S.phase,net=netWorth();const np=PHASES.find(ph=>ph.n===p+1);
+  const objs=[{lab:'Empresas',cur:companies.length,max:Math.max(companies.length,p+1)},{lab:'Funcionários',cur:totalStaff(),max:staffCap()}];
+  if(np)objs.push({lab:'Patrimônio → '+np.name,cur:Math.max(0,Math.min(net,np.net)),max:np.net,money:true});
+  const cheapest=NICHES[0].cost;
+  const quest=!companies.length?(S.cash<cheapest?'Faça freelas na ⭐ Sede: junte '+money(cheapest):'Funde sua 1ª empresa (🔨 Construir)'):np?('Chegue à fase “'+np.name+'” ('+money(np.net)+')'):'Construa seu legado — você chegou ao topo';
+  const tip=['','Caminhe até a ⭐ Sede para freelas e banco. Converse com as pessoas de anel dourado na praça: elas abrem portas.','Expanda as empresas antes de contratar — funcionário só se paga com escala. Concorrentes viram alvos de M&A.','IPO liberado: capta caixa, mas você dilui e fica exposto a aquisição hostil de amigos.','Seu distrito é grande: sinergia entre setores da mesma família multiplica receita.','Você chegou ao topo. Agora é defender o trono.'][p];
+  return {quest,objs,tip};}
+
 /* ============================ HUD ============================ */
 function icon(draw){const {c,g}=makeCanvas(18,18);draw(g);return c.toDataURL();}
 const IC={
@@ -744,39 +912,203 @@ const IC={
   emp:icon(g=>{g.fillStyle='#8fd07a';g.beginPath();g.arc(9,6,3,0,7);g.fill();g.fillRect(5,10,8,6);}),
   rep:icon(g=>{g.fillStyle='#e88a5a';g.beginPath();for(let i=0;i<5;i++){const a=-Math.PI/2+i*2*Math.PI/5;g.lineTo(9+Math.cos(a)*7,9+Math.sin(a)*7);const b=a+Math.PI/5;g.lineTo(9+Math.cos(b)*3,9+Math.sin(b)*3);}g.closePath();g.fill();}),
 };
-function res(ic,v){return '<span class="res"><img class="ic" src="'+ic+'">'+v+'</span>';}
-function refreshHUD(){const empC=workers.filter(w=>w.co).length,cap=40+S.phase*20;
-  document.getElementById('hudTop').innerHTML=res(IC.cash,money(S.cash))+res(IC.emp,empC+'/'+cap)+res(IC.rep,'Rep '+Math.round((S.rep.market+S.rep.public)/2))+'<span class="res" style="color:var(--green)">🏢 '+companies.length+'</span>'+'<span class="res" style="color:var(--gold)">◆ '+money(netWorth())+'</span>';
+function res(ic,v,t){return '<span class="res" title="'+(t||'')+'"><img class="ic" src="'+ic+'">'+v+'</span>';}
+function refreshHUD(){if(!started)return;
+  document.getElementById('hudTop').innerHTML=res(IC.cash,'<span style="color:'+(S.cash<0?'var(--red)':'inherit')+'">'+money(S.cash)+'</span>','Caixa')+(S.debt>0?'<span class="res" style="color:var(--red)" title="Dívida">🏦 −'+money(S.debt)+'</span>':'')+'<span class="res" title="Energia (renova todo dia)">⚡'+Math.round(S.energy)+'</span>'+res(IC.emp,totalStaff()+'/'+staffCap(),'Funcionários')+res(IC.rep,'Rep '+Math.round((S.rep.market+S.rep.public)/2),'Reputação')+'<span class="res" style="color:var(--gold)" title="Patrimônio líquido">◆ '+money(netWorth())+'</span>';
   document.getElementById('dayTxt').textContent='Dia '+S.day+' · '+S.season;
   document.getElementById('phaseTxt').textContent='Fase '+S.phase+' · '+S.phaseName;
-  document.getElementById('questTxt').textContent=currentObjective().quest;}
-function refreshObj(){const o=currentObjective();document.getElementById('objPanel').innerHTML='<div style="color:var(--gold);font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Objetivos</div>'+o.objs.map(ob=>{const p=Math.min(100,ob.cur/ob.max*100);return '<div class="row"><div class="lab"><span>'+ob.lab+'</span><b>'+(ob.money?money(ob.cur)+'/'+money(ob.max):ob.cur+'/'+ob.max)+'</b></div><div class="bar g"><i style="width:'+p+'%"></i></div></div>';}).join('');}
-function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('on'),1600);}
-function showHint(t){const h=document.getElementById('hint');h.textContent=t;h.classList.add('on');clearTimeout(showHint._t);showHint._t=setTimeout(()=>h.classList.remove('on'),2600);}
+  document.getElementById('questTxt').textContent=currentObjective().quest;
+  document.querySelectorAll('#speed button').forEach(b=>b.classList.toggle('on',+b.dataset.s===S.speed));
+  const ns=document.getElementById('netState');if(ns){ns.textContent=MP.on?'🟢 online · '+Object.keys(MP.online).length:'⚪ offline';}
+  if(S.won&&!S.wonSeen&&!document.getElementById('scrim'))winModal();}
+function refreshObj(){if(!started)return;const o=currentObjective();document.getElementById('objPanel').innerHTML='<div style="color:var(--gold);font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Objetivos</div>'+o.objs.map(ob=>{const p=Math.min(100,ob.cur/ob.max*100);return '<div class="row"><div class="lab"><span>'+ob.lab+'</span><b>'+(ob.money?money(ob.cur)+'/'+money(ob.max):ob.cur+'/'+ob.max)+'</b></div><div class="bar g"><i style="width:'+p+'%"></i></div></div>';}).join('');}
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('on'),2200);}
+function showHint(t){const h=document.getElementById('hint');h.textContent=t;h.classList.add('on');clearTimeout(showHint._t);showHint._t=setTimeout(()=>h.classList.remove('on'),3200);}
+
 /* ============================ TOOLBAR + BUILD ============================ */
-const TOOLS=[{k:'build',ic:'🔨',l:'Construir'},{k:'emp',ic:'🧑‍💼',l:'Equipe'},{k:'obj',ic:'📋',l:'Objetivos'},{k:'market',ic:'📈',l:'Mercado'},{k:'set',ic:'⚙️',l:'Ajustes'},{k:'map',ic:'🗺️',l:'Mapa'}];
-const BUILD=NICHES.map(n=>({id:n.id,spr:n.spr,name:n.name,ic:n.ico,cost:Math.round((n.cost[0]+n.cost[1])/2)}));
-function buildToolbar(){document.getElementById('toolbar').innerHTML=TOOLS.map(t=>'<div class="tool" data-k="'+t.k+'"><div class="ti">'+t.ic+'</div><div class="tl">'+t.l+'</div></div>').join('');
+const TOOLS=[{k:'build',ic:'🔨',l:'Construir'},{k:'emp',ic:'🏢',l:'Empresas'},{k:'market',ic:'📈',l:'Mercado'},{k:'bank',ic:'🏦',l:'Banco'},{k:'net',ic:'🌐',l:'Amigos'},{k:'obj',ic:'📋',l:'Objetivos'},{k:'set',ic:'⚙️',l:'Ajustes'}];
+const BUILD=NICHES.map(n=>({id:n.id,spr:n.spr,name:n.name,ic:n.ico,cost:n.cost}));
+function buildToolbar(){const pend=MP.deals.filter(d=>d.status==='pending'&&d.seller===MP.uid).length+MP.unread;
+  document.getElementById('toolbar').innerHTML=TOOLS.map(t=>'<div class="tool" data-k="'+t.k+'"><div class="ti">'+t.ic+'</div><div class="tl">'+t.l+'</div>'+(t.k==='net'&&pend?'<span class="badge">'+pend+'</span>':'')+'</div>').join('');
   document.querySelectorAll('.tool').forEach(el=>el.onclick=()=>onTool(el.dataset.k,el));}
-function onTool(k,el){document.querySelectorAll('.tool').forEach(t=>t.classList.remove('on'));const tray=document.getElementById('tray');
+function onTool(k,el){if(!started)return;document.querySelectorAll('.tool').forEach(t=>t.classList.remove('on'));const tray=document.getElementById('tray');
   if(k==='build'){const open=!tray.classList.contains('on');placing=null;if(open){el.classList.add('on');openBuildTray();}else{tray.classList.remove('on');}return;}
   tray.classList.remove('on');placing=null;
-  if(k==='emp')openTeam();else if(k==='obj')openObjectives();else if(k==='market')openMarket();else if(k==='set')openSettings();else if(k==='map'){centerOnHero();toast('📍 Câmera no seu personagem');}}
+  if(k==='emp')openTeam();else if(k==='obj')openObjectives();else if(k==='market'){openMarket();MP.fetchListings().then(()=>{if(document.querySelector('.modal .sec'))openMarket();});}else if(k==='bank')openBank();else if(k==='net'){openFriends();MP.refreshAll().then(()=>{if(document.getElementById('chatBox'))openFriends();});}else if(k==='set')openSettings();}
 function openBuildTray(){const tray=document.getElementById('tray');tray.classList.add('on');
   tray.innerHTML=BUILD.map(d=>{const no=S.cash<d.cost?' no':'';return '<div class="card'+no+'" data-t="'+d.id+'"><canvas width="56" height="56" data-spr="'+d.spr+'"></canvas><div class="cn">'+d.ic+' '+d.name+'</div><div class="cc">'+money(d.cost)+'</div></div>';}).join('');
   tray.querySelectorAll('canvas').forEach(cn=>{const s=BSPRITES[cn.dataset.spr];const g=cn.getContext('2d');g.imageSmoothingEnabled=false;const sc=Math.min(56/s.c.width,56/s.c.height);const w=s.c.width*sc,h=s.c.height*sc;g.drawImage(s.c,(56-w)/2,(56-h)/2,w,h);});
-  tray.querySelectorAll('.card').forEach(cd=>{if(cd.classList.contains('no'))return;cd.onclick=()=>{placing=BUILD.find(d=>d.id===cd.dataset.t);showHint('Toque no mapa para fundar · '+placing.name+' ('+money(placing.cost)+')');};});}
-function tryPlace(gx,gy){const d=placing;if(!footprintFree(d.spr,gx,gy))return toast('Espaço ocupado');if(S.cash<d.cost)return toast('Caixa insuficiente');
-  const co=foundCompany(d.id,gx,gy,d.cost,false);toast(co.name+' fundada · -'+money(d.cost));refreshHUD();refreshObj();}
+  tray.querySelectorAll('.card').forEach(cd=>{if(cd.classList.contains('no'))return;cd.onclick=()=>{placing=BUILD.find(d=>d.id===cd.dataset.t);tray.classList.remove('on');showHint('Toque numa área livre e clara do distrito · '+placing.name+' ('+money(placing.cost)+') · Esc cancela');};});}
+function tryPlace(gx,gy){const d=placing;if(!canBuild(d.spr,gx,gy))return toast(lotFree(d.spr,gx,gy)?'🔒 Área ainda não liberada — suba de fase':'Espaço ocupado');if(S.cash<d.cost)return toast('Caixa insuficiente');
+  const co=foundCompany(d.id,gx,gy);placing=null;toast(co.name+' fundada · −'+money(d.cost));MP.news(S.name+' fundou a '+co.name);checkPhase();refreshHUD();refreshObj();}
+
+/* ============================ SAVE (local + nuvem) ============================ */
+const SAVE_KEY='bs_town_v2';
+function serialize(){return {v:2,savedAt:Date.now(),S,companies:companies.map(c=>{const o=Object.assign({},c);delete o.b;o.gx=c.b?c.b.gx:null;o.gy=c.b?c.b.gy:null;return o;}),
+  rivals:rivals.map(r=>{const o=Object.assign({},r);delete o.b;o.gx=r.b?r.b.gx:null;o.gy=r.b?r.b.gy:null;return o;}),contacts,sede:sede?{gx:sede.gx,gy:sede.gy}:null,hero:hero?{x:hero.x,y:hero.y}:null,feed:FEED.slice(0,30)};}
+function saveLocal(){if(!started)return;try{localStorage.setItem(SAVE_KEY,JSON.stringify(serialize()));}catch(e){}}
+function readLocal(){try{const t=localStorage.getItem(SAVE_KEY);return t?JSON.parse(t):null;}catch(e){return null;}}
+function wipeSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
+function makeHero(x,y){hero={x,y,tx:x,ty:y,spd:190,moving:false,face:1,ph:Math.random()*6,onArrive:null,follow:false};}
+function spawnContacts(){for(const c of contacts){const w=spawnWorker(sede,null);const cx=(WORLD.cxA+1)*TILE,cy=(WORLD.cyA+1)*TILE;w.home={cx,cy};w.x=cx+rnd(-2,2)*TILE;w.y=cy+rnd(-1,2)*TILE;w.contact=c;w.spd=14;pickTarget(w);}}
+function ambient(){for(let k=0;k<7;k++)spawnWorker(sede,null);}
+function newGame(name){S=newState(name);companies=[];rivals=[];contacts=[];buildings.length=0;workers.length=0;FEED.length=0;
+  placeSede(WORLD.SEDE_AT[0],WORLD.SEDE_AT[1]);
+  const startNiches=['ai','saas','logi','retail','fintech','media','health'];
+  WORLD.STARTER_LOTS.forEach((l,i)=>{const r=genRival(NICHE[startNiches[i]],rnd(30000,140000));rivals.push(r);placeRival(r,l[0],l[1]);});
+  contacts=CONTACT_DEFS.map(genContact);spawnContacts();ambient();
+  makeHero((WORLD.cxA+0.5)*TILE,(WORLD.cyA+3.4)*TILE);log('🌱 '+S.name+' chegou a Meridian com '+money(S.cash)+' e um notebook velho.');}
+function loadGame(d){S=Object.assign(newState(),d.S);companies=[];rivals=[];buildings.length=0;workers.length=0;FEED.length=0;(d.feed||[]).forEach(f=>FEED.push(f));
+  const sd=d.sede||{gx:WORLD.SEDE_AT[0],gy:WORLD.SEDE_AT[1]};placeSede(sd.gx,sd.gy);
+  for(const c of d.companies||[]){const gx=c.gx,gy=c.gy;delete c.gx;delete c.gy;let b=null;const spr=NICHE[c.niche].spr;if(gx!=null&&footprintFree(spr,gx,gy))b=placeBuilding(spr,gx,gy);else{const sp=findFreeSpot(spr,false);if(sp)b=placeBuilding(spr,sp.gx,sp.gy);}c.b=b;if(b)b.co=c;companies.push(c);if(b)c.employees.forEach(()=>spawnWorker(b,c));}
+  for(const r of d.rivals||[]){const gx=r.gx,gy=r.gy;delete r.gx;delete r.gy;r.b=null;rivals.push(r);if(gx!=null&&footprintFree(NICHE[r.niche].spr,gx,gy))placeRival(r,gx,gy);}
+  contacts=d.contacts&&d.contacts.length?d.contacts:CONTACT_DEFS.map(genContact);spawnContacts();ambient();
+  const h=d.hero||{x:(WORLD.cxA+0.5)*TILE,y:(WORLD.cyA+3.4)*TILE};makeHero(h.x,h.y);}
+addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){saveLocal();MP.saveCloud();}});
+addEventListener('pagehide',saveLocal);
+
+/* ============================ MULTIPLAYER (Supabase: save na nuvem, ranking, M&A entre amigos, presença e chat) ============================ */
+/* Preencha com a URL e a publishable/anon key do seu projeto Supabase (são públicas por design — a segurança vem do RLS em supabase/schema.sql). */
+const MP_CONFIG={url:'',key:''};
+const MP={sb:null,uid:null,on:false,status:'offline (servidor não configurado)',online:{},chat:[],unread:0,deals:[],listings:[],board:[],ch:null,busy:false,
+  configured(){return !!(MP_CONFIG.url&&MP_CONFIG.key);},
+  async init(){if(!this.configured())return false;if(!(window.supabase&&window.supabase.createClient)){this.status='offline (não carregou a biblioteca de rede)';return false;}
+    try{this.sb=window.supabase.createClient(MP_CONFIG.url,MP_CONFIG.key,{auth:{persistSession:true,storageKey:'bs_auth'}});
+      let {data:{session}}=await this.sb.auth.getSession();
+      if(!session){const r=await this.sb.auth.signInAnonymously();if(r.error)throw r.error;session=r.data.session;}
+      this.uid=session.user.id;this.on=true;this.status='online';return true;
+    }catch(e){console.warn('MP init',e);this.status='offline ('+(e.message||e)+')';this.on=false;return false;}},
+  async loadCloud(){if(!this.on)return null;const {data,error}=await this.sb.from('saves').select('data,updated_at').eq('user_id',this.uid).maybeSingle();if(error){console.warn(error);return null;}return data?data.data:null;},
+  async saveCloud(){if(!this.on||!started)return;try{await this.sb.from('saves').upsert({user_id:this.uid,data:serialize(),updated_at:new Date().toISOString()});}catch(e){console.warn(e);}},
+  async sync(){if(!this.on||!started)return;try{
+    await this.sb.from('players').upsert({id:this.uid,name:S.name,net_worth:Math.round(netWorth()),phase:S.phase,day:S.day,companies:companies.length,updated_at:new Date().toISOString()});
+    const rows=companies.map(c=>({id:c.id,owner:this.uid,owner_name:S.name,name:c.name,niche:c.niche,value:Math.round(coValue(c)),profit:Math.round(coProfit(c)),employees:c.employees.length,is_public:!!c.public,stake:stakeOf(c),
+      data:{baseRev:c.baseRev,scale:c.scale,ops:c.ops,overhead:c.overhead,expandN:c.expandN||0,managed:!!c.managed,emp:c.employees.slice(0,40).map(e=>({n:e.name,r:e.role,f:e.fam,c:e.competence,s:e.salary}))},updated_at:new Date().toISOString()}));
+    if(rows.length)await this.sb.from('listings').upsert(rows);
+    const ids=companies.map(c=>c.id);let q=this.sb.from('listings').delete().eq('owner',this.uid);if(ids.length)q=q.not('id','in','('+ids.map(i=>'"'+i+'"').join(',')+')');await q;
+    if(this.ch)this.ch.track({id:this.uid,name:S.name,phase:S.phase,net:Math.round(netWorth())});
+  }catch(e){console.warn('sync',e);}},
+  async fetchListings(){if(!this.on)return;const {data}=await this.sb.from('listings').select('*').neq('owner',this.uid).order('value',{ascending:false}).limit(40);this.listings=data||[];},
+  async fetchBoard(){if(!this.on)return;const {data}=await this.sb.from('players').select('id,name,net_worth,phase,day').order('net_worth',{ascending:false}).limit(20);this.board=data||[];},
+  async fetchDeals(){if(!this.on)return;const {data}=await this.sb.from('deals').select('*').order('created_at',{ascending:false}).limit(60);this.deals=data||[];},
+  async refreshAll(){await Promise.all([this.fetchBoard(),this.fetchDeals(),this.fetchListings()]);},
+  /* processa negócios resolvidos: buyer recebe empresa/reembolso; seller perde empresa na hostil */
+  async processDeals(){if(!this.on||this.busy)return;this.busy=true;try{await this.fetchDeals();let changed=false;
+    for(const d of this.deals){
+      if(d.buyer===this.uid&&!d.buyer_done&&d.status!=='pending'){
+        if(d.status==='accepted'){S.escrow=Math.max(0,S.escrow-d.price);this.receiveCompany(d);modal('🎉','Oferta aceita!','<p><b>'+esc(d.seller_name)+'</b> aceitou: a <b>'+esc(d.company.name)+'</b> agora é sua.</p>');}
+        else{S.escrow=Math.max(0,S.escrow-d.price);S.cash+=d.price;toast('✉️ '+d.seller_name+(d.status==='declined'?' recusou':' cancelou')+' — '+money(d.price)+' de volta');}
+        await this.sb.rpc('mark_deal_done',{p_deal:d.id});changed=true;}
+      if(d.seller===this.uid&&!d.seller_done&&d.kind==='hostile'){const co=companies.find(c=>c.id===d.listing_id);if(co)removeCompany(co);S.cash+=d.price;
+        modal('⚔️','Aquisição hostil!','<p><b>'+esc(d.buyer_name)+'</b> comprou suas ações da <b>'+esc(d.company.name)+'</b> na bolsa. Você recebeu <b style="color:var(--gold)">'+moneyFull(d.price)+'</b>.</p><p class="small">Empresas de capital aberto ficam expostas. Vingança?</p>');
+        await this.sb.rpc('mark_deal_done',{p_deal:d.id});changed=true;}}
+    if(changed){checkPhase();refreshHUD();refreshObj();saveLocal();this.saveCloud();this.sync();}
+    buildToolbar();}catch(e){console.warn('deals',e);}this.busy=false;},
+  receiveCompany(d){const c=d.company,dt=c.data||{};const n=NICHE[c.niche]||NICHES[0];const sp=findFreeSpot(n.spr,false);const b=sp?placeBuilding(n.spr,sp.gx,sp.gy):null;
+    const co=makeCompany(n.id,b);Object.assign(co,{name:c.name,baseRev:+dt.baseRev||co.baseRev,scale:+dt.scale||1,ops:+dt.ops||50,overhead:+dt.overhead||co.overhead,expandN:dt.expandN|0,managed:!!dt.managed,acquired:true,public:!!c.is_public,stake:+c.stake||1});
+    (dt.emp||[]).forEach(e=>addEmployee(co,{id:'p'+Date.now()+ri(0,99999),name:e.n,role:e.r,fam:e.f,competence:e.c|0,ambition:ri(35,90),salary:e.s|0,happy:60,tenure:0}));
+    companies.push(co);S.stats.acq++;log('🦈 Você comprou a '+co.name+' de '+d.seller_name+'.');return co;},
+  async makeOffer(l,price){if(S.cash<price)return toast('Caixa insuficiente');const {data,error}=await this.sb.rpc('make_offer',{p_listing:l.id,p_price:price});
+    if(error)return toast('Oferta falhou: '+error.message);S.cash-=price;S.escrow+=price;toast('✉️ Oferta enviada a '+l.owner_name);this.news(S.name+' fez uma oferta pela '+l.name);refreshHUD();saveLocal();this.saveCloud();this.fetchDeals();void data;},
+  async hostile(l,price){if(S.cash<price)return toast('Caixa insuficiente');const {data,error}=await this.sb.rpc('hostile_takeover',{p_listing:l.id});
+    if(error)return toast('Aquisição falhou: '+error.message);const d=data;S.cash-=d.price;const co=this.receiveCompany({company:d.company,seller_name:l.owner_name});
+    toast('⚔️ Você tomou a '+co.name+'!');this.news('⚔️ '+S.name+' fez uma aquisição hostil da '+co.name+' ('+l.owner_name+')');checkPhase();refreshHUD();refreshObj();saveLocal();this.saveCloud();this.sync();this.fetchListings();},
+  async respond(id,accept){const d=this.deals.find(x=>x.id===id);const {data,error}=await this.sb.rpc('respond_offer',{p_deal:id,p_accept:accept});
+    if(error){toast('Erro: '+error.message);return;}
+    if(data&&data.status==='accepted'){const co=companies.find(c=>c.id===d.listing_id);if(co)removeCompany(co);S.cash+=d.price;toast('💰 Vendida para '+d.buyer_name+' por '+money(d.price));this.news(d.buyer_name+' comprou a '+d.company.name+' de '+S.name);}
+    else if(data&&data.status==='cancelled')toast('Essa empresa não está mais à venda.');else toast('Oferta recusada');
+    checkPhase();refreshHUD();refreshObj();saveLocal();this.saveCloud();this.sync();await this.fetchDeals();openFriends();},
+  async cancel(id){const {error}=await this.sb.rpc('cancel_offer',{p_deal:id});if(error)return toast('Erro: '+error.message);await this.processDeals();openFriends();},
+  joinRealtime(){const ch=this.sb.channel('meridian',{config:{presence:{key:this.uid}}});this.ch=ch;
+    ch.on('presence',{event:'sync'},()=>{const st=ch.presenceState();this.online={};for(const k in st){const p=st[k][0];if(p)this.online[k]=p;}refreshHUD();})
+      .on('broadcast',{event:'chat'},({payload})=>{this.chat.push(payload);if(this.chat.length>60)this.chat.shift();const cb=document.getElementById('chatBox');if(cb){cb.insertAdjacentHTML('beforeend','<div><b>'+esc(payload.name)+':</b> '+esc(payload.text)+'</div>');cb.scrollTop=cb.scrollHeight;}else{this.unread++;buildToolbar();toast('💬 '+payload.name+': '+String(payload.text).slice(0,60));}})
+      .on('broadcast',{event:'news'},({payload})=>{log('🌐 '+payload.text);toast('📰 '+payload.text);})
+      .on('postgres_changes',{event:'*',schema:'public',table:'deals',filter:'seller=eq.'+this.uid},()=>{this.processDeals();})
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'deals',filter:'buyer=eq.'+this.uid},()=>{this.processDeals();})
+      .subscribe(st=>{if(st==='SUBSCRIBED')ch.track({id:this.uid,name:S.name,phase:S.phase,net:Math.round(netWorth())});});},
+  say(text){if(!this.ch)return;const m={name:S.name,text:text.slice(0,200),t:Date.now()};this.ch.send({type:'broadcast',event:'chat',payload:m});this.chat.push(m);const cb=document.getElementById('chatBox');if(cb){cb.insertAdjacentHTML('beforeend','<div><b>'+esc(m.name)+':</b> '+esc(m.text)+'</div>');cb.scrollTop=cb.scrollHeight;}},
+  news(text){if(this.ch)this.ch.send({type:'broadcast',event:'news',payload:{text}});},
+  onDay(){if(!this.on)return;if(S.day%4===0)this.sync();if(S.day%8===0)this.saveCloud();if(S.day%3===0)this.processDeals();},
+  async start(){if(!(await this.init()))return;this.joinRealtime();await this.sync();this.processDeals();this.fetchBoard();}};
+
+/* ============================ UPDATE / LOOP ============================ */
+const DAY_SEC=5.5;let last=performance.now(),dayAcc=0;
+function goTo(x,y,cb){if(!hero)return cb&&cb();hero.follow=true;if(Math.hypot(hero.x-x,hero.y-y)<34){hero.tx=hero.x;hero.ty=hero.y;hero.onArrive=null;return cb&&cb();}hero.tx=x;hero.ty=y;hero.onArrive=cb||null;}
+function bFront(b){const s=BSPRITES[b.type];return [(b.gx+s.wt/2)*TILE,(b.gy+s.ht)*TILE+12];}
+function loop(now){const dt=Math.min((now-last)/1000,0.05);last=now;
+  if(started&&!S.over&&S.speed>0&&!document.getElementById('scrim')){dayAcc+=dt*S.speed;if(dayAcc>=DAY_SEC){dayAcc-=DAY_SEC;endDay();}}
+  const dp=document.getElementById('dayProg');if(dp)dp.style.width=(dayAcc/DAY_SEC*100)+'%';
+  for(const w of workers){const dx=w.tx-w.x,dy=w.ty-w.y,d=Math.hypot(dx,dy);
+    if(d<3){w.moving=false;if(w.pause>0){w.pause-=dt;}else if(Math.random()<0.03){pickTarget(w);w.pause=rnd(0.4,2.2);}}
+    else{w.moving=true;if(Math.abs(dx)>0.5)w.face=dx<0?-1:1;w.x+=dx/d*w.spd*dt;w.y+=dy/d*w.spd*dt;}}
+  if(hero){const dx=hero.tx-hero.x,dy=hero.ty-hero.y,d=Math.hypot(dx,dy);
+    if(d<2){hero.moving=false;if(hero.onArrive){const cb=hero.onArrive;hero.onArrive=null;cb();}}
+    else{hero.moving=true;if(Math.abs(dx)>0.5)hero.face=dx<0?-1:1;const step=Math.min(hero.spd*dt,d);hero.x+=dx/d*step;hero.y+=dy/d*step;}
+    if(hero.follow&&hero.moving&&!dragging){const k=Math.min(1,dt*3);camX+=(hero.x-VW/2-camX)*k;camY+=(hero.y-VH/2-camY)*k;clampCam();}}
+  draw();drawMini();
+  requestAnimationFrame(loop);}
+
+/* ============================ MINIMAP ============================ */
+const mini=document.getElementById('mini'),mg=mini.getContext('2d');mg.imageSmoothingEnabled=false;
+function drawMini(){const sx=mini.width/MAPW,sy=mini.height/MAPH;mg.fillStyle='#3a5a2a';mg.fillRect(0,0,mini.width,mini.height);
+  for(let y=0;y<MAPH;y++)for(let x=0;x<MAPW;x++){const t=map[y][x];if(t!==0){mg.fillStyle=t===1?'#9a7a4a':t===2?'#b9a888':t===3?'#4a82ad':t===4?'#7a5a38':'#3a5a2a';mg.fillRect(x*sx,y*sy,Math.ceil(sx),Math.ceil(sy));}
+    if(!tileUnlocked(x,y)){mg.fillStyle='rgba(0,0,0,0.38)';mg.fillRect(x*sx,y*sy,Math.ceil(sx),Math.ceil(sy));}}
+  for(const b of buildings){mg.fillStyle=b.sede?'#ffe27a':b.co?'#e8a040':b.rv?'#d0503a':'#999';mg.fillRect(b.gx*sx,b.gy*sy,sx*2,sy*2);}
+  if(hero){mg.fillStyle='#fff';mg.fillRect(hero.x/TILE*sx-1.5,hero.y/TILE*sy-1.5,3,3);}
+  mg.strokeStyle='#f2e4c8';mg.lineWidth=1;mg.strokeRect(camX/TILE*sx,camY/TILE*sy,VW/TILE*sx,VH/TILE*sy);}
+mini.addEventListener('pointerdown',e=>{const r=mini.getBoundingClientRect();const fx=(e.clientX-r.left)/r.width,fy=(e.clientY-r.top)/r.height;if(hero)hero.follow=false;camX=fx*MAPW*TILE-VW/2;camY=fy*MAPH*TILE-VH/2;clampCam();e.stopPropagation();});
+
+/* ============================ INPUT (arrastar = câmera · toque = andar/interagir · roda/pinça = zoom) ============================ */
+function setZoom(z,cx,cy){z=clamp(z,0.5,2);if(cx==null){cx=W/2;cy=H/2;}const wx=camX+cx/ZOOM,wy=camY+cy/ZOOM;ZOOM=z;VW=W/ZOOM;VH=H/ZOOM;camX=wx-cx/ZOOM;camY=wy-cy/ZOOM;clampCam();}
+let dragging=false,dragMoved=false,lastX=0,lastY=0;const ptrs=new Map();let pinchD=0;
+cv.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinchD=Math.hypot(a.x-b.x,a.y-b.y);dragMoved=true;}
+  dragging=true;if(ptrs.size===1)dragMoved=false;lastX=e.clientX;lastY=e.clientY;cv.classList.add('drag');cv.setPointerCapture(e.pointerId);});
+cv.addEventListener('pointermove',e=>{
+  mouseGX=Math.floor((e.clientX/ZOOM+camX)/TILE);mouseGY=Math.floor((e.clientY/ZOOM+camY)/TILE);
+  if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===2){const [a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);if(pinchD>0){setZoom(ZOOM*d/pinchD,(a.x+b.x)/2,(a.y+b.y)/2);}pinchD=d;return;}
+  if(dragging){const dx=e.clientX-lastX,dy=e.clientY-lastY;if(Math.abs(dx)+Math.abs(dy)>4){dragMoved=true;if(hero)hero.follow=false;}if(dragMoved){camX-=dx/ZOOM;camY-=dy/ZOOM;clampCam();}lastX=e.clientX;lastY=e.clientY;}});
+function endPtr(e){ptrs.delete(e.pointerId);if(ptrs.size>0){pinchD=0;return;}dragging=false;cv.classList.remove('drag');}
+cv.addEventListener('pointercancel',endPtr);
+cv.addEventListener('pointerup',e=>{const wasDrag=dragMoved;endPtr(e);if(ptrs.size>0||wasDrag||!started||S.over)return;
+  const wx=e.clientX/ZOOM+camX,wy=e.clientY/ZOOM+camY;const gx=Math.floor(wx/TILE),gy=Math.floor(wy/TILE);
+  if(placing){tryPlace(gx,gy);return;}
+  const ct=workers.find(w=>w.contact&&Math.hypot(w.x-wx,(w.y-8*AP)-wy)<26);
+  if(ct){const c=ct.contact;goTo(ct.x+18,ct.y+4,()=>openContact(c));return;}
+  const b=buildingAt(gx,gy);
+  if(b){const [fx,fy]=bFront(b);if(b.co)goTo(fx,fy,()=>openCompany(b.co));else if(b.rv)goTo(fx,fy,()=>openRival(b.rv));else if(b.sede)goTo(fx,fy,openSede);return;}
+  if(hero){hero.tx=wx;hero.ty=wy;hero.onArrive=null;hero.follow=false;}});
+cv.addEventListener('wheel',e=>{e.preventDefault();setZoom(ZOOM*(e.deltaY<0?1.12:1/1.12),e.clientX,e.clientY);},{passive:false});
+addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;if(!started)return;
+  if(e.key==='Escape'){closeModal();placing=null;document.getElementById('tray').classList.remove('on');}
+  else if(e.key===' '){e.preventDefault();setSpeed(S.speed?0:1);}
+  else if(e.key==='1')setSpeed(1);else if(e.key==='2')setSpeed(2);else if(e.key==='3')setSpeed(4);
+  else if(e.key==='+'||e.key==='=')setZoom(ZOOM*1.2);else if(e.key==='-')setZoom(ZOOM/1.2);});
+function setSpeed(s){S.speed=s;refreshHUD();if(s===0)showHint('⏸ Pausado');}
+document.querySelectorAll('#speed button').forEach(b=>b.onclick=()=>setSpeed(+b.dataset.s));
+document.getElementById('heroBtn').onclick=()=>{if(hero){hero.follow=true;centerOnHero();}};
+
 /* ============================ BOOT ============================ */
-genWorld();
-companies.forEach(c=>{c.ops=rnd(68,82);c.scale=rnd(1.15,1.45);}); // distrito inicial já operante e lucrativo
-for(let i=0;i<4;i++)S.rivals.push(genRival());
-centerOnHero();buildToolbar();refreshHUD();refreshObj();
-bakeAllBuildingSprites(); // upgrade progressivo (3D real) em segundo plano — não bloqueia o boot
-setTimeout(()=>showHint('👤 Este é VOCÊ (anel dourado). Toque no chão para andar · 🗺️ Mapa te leva até você.'),400);
-setInterval(()=>{if(!S.over)endDay();},5500); // o tempo passa: economia avança
-requestAnimationFrame(loop);
+function beginPlay(){started=true;document.getElementById('start').classList.add('off');centerOnHero();buildToolbar();checkPhase();refreshHUD();refreshObj();saveLocal();
+  setTimeout(()=>showHint('👤 VOCÊ é o anel dourado. Toque no chão p/ andar · toque num prédio p/ ir até ele · ⭐ Sede = freelas e banco.'),400);}
+async function boot(){genWorld();centerCam();buildToolbar();bakeAllBuildingSprites();requestAnimationFrame(loop);
+  const local=readLocal();const st=document.getElementById('start');const nameIn=document.getElementById('nameIn');
+  if(local&&local.S&&local.S.name)nameIn.value=local.S.name;
+  const cont=document.getElementById('btnCont');cont.style.display=local&&!(local.S&&local.S.over)?'':'none';
+  const netLine=document.getElementById('startNet');netLine.textContent=MP.configured()?'Conectando ao servidor…':'Modo offline (servidor multiplayer não configurado). O jogo salva neste aparelho.';
+  const mpReady=MP.configured()?MP.start():Promise.resolve();
+  mpReady.then(()=>{netLine.textContent=MP.on?'🟢 Online — seu império fica salvo na nuvem e seus amigos te veem.':'⚪ '+MP.status+' — salvando só neste aparelho.';});
+  const getName=()=>{const v=(nameIn.value||'').trim().slice(0,24);if(v.length<2){toast('Digite um nome (2+ letras)');return null;}return v;};
+  cont.onclick=async()=>{const nm=getName();if(!nm)return;await mpReady;let d=local;if(MP.on){const cloud=await MP.loadCloud();if(cloud&&(!d||(cloud.savedAt||0)>(d.savedAt||0)))d=cloud;}
+    loadGame(d);S.name=nm;beginPlay();MP.sync();};
+  const startNew=async(nm)=>{await mpReady;
+    if(!local&&MP.on){const cloud=await MP.loadCloud();if(cloud&&cloud.S&&!cloud.S.over){loadGame(cloud);S.name=nm;beginPlay();toast('☁️ Save da nuvem carregado');return;}}
+    newGame(nm);beginPlay();MP.sync();MP.news(nm+' acabou de chegar em Meridian.');};
+  document.getElementById('btnNew').onclick=()=>{const nm=getName();if(!nm)return;
+    if(local&&!(local.S&&local.S.over)){modal('⚠️','Começar um novo império?','<p>O save atual deste aparelho (dia '+((local.S&&local.S.day)||1)+') será substituído.</p>',[{t:'Sim, começar do zero',fn:()=>{closeModal();startNew(nm);}},{t:'Cancelar',fn:closeModal}]);return;}
+    startNew(nm);};
+  void st;}
+boot();
 window.__townReady=true;
 </script>
 </body>
