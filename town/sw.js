@@ -1,8 +1,8 @@
 // Auvra Club — service worker (app instalável + abre offline).
 // HTML: rede primeiro (atualização chega na hora), cache como reserva offline.
-// Bibliotecas de CDN (versão fixada) e ícones: cache primeiro.
+// Bibliotecas de CDN (versão fixada, incl. módulos three/addons) e ícones: cache primeiro.
 // Chamadas ao Supabase (API/realtime) nunca passam pelo cache.
-const CACHE = 'auvra-town-v1';
+const CACHE = 'auvra-town-v2'; // v2: Wall Street 3D
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 const CDN = [
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js',
@@ -24,7 +24,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   const sameOrigin = url.origin === self.location.origin;
-  const isCdn = CDN.includes(req.url);
+  const isCdn = CDN.includes(req.url) || req.url.startsWith('https://cdn.jsdelivr.net/npm/three@0.161.0/');
   if (!sameOrigin && !isCdn) return; // Supabase e o resto: direto na rede
 
   if (req.mode === 'navigate' || (sameOrigin && url.pathname.endsWith('.html'))) {
