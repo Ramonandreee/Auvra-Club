@@ -68,7 +68,10 @@ Em **Personagem**, as abas **Corpo**, **Rosto**, **Cabelo**, **Roupa** e **Acess
 ao lado da prévia 3D. Arraste a prévia para girar e use **Aproximar** para enquadrar o rosto. **Aleatório**
 gera um visual completo e **Desfazer** restaura até 24 mudanças de aparência da sessão. O nome
 é editado separadamente. Aparências antigas no save e em `auvra_avatar` recebem os campos novos com
-valores padrão.
+valores padrão. O seletor de movimento permite conferir **Parado**, **Caminhada** e **Corrida**
+com a roupa escolhida. Ele só anima a prévia e volta para **Parado** ao sair do editor.
+Enquanto a prévia está aberta, o jogo pausa a atualização da rua para concentrar o trabalho
+no personagem exibido.
 
 O corpo usa malhas com pesos interpolados nas articulações. A cabeça deriva da malha anatômica
 CC0 do MakeHuman. Cabelo, cor da pele, íris, sobrancelhas, barba, vestuário e acessórios são
