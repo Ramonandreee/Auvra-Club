@@ -1,6 +1,6 @@
 # 08 — Real Estate, Offices & Vehicle Systems
 
-> *Project ATLAS / MOGUL — Bíblia de Pré-Produção*
+> *Auvra Club (codinome Project ATLAS) — Bíblia de Pré-Produção*
 > Documento 08 de 12 · Confidencial
 > *Inclui: Real Estate Systems, Physical Offices, Vehicle Systems, Status as a System*
 
@@ -8,7 +8,7 @@
 
 ## 1. Filosofia: Ativos como Linguagem
 
-> **Em MOGUL, o que você possui *fala por você*. Cada ativo físico é, ao mesmo tempo, um investimento financeiro, uma ferramenta operacional e uma declaração de status que o mundo lê e reage.**
+> **Em Auvra Club, o que você possui *fala por você*. Cada ativo físico é, ao mesmo tempo, um investimento financeiro, uma ferramenta operacional e uma declaração de status que o mundo lê e reage.**
 
 Este documento cobre a manifestação **física e visível** da riqueza — a cristalização do Pilar I ("Viva o Império") e da cláusula "toda conquista deve ser visível no mundo" ([01-Vision](01-PRODUCT-VISION.md)). Três classes de ativos: **Imóveis** (onde você vive e opera), **Escritórios** (seu império feito espaço) e **Veículos** (status em movimento).
 
@@ -83,7 +83,7 @@ Ao caminhar pelo escritório, o jogador **vê e sente** a empresa:
 > **O veículo não é cosmético. Ele comunica status. Clientes percebem. Investidores percebem. NPCs percebem.**
 
 ### 4.1 Veículo como sinal social (a mecânica central)
-Em MOGUL, o carro é um **sinalizador de status legível pelos agentes**. Ao te ver/encontrar, NPCs (Tier 2/3 — [07](07-NPC-AI-ARCHITECTURE.md)) **leem** seu veículo como evidência de sucesso, e isso **modula a interação**:
+Em Auvra Club, o carro é um **sinalizador de status legível pelos agentes**. Ao te ver/encontrar, NPCs (Tier 2/3 — [07](07-NPC-AI-ARCHITECTURE.md)) **leem** seu veículo como evidência de sucesso, e isso **modula a interação**:
 - **Primeiras impressões:** chegar a uma reunião num carro popular vs. num esportivo de luxo altera a predisposição do NPC (respeito, expectativa, termos de negociação).
 - **Credibilidade:** um investidor avalia seu sucesso aparente; um cliente premium julga se você "pertence" ao mundo dele.
 - **Coerência de status:** ostentar acima do seu nível real pode impressionar — ou soar como fraude/insegurança para NPCs perspicazes (leitura por Big Five — [07](07-NPC-AI-ARCHITECTURE.md)). Coerência entre status real e aparente é, ela mesma, um jogo.

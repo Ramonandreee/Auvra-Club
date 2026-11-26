@@ -1,6 +1,6 @@
 # 11 — Production Plan
 
-> *Project ATLAS / MOGUL — Bíblia de Pré-Produção*
+> *Auvra Club (codinome Project ATLAS) — Bíblia de Pré-Produção*
 > Documento 11 de 12 · Confidencial
 > *Inclui: Development Roadmap, Vertical Slice, MVP, Full Production, Team Structure, Budget Forecast*
 

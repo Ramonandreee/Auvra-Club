@@ -1,6 +1,6 @@
 # 09 — UX/UI Design
 
-> *Project ATLAS / MOGUL — Bíblia de Pré-Produção*
+> *Auvra Club (codinome Project ATLAS) — Bíblia de Pré-Produção*
 > Documento 09 de 12 · Confidencial
 > *Inclui: User Interface, UX Flows, Accessibility*
 
@@ -10,7 +10,7 @@
 
 > **Como entregar a profundidade de uma simulação econômica da Paradox sem trair o Pilar I ("Viva o Império" — sem planilhas frias, sem menus como interface primária)?**
 
-Esta é a **tensão de design mais difícil de MOGUL**. A resposta é uma filosofia de **interface diegética em camadas**: a informação vive *no mundo* sempre que possível; e quando precisa de uma "tela", essa tela é parte da ficção e revela profundidade *progressivamente*, sob demanda.
+Esta é a **tensão de design mais difícil de Auvra Club**. A resposta é uma filosofia de **interface diegética em camadas**: a informação vive *no mundo* sempre que possível; e quando precisa de uma "tela", essa tela é parte da ficção e revela profundidade *progressivamente*, sob demanda.
 
 ## 2. Princípios de UI
 
@@ -59,7 +59,7 @@ Apps do MeridianOS (cada um é um sistema):
 > O smartphone resolve a tensão central: dá acesso rápido a sistemas profundos **sem quebrar a imersão**, porque olhar o celular *é* uma ação crível de um empresário.
 
 ### 3.2 Os Consultores-IA (a interface humana para a complexidade)
-Em vez de despejar dados, MOGUL usa **personagens-conselheiros** (agentes — [07](07-NPC-AI-ARCHITECTURE.md)) como camada de UX:
+Em vez de despejar dados, Auvra Club usa **personagens-conselheiros** (agentes — [07](07-NPC-AI-ARCHITECTURE.md)) como camada de UX:
 - **CFO-IA** — traduz finanças: *"O fluxo de caixa aperta no mês que vem por causa daquele recebível atrasado. Sugiro adiar a contratação ou puxar a linha de crédito."*
 - **Consultor de estratégia** — lê o mercado e sugere movimentos.
 - **Headhunter / RH-IA** — sobre talento e clima.
@@ -119,14 +119,14 @@ Acordar (no seu imóvel atual — status visível) → checar MeridianOS (mensag
 
 ## 6. Legibilidade de Causa & Efeito (o "por quê")
 
-Para uma simulação profunda ser justa, o jogador precisa entender consequências. MOGUL garante isso via:
+Para uma simulação profunda ser justa, o jogador precisa entender consequências. Auvra Club garante isso via:
 - **"Por quê?" rastreável:** em qualquer métrica/evento, o jogador pode pedir a explicação (o consultor-IA narra a cadeia causal: *"vendas caíram → porque um rival baixou preços → porque captou investimento mês passado"*).
 - **Timeline de eventos:** um registro diegético (feed de notícias + histórico pessoal) que conta a história do seu império e do mundo.
 - **Pré-visualização de impacto:** decisões importantes mostram consequências prováveis antes de confirmar (sem remover risco/incerteza — mostra *faixas*, não certezas).
 
 ## 7. Acessibilidade & Conforto
 
-MOGUL é projetado para acessibilidade de padrão AAA (requisito, não opcional):
+Auvra Club é projetado para acessibilidade de padrão AAA (requisito, não opcional):
 - **Visão:** escalonamento de texto, alto contraste, daltonismo (paletas), leitor de tela para UI crítica, legendas completas + closed captions para áudio ambiente.
 - **Motora:** remapeamento total, modos de input simplificado, redução de ações por tempo, sem QTEs punitivos.
 - **Cognitiva (crucial dada a profundidade):** "modo guiado" com consultores-IA mais proativos, glossário diegético contextual, tutoriais sob demanda, ritmo ajustável (pausar o tempo a qualquer momento fora de cenas).

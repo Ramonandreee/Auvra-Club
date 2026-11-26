@@ -1,6 +1,6 @@
 # 10 — Technical Architecture
 
-> *Project ATLAS / MOGUL — Bíblia de Pré-Produção*
+> *Auvra Club (codinome Project ATLAS) — Bíblia de Pré-Produção*
 > Documento 10 de 12 · Confidencial
 > *Inclui: Engine, Database, Backend, Multiplayer, Agent AI tech, Save System, Content Pipeline, Scalability*
 
@@ -17,7 +17,7 @@
 
 ## 2. Engine & Stack Tecnológica (Unreal Engine 5.6)
 
-| Tecnologia UE5 | Uso em MOGUL | Doc relacionado |
+| Tecnologia UE5 | Uso em Auvra Club | Doc relacionado |
 |----------------|--------------|-----------------|
 | **World Partition** | Streaming da cidade aberta (Meridian) sem loadings; carregamento por distrito | [04-World](04-WORLD-DESIGN.md) |
 | **Nanite** | Geometria massiva (skyline, interiores detalhados) sem custo de LOD manual | [04](04-WORLD-DESIGN.md), [08](08-ASSETS-SYSTEMS.md) |
@@ -137,7 +137,7 @@ Player input → Intent classifier (modelo pequeno local)
 - **Live Ops backbone:** push de configs de economia, eventos sazonais, balanceamento e conteúdo **sem patch de cliente** (essencial para o modelo de serviço — [12](12-BUSINESS-PLAN.md)).
 
 ### 6.2 Multiplayer Architecture (a camada online)
-> **Decisão de design:** MOGUL **não** é um MMO de mundo compartilhado em tempo real (custo/risco proibitivos e desnecessário para a fantasia). É um **online persistente assíncrono** com coop opcional.
+> **Decisão de design:** Auvra Club **não** é um MMO de mundo compartilhado em tempo real (custo/risco proibitivos e desnecessário para a fantasia). É um **online persistente assíncrono** com coop opcional.
 
 Modos online (faseados — ver [12](12-BUSINESS-PLAN.md)):
 - **Shared Economy Worlds (assíncrono):** múltiplos jogadores num mesmo "mundo persistente" onde competem/cooperam na *mesma economia*, mas agem em seus próprios tempos. Suas empresas, marcas e movimentos aparecem no mundo dos outros (rivais reais misturados a rivais-IA).

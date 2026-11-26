@@ -1,17 +1,17 @@
 # 00 — Executive Summary
 
-> *Project ATLAS / MOGUL — Bíblia de Pré-Produção*
+> *Auvra Club (codinome Project ATLAS) — Bíblia de Pré-Produção*
 > Documento 00 de 12 · Confidencial
 
 ---
 
 ## 1. O Pitch em uma frase
 
-> **MOGUL é "Grand Theft Auto encontra um simulador econômico da Paradox, povoado por NPCs com cérebro de IA" — um RPG de vida empresarial em mundo aberto onde você começa falido num apartamento apertado e tenta construir, em décadas de tempo de jogo, um império de negócios numa metrópole global viva que existe com ou sem você.**
+> **Auvra Club é "Grand Theft Auto encontra um simulador econômico da Paradox, povoado por NPCs com cérebro de IA" — um RPG de vida empresarial em mundo aberto onde você começa falido num apartamento apertado e tenta construir, em décadas de tempo de jogo, um império de negócios numa metrópole global viva que existe com ou sem você.**
 
 ## 2. O Pitch em um parágrafo
 
-A maioria dos jogos de "tycoon" trata negócios como uma planilha gamificada: você clica em menus, vê números subirem e nunca *sente* nada. MOGUL inverte isso. Você não administra uma empresa — você **vive a vida de um empresário**. Você caminha pela cidade, toma um café, reconhece um investidor numa mesa ao lado, puxa conversa, descobre quem ele é e o que quer, e transforma esse encontro em uma rodada de investimento três anos depois. Você contrata pessoas reais (agentes de IA com personalidade, ambição e memória), e elas podem pedir aumento, fundar concorrentes ou roubar seu melhor talento. Seu carro, seu escritório e seu endereço **comunicam status** e mudam como o mundo te trata. Por baixo de tudo roda uma economia macroeconômica viva — juros, inflação, ciclos de crédito — e centenas de empresas concorrentes controladas por IA que crescem, falem e fazem aquisições sem você. MOGUL é a fantasia de poder definitiva do empreendedorismo, construída em escala e fidelidade AAA.
+A maioria dos jogos de "tycoon" trata negócios como uma planilha gamificada: você clica em menus, vê números subirem e nunca *sente* nada. Auvra Club inverte isso. Você não administra uma empresa — você **vive a vida de um empresário**. Você caminha pela cidade, toma um café, reconhece um investidor numa mesa ao lado, puxa conversa, descobre quem ele é e o que quer, e transforma esse encontro em uma rodada de investimento três anos depois. Você contrata pessoas reais (agentes de IA com personalidade, ambição e memória), e elas podem pedir aumento, fundar concorrentes ou roubar seu melhor talento. Seu carro, seu escritório e seu endereço **comunicam status** e mudam como o mundo te trata. Por baixo de tudo roda uma economia macroeconômica viva — juros, inflação, ciclos de crédito — e centenas de empresas concorrentes controladas por IA que crescem, falem e fazem aquisições sem você. Auvra Club é a fantasia de poder definitiva do empreendedorismo, construída em escala e fidelidade AAA.
 
 ## 3. O problema de mercado
 
@@ -20,7 +20,7 @@ Existe um **vácuo de mercado de bilhões de dólares** entre dois mundos que nu
 - **Mundo A — Life Sims de massa:** *The Sims* (200M+ de cópias na franquia) prova um apetite gigantesco por simulação de vida, mas é raso em sistemas econômicos e "fofo" demais para a fantasia de poder adulta.
 - **Mundo B — Economic/Management Sims de nicho:** títulos como *Capitalism Lab*, *Software Inc.*, *The Founder*, e os grand strategy da Paradox têm profundidade sistêmica, mas são abstratos, feios, em menus, e nunca fazem o jogador *se sentir uma pessoa* dentro do mundo.
 
-Ninguém entregou um simulador de vida empresarial **AAA, imersivo, em mundo aberto e em primeira/terceira pessoa**. A barreira sempre foi técnica e de custo. Em 2026, três tecnologias maduram simultaneamente e tornam isso possível: **UE5 (World Partition + Nanite + Mass Entity)** para densidade urbana, **MetaHuman** para população crível, e **agentes de IA / LLMs** para NPCs com mente própria. MOGUL é o produto que essa convergência tornou inevitável — e queremos ser os primeiros a fazê-lo em escala AAA.
+Ninguém entregou um simulador de vida empresarial **AAA, imersivo, em mundo aberto e em primeira/terceira pessoa**. A barreira sempre foi técnica e de custo. Em 2026, três tecnologias maduram simultaneamente e tornam isso possível: **UE5 (World Partition + Nanite + Mass Entity)** para densidade urbana, **MetaHuman** para população crível, e **agentes de IA / LLMs** para NPCs com mente própria. Auvra Club é o produto que essa convergência tornou inevitável — e queremos ser os primeiros a fazê-lo em escala AAA.
 
 ## 4. Visão de produto
 
@@ -33,7 +33,7 @@ Construir o **simulador empresarial mais avançado, imersivo e ambicioso já cri
 
 ## 5. As cinco fases emocionais (a jornada do jogador)
 
-MOGUL é projetado em torno de uma curva emocional deliberada. Detalhada em [03-Gameplay-Design](03-GAMEPLAY-DESIGN.md).
+Auvra Club é projetado em torno de uma curva emocional deliberada. Detalhada em [03-Gameplay-Design](03-GAMEPLAY-DESIGN.md).
 
 | Fase | Fantasia | Estado inicial típico | Marco de saída |
 |------|----------|----------------------|----------------|

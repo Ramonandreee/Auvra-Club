@@ -1,4 +1,6 @@
-# 🚀 Guia de Setup — Abrir o MOGUL na Unreal Engine 5.6 (passo a passo)
+# 🚀 Guia de Setup — Abrir o Auvra Club na Unreal Engine 5.6 (passo a passo)
+
+> O projeto C++ se chama tecnicamente `MOGUL` (nome antigo, mantido como identificador). O jogo é o **Auvra Club**.
 
 > Para quem **nunca abriu a Unreal**. Tempo total: ~1h (a maior parte é download/instalação).
 > Já tem a UE 5.6 instalada pelo Epic Launcher? Ótimo — comece no Passo 1.

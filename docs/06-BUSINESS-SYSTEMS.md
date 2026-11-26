@@ -1,13 +1,13 @@
 # 06 — Business & Corporate Growth Systems
 
-> *Project ATLAS / MOGUL — Bíblia de Pré-Produção*
+> *Auvra Club (codinome Project ATLAS) — Bíblia de Pré-Produção*
 > Documento 06 de 12 · Confidencial
 
 ---
 
 ## 1. Visão Geral
 
-Este é o sistema-coração de MOGUL: como o jogador **funda, opera, compra, vende, funde e encerra** empresas, contrata e lidera **pessoas**, e transforma tudo isso num **império**. Tudo aqui obedece ao Pilar I (diegese) — operações são *vividas*, não gerenciadas por planilha (ver [01-Vision](01-PRODUCT-VISION.md)).
+Este é o sistema-coração de Auvra Club: como o jogador **funda, opera, compra, vende, funde e encerra** empresas, contrata e lidera **pessoas**, e transforma tudo isso num **império**. Tudo aqui obedece ao Pilar I (diegese) — operações são *vividas*, não gerenciadas por planilha (ver [01-Vision](01-PRODUCT-VISION.md)).
 
 ## 2. O Ciclo de Vida da Empresa
 

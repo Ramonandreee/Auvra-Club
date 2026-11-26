@@ -1,4 +1,4 @@
-# MOGUL — Meridian City (mundo 3D navegável)
+# Auvra Club — Meridian City (mundo 3D navegável)
 
 > Uma fatia jogável da Meridian City do [World Design](../docs/04-WORLD-DESIGN.md), em primeira pessoa, no navegador. A camada "presença física / Pilar I" do GDD, tornada real e caminhável.
 

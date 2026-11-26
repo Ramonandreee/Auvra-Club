@@ -2,6 +2,13 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## [1.2.0] — 2026-11-26 — *Nome oficial*
+### Decisões
+- **Título oficial: Auvra Club.** Subtítulo: *Construa seu império em Meridian*. Slogan mantido: *"Você não administra um império. Você vive um."*
+- **Meridian** continua como o mundo/cidade. **Project ATLAS** fica como codinome interno.
+- **Aposentados:** "MOGUL" (palavra saturada no gênero) e "Business Simulator" (conflito com jogo homônimo na Steam, lançado em nov/2025). `MOGUL` permanece só como identificador técnico do módulo C++ em `ue5/`.
+- Pendências antes do lançamento: busca de marca (INPI/USPTO), domínio (ex.: auvra.club / auvraclub.com) e handles sociais.
+
 ## [1.1.0] — 2026-11-26 — *Protótipo principal + multiplayer*
 ### Decisões
 - **`town/` vira o jogo principal** (2D top-down, mais viável); `world/` e `game/` ficam como referência.

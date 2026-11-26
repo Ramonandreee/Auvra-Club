@@ -1,6 +1,6 @@
 # 07 — NPC & Agent AI Architecture
 
-> *Project ATLAS / MOGUL — Bíblia de Pré-Produção*
+> *Auvra Club (codinome Project ATLAS) — Bíblia de Pré-Produção*
 > Documento 07 de 12 · Confidencial
 > *Inclui: Agent AI, Networking Systems, Reputation Systems*
 
@@ -10,9 +10,9 @@
 
 > **Não queremos NPCs. Queremos agentes. Cada pessoa importante em Meridian é uma mente persistente: com personalidade, memória de anos, objetivos próprios e a capacidade de agir no mundo independentemente do jogador.**
 
-Este é o maior **moat tecnológico** de MOGUL (ver [02-Market](02-MARKET-ANALYSIS.md)). A diferença entre um "NPC" tradicional e um "agente" MOGUL:
+Este é o maior **moat tecnológico** de Auvra Club (ver [02-Market](02-MARKET-ANALYSIS.md)). A diferença entre um "NPC" tradicional e um "agente" Auvra Club:
 
-| NPC tradicional | Agente MOGUL |
+| NPC tradicional | Agente Auvra Club |
 |-----------------|--------------|
 | Diálogo em árvore fixa | Conversa dinâmica, contextual |
 | Sem memória entre encontros | Lembra de você por anos de jogo |

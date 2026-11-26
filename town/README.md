@@ -1,6 +1,6 @@
 # Meridian — o distrito (`town/`) · jogo principal
 
-Protótipo 2D top-down em pixel art: a **direção principal** do Business Simulator. Roda no navegador
+Protótipo 2D top-down em pixel art: a **direção principal** do Auvra Club. Roda no navegador
 (1 arquivo, sem build), tem **save local** e, quando o servidor está configurado, **multiplayer
 assíncrono + tempo real** via Supabase.
 

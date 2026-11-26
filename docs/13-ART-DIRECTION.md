@@ -1,6 +1,6 @@
 # 13 — Art Direction & Visual Identity (AAA / Fotorrealista)
 
-> *Project ATLAS / MOGUL — Bíblia de Pré-Produção*
+> *Auvra Club (codinome Project ATLAS) — Bíblia de Pré-Produção*
 > Documento 13 de 13 · Confidencial
 > *Inclui: Identidade Visual, Design System (UI), Direção de Arte 3D Fotorrealista, Performance*
 
@@ -8,7 +8,7 @@
 
 ## 1. Filosofia Visual
 
-> **MOGUL não pode parecer software interno, painel administrativo, protótipo ou jogo indie. Tem de parecer feito por um grande estúdio.**
+> **Auvra Club não pode parecer software interno, painel administrativo, protótipo ou jogo indie. Tem de parecer feito por um grande estúdio.**
 
 A identidade visual transmite, em cada tela e cada rua: **sucesso, crescimento, riqueza, poder empresarial, luxo discreto, tecnologia, eficiência, inovação.** O jogador deve *sentir* que constrói um império.
 

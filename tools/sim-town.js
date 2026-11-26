@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Simulação headless da economia do town/ (Business Simulator).
+/* Simulação headless da economia do town/ (Auvra Club).
  * Extrai o bloco entre @ECON-BEGIN/@ECON-END do HTML, stuba mapa/DOM/rede e joga
  * centenas de partidas com bots de estratégias diferentes.
  * Uso: node tools/sim-town.js [partidas=200] [dias=600]

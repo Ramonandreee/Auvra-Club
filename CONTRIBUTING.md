@@ -1,4 +1,4 @@
-# Contribuindo com o MOGUL (Project ATLAS)
+# Contribuindo com o Auvra Club (Project ATLAS)
 
 Este projeto é desenvolvido de forma colaborativa por **pessoas e instâncias do Claude**, usando o
 **GitHub como ponto de integração**. Não existe "sessão compartilhada ao vivo" entre contas do

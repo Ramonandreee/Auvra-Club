@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Business Simulator — Meridian</title>
+<title>Auvra Club — Meridian</title>
 <!-- Three.js: usado só p/ "assar" luz/sombra 3D real nos sprites de prédio (uma vez, no carregamento).
      O jogo em si continua 100% Canvas 2D — se isto não carregar (offline/CDN fora), os prédios caem
      de volta pro desenho 2D atual automaticamente (ver bakeAllBuildingSprites no script principal). -->
@@ -108,7 +108,7 @@
 <div class="hint" id="hint"></div>
 <div id="toast"></div>
 <div id="start"><div class="panel sbox">
-  <div class="stitle">Business Simulator</div><div class="ssub">Meridian · o distrito</div>
+  <div class="stitle">Auvra Club</div><div class="ssub">Construa seu império em Meridian</div>
   <p>Você chega com <b>$3k</b> e um notebook velho. Faça freelas, funde empresas, roube talentos, compre concorrentes — inclusive as empresas dos seus amigos.</p>
   <label>Seu nome de empresário(a)</label><input id="nameIn" maxlength="24" placeholder="ex.: Ramon">
   <button class="mbtn" id="btnCont"><b>▶ Continuar império</b><span>Retoma o save deste aparelho (ou da nuvem)</span></button>
@@ -118,9 +118,9 @@
 
 <script>
 /* ============================================================
-   Business Simulator — Distrito · protótipo 2D top-down (pixel art)
+   Auvra Club — Distrito · protótipo 2D top-down (pixel art)
    Núcleo visual primeiro: mapa + prédios + funcionários + HUD.
-   (economia Business Simulator entra na próxima etapa)
+   (economia Auvra Club entra na próxima etapa)
    ============================================================ */
 const cv=document.getElementById('c'), ctx=cv.getContext('2d');
 let W=innerWidth, H=innerHeight, DPR=Math.min(devicePixelRatio||1,2);
@@ -497,7 +497,7 @@ function genWorld(){
   for(let i=0;i<24;i++){const gx=(rr()*MAPW)|0,gy=(rr()*MAPH)|0;if(map[gy][gx]===0)decor.push({kind:'rock',gx,gy,spr:rockSprites[(rr()*rockSprites.length)|0]});}
   // fountain centerpiece in the plaza
   decor.push({kind:'fountain',gx:cxA,gy:cyA,spr:fountain});
-  // sede do jogador (marco) + empresas iniciais do distrito — fundadas com a economia Business Simulator de verdade
+  // sede do jogador (marco) + empresas iniciais do distrito — fundadas com a economia Auvra Club de verdade
   // (sede, concorrentes iniciais e VOCÊ são criados em newGame()/loadGame() — o terreno é determinístico)
   const SEDE_AT=[cxA-4,cyA-4], STARTER_LOTS=[[cxA+3,cyA-5],[cxA-8,cyA+3],[cxA+3,cyA+3],[cxA-5,cyA+3],[cxA-8,cyA-5],[cxA+7,cyA+3],[cxA+7,cyA-5]];
   const resv=[SEDE_AT,...STARTER_LOTS]; // reserva os lotes para postes/props não nascerem neles
@@ -889,7 +889,7 @@ function openFriends(){MP.unread=0;buildToolbar();const on=Object.values(MP.onli
   document.querySelectorAll('[data-can]').forEach(b=>b.onclick=()=>MP.cancel(+b.dataset.can));}
 function openObjectives(){const o=currentObjective();modal('📋','Objetivos · Fase '+S.phase+' ('+S.phaseName+')','<p class="small">'+o.tip+'</p>'+o.objs.map(ob=>{const p=Math.min(100,ob.cur/ob.max*100);return '<div class="lab"><span>'+ob.lab+'</span><b>'+(ob.money?money(ob.cur)+'/'+money(ob.max):ob.cur+'/'+ob.max)+'</b></div><div class="bar g"><i style="width:'+p+'%"></i></div>';}).join('')+
   '<div class="sec">📰 NOTÍCIAS</div>'+(FEED.slice(0,12).map(f=>'<div class="small">Dia '+f.d+' · '+esc(f.h)+'</div>').join('')||'<div class="dim">Nada ainda.</div>'),[{t:'↩ Fechar',fn:closeModal}]);}
-function openSettings(){modal('⚙️','Ajustes','<p class="small">Business Simulator · distrito 2D. Atalhos: <b>Espaço</b> pausa · <b>1/2/3</b> velocidade · <b>+/−</b> ou roda do mouse = zoom · <b>Esc</b> fecha.</p><p class="small">Multiplayer: '+esc(MP.status)+'</p>',
+function openSettings(){modal('⚙️','Ajustes','<p class="small">Auvra Club · distrito 2D. Atalhos: <b>Espaço</b> pausa · <b>1/2/3</b> velocidade · <b>+/−</b> ou roda do mouse = zoom · <b>Esc</b> fecha.</p><p class="small">Multiplayer: '+esc(MP.status)+'</p>',
   [{t:'🔍 Zoom +',fn:()=>setZoom(ZOOM*1.25)},{t:'🔎 Zoom −',fn:()=>setZoom(ZOOM/1.25)},
    {t:'💾 Salvar agora',fn:async()=>{saveLocal();await MP.saveCloud();toast('💾 Salvo');}},
    {t:'🔄 Novo jogo',d:'Apaga o save deste aparelho e recomeça',fn:()=>modal('⚠️','Recomeçar do zero?','<p>Seu império atual será perdido.</p>',[{t:'Sim, recomeçar',fn:()=>{wipeSave();location.reload();}},{t:'Cancelar',fn:openSettings}])},

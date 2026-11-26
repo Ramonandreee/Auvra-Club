@@ -1,6 +1,6 @@
 # 01 — Product Vision & Core Pillars
 
-> *Project ATLAS / MOGUL — Bíblia de Pré-Produção*
+> *Auvra Club (codinome Project ATLAS) — Bíblia de Pré-Produção*
 > Documento 01 de 12 · Confidencial
 
 ---
@@ -9,11 +9,11 @@
 
 > **O jogador não administra uma empresa. O jogador vive a vida de um empresário.**
 
-Esta distinção é **absoluta** e governa cada decisão de design em MOGUL. Não é uma frase de marketing — é uma restrição de engenharia e de design que filtra todo o backlog.
+Esta distinção é **absoluta** e governa cada decisão de design em Auvra Club. Não é uma frase de marketing — é uma restrição de engenharia e de design que filtra todo o backlog.
 
 O que isso significa, concretamente:
 
-| NÃO é MOGUL | É MOGUL |
+| NÃO é Auvra Club | É Auvra Club |
 | --- | --- |
 | Abrir um menu para "contratar funcionário" | Entrevistar um candidato sentado à sua frente, ler a linguagem corporal, negociar salário |
 | Ver um número de "satisfação do cliente" | Jantar com o cliente, perceber que ele está distante, descobrir que um concorrente o está cortejando |
@@ -25,7 +25,7 @@ A regra de ouro: **se uma ação importante puder ser reduzida a um clique de me
 
 ## 2. O que o jogador deve sentir
 
-MOGUL é, antes de tudo, uma **máquina de emoções**. O design existe para produzir, em sequência e em camadas, sete sensações:
+Auvra Club é, antes de tudo, uma **máquina de emoções**. O design existe para produzir, em sequência e em camadas, sete sensações:
 
 1. **Ambição** — sempre haver um próximo degrau visível e desejável.
 2. **Crescimento** — sentir-se mais capaz, mais rico, mais conectado a cada sessão.
@@ -41,7 +41,7 @@ Essa é a cláusula de "verificação emocional". Se uma conquista não tem mani
 
 ## 3. A jornada emocional — as cinco fases
 
-A espinha dorsal de MOGUL é uma curva emocional de cinco atos. Cada fase tem uma **fantasia dominante**, um **conjunto de mecânicas habilitadas**, um **estado de mundo** e um **marco de transição**. (Aprofundado em [03-Gameplay-Design](03-GAMEPLAY-DESIGN.md).)
+A espinha dorsal de Auvra Club é uma curva emocional de cinco atos. Cada fase tem uma **fantasia dominante**, um **conjunto de mecânicas habilitadas**, um **estado de mundo** e um **marco de transição**. (Aprofundado em [03-Gameplay-Design](03-GAMEPLAY-DESIGN.md).)
 
 ### Fase 1 — Sobrevivência
 *Fantasia: "Será que eu consigo sair do zero?"*
@@ -78,7 +78,7 @@ A espinha dorsal de MOGUL é uma curva emocional de cinco atos. Cada fase tem um
 
 ## 4. Os Três Pilares de Design
 
-Tudo em MOGUL serve a um destes três pilares. Eles são a constituição do projeto.
+Tudo em Auvra Club serve a um destes três pilares. Eles são a constituição do projeto.
 
 ### Pilar I — "Viva o Império" (Imersão Diegética)
 **Tudo é físico, visível e vivido em primeira/terceira pessoa.**
@@ -146,7 +146,7 @@ O projeto é bem-sucedido se, no lançamento:
 - **Emocional:** playtesters relatam ter "sentido a ascensão" e ter "se importado" com um NPC ou com o destino de uma empresa.
 - **Sistêmico:** a economia e os agentes produzem histórias emergentes que jogadores compartilham organicamente (clipes, posts).
 - **Comercial:** atinge break-even no ano 1 (ver [12](12-BUSINESS-PLAN.md)).
-- **Cultural:** estabelece "AAA Life-Business Sim" como categoria reconhecida, com MOGUL como referência.
+- **Cultural:** estabelece "AAA Life-Business Sim" como categoria reconhecida, com Auvra Club como referência.
 
 ---
 

@@ -6,7 +6,7 @@
 
 ## O que é este projeto
 
-**MOGUL** (codinome *Project ATLAS*) — um simulador de vida empresarial em mundo aberto de
+**Auvra Club** (codinome interno *Project ATLAS*; nomes antigos “MOGUL” e “Business Simulator” estão aposentados — `MOGUL` sobrevive só como identificador do módulo C++ em `ue5/`) — um simulador de vida empresarial em mundo aberto de
 ambição AAA. O repositório contém **duas coisas**:
 
 1. **A bíblia de design** (`docs/`) — especificação de pré-produção completa (13 documentos + glossário).

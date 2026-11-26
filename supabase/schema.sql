@@ -1,5 +1,5 @@
 -- =====================================================================
--- Business Simulator — backend multiplayer (Supabase / Postgres)
+-- Auvra Club — backend multiplayer (Supabase / Postgres)
 -- Modelo: mundo compartilhado ASSÍNCRONO (docs/10) + camada em tempo real
 -- (presença, chat e notícias via Supabase Realtime — não precisam de tabela).
 --
