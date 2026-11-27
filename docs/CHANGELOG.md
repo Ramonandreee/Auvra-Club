@@ -2,6 +2,15 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.14.0 — 2026-11-27
+- **feat(town): menu de servidores.** A tela inicial passa a ser a escolha de cidade, com o fundo 3D atrás e 1 cartão por servidor.
+  - **Wall Street · Nova York:** aberto; mostra quantos jogadores estão online, data, caixa, fase e o próximo compromisso, com o botão Jogar/Continuar.
+  - **Balneário Camboriú · SC:** visível e bloqueado ("🔒 EM BREVE"), com o botão "🔔 Avise-me quando abrir".
+  - Atalhos em barra no rodapé: Novo jogo, Personagem, Amigos, Indicadores, Ajustes e Como jogar. Nas páginas internas, a lateral ganhou o botão "Servidores".
+- **feat(backend): um save por servidor.** `saves` ganhou a coluna `server` (padrão `wallstreet`), e a chave primária passa a ser `(user_id, server)`.
+  - O personagem (visual, nome, roupas) é o mesmo em todas as cidades, mas cada servidor tem uma vida própria que começa do zero.
+  - Os saves existentes foram marcados como Wall Street.
+
 ## 2.13.0 — 2026-11-27
 - **feat(town): câmera de dentro nos passeios** (`insideCam`). Painel e volante no Rydr, console na cabine do helicóptero e olhar do convés na balsa. Dá para olhar em volta arrastando.
 - **feat(town): vida nos trajetos.**

@@ -361,6 +361,40 @@
   .hs span{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}.hs b{font-size:15px}
   .mh3{background:rgba(12,14,18,.82);border:1px solid rgba(232,192,96,.35);border-radius:12px;padding:8px 12px;font-size:12.5px;max-width:520px}
   .hero-title{display:none!important}
+  /* ===== MENU v3: servidores ===== */
+  #menu.home{background:linear-gradient(180deg,rgba(8,10,14,.78) 0,rgba(8,10,14,.2) 26%,rgba(8,10,14,.35) 55%,rgba(8,10,14,.92) 100%)!important}
+  .sv-wrap{pointer-events:auto;position:absolute;inset:0;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:8px;padding:calc(10px + var(--st)) calc(14px + var(--sr)) calc(10px + var(--sb)) calc(14px + var(--sl))}
+  .sv-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .sv-top .logo{display:flex;align-items:center;gap:10px;padding:0!important;font:700 20px/1.05 var(--display)!important;color:var(--cream)}
+  .sv-top .logo img{width:36px;height:36px;border-radius:10px}
+  .sv-top .logo small{display:block;font:700 9px/1.4 var(--font);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:3px}
+  .sv-me{display:flex;align-items:center;gap:9px;background:rgba(12,14,18,.82);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:4px 14px 4px 4px;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);max-width:46%}
+  .sv-me .pav{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-content:center;font-style:normal;font-weight:900;color:#20160b;background:linear-gradient(#f1cf7a,#c89a3a)}
+  .sv-me div{min-width:0;line-height:1.2}.sv-me b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sv-me span{display:block;font-size:10.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sv-label{font:800 10px/1 var(--font);letter-spacing:.2em;color:#d9d2c0;text-shadow:0 1px 6px #000}
+  .sv-row{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;min-height:0}
+  .sv-card{position:relative;overflow:hidden;border-radius:16px;border:1px solid rgba(255,255,255,.12);min-height:0;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+  .sv-card.open{border-color:rgba(232,192,96,.55)}
+  .sv-art{position:absolute;inset:0}.sv-art svg{width:100%;height:100%;display:block}
+  .sv-card::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,8,12,0) 20%,rgba(6,8,12,.55) 50%,rgba(6,8,12,.94) 100%);pointer-events:none}
+  .sv-card.locked .sv-art{filter:saturate(.55) brightness(.7)}
+  .sv-body{position:relative;z-index:1;padding:10px 12px 12px;display:flex;flex-direction:column;gap:7px}
+  .sv-head{display:flex;align-items:center;gap:9px}.sv-flag{font-size:22px;line-height:1}
+  .sv-head b{display:block;font:600 clamp(19px,calc(2.8 * var(--uw)),26px)/1.05 var(--display);color:var(--cream)}.sv-head span{font-size:11px;color:#cfc8b8;letter-spacing:.04em}
+  .sv-body p{margin:0;font-size:11.5px;line-height:1.35;color:#d4cdbd}
+  .sv-stats{display:flex;gap:6px;flex-wrap:wrap}.sv-stats div{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:4px 8px}
+  .sv-stats span{display:block;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}.sv-stats b{font-size:12.5px;white-space:nowrap}
+  .sv-next{font-size:11px;color:#e8dcc0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sv-go{display:flex;align-items:center;justify-content:center;gap:8px;min-height:42px;border-radius:11px;border:0;font:800 14px/1 var(--font);color:#20160b;background:linear-gradient(#f1cf7a,#c89a3a);box-shadow:0 6px 18px rgba(200,154,58,.3);cursor:pointer}
+  .sv-go .icon{width:16px;height:16px}
+  .sv-go.ghost{background:rgba(255,255,255,.08);color:var(--cream);border:1px solid rgba(255,255,255,.18);box-shadow:none;font-weight:700;font-size:12.5px;min-height:38px}
+  .sv-live{position:absolute;z-index:1;top:10px;right:10px;display:flex;align-items:center;gap:6px;background:rgba(8,10,14,.75);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:4px 10px;font:700 11px/1 var(--font);color:#d9f2df}
+  .sv-live i{width:7px;height:7px;border-radius:50%;background:#3fd17a;box-shadow:0 0 8px #3fd17a}
+  .sv-badge{position:absolute;z-index:1;top:10px;right:10px;background:rgba(8,10,14,.8);border:1px solid rgba(232,192,96,.5);color:var(--gold);border-radius:999px;padding:5px 11px;font:800 10.5px/1 var(--font);letter-spacing:.12em}
+  .sv-dock{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .sv-db{flex:1 0 auto;display:flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:0 12px;border-radius:11px;background:rgba(12,14,18,.82);border:1px solid rgba(255,255,255,.1);color:#d7d2c6;font:600 12.5px/1 var(--font);cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  .sv-db .icon{width:16px;height:16px;color:var(--gold)}
+  @media (max-height:360px){.sv-body p{display:none}.sv-label{display:none}}
   /* ===== PERSONAGEM v2 ===== */
   #menu .page.character{display:grid!important;grid-template-columns:minmax(0,0.9fr) minmax(0,1.1fr)!important;gap:10px!important;padding:0!important;background:none!important;border:0!important;overflow:hidden!important}
   .avatar-view{border-radius:16px!important;background:transparent!important;border:1px solid rgba(255,255,255,.08)!important;min-height:0}
@@ -4317,12 +4351,12 @@ async function enterAccount(){let uname=null;try{const {data}=await MP.sb.from('
   if(!uname)uname=(MP.user&&MP.user.user_metadata&&MP.user.user_metadata.username)||null;
   if(!uname){uname=await new Promise(res=>{const ask=(msg)=>{modal('👤','Escolha seu nome de usuário','<p class="small">'+(msg||'Ele é único em todo o Auvra Club.')+'</p><input type="text" id="unIn" maxlength="20" placeholder="nome_de_usuario">',[{t:'Confirmar',fn:async()=>{const v=document.getElementById('unIn').value.trim();
     const {error}=await MP.sb.from('players').insert({id:MP.uid,name:v});if(error)return ask(/duplicate|unique/i.test(error.message)?'Esse nome já existe.':'Nome inválido (3–20 letras, números, _ ou .).');closeModal();res(v);}}]);const m=document.querySelector('.modal');if(m)m.dataset.locked=1;};ask();});}
-  ACCOUNT={uid:MP.uid,name:uname,email:MP.user&&MP.user.email};AVATAR.name=uname;saveAvatar();SAVE_KEY='bs_town_v3_'+MP.uid;
+  ACCOUNT={uid:MP.uid,name:uname,email:MP.user&&MP.user.email};AVATAR.name=uname;saveAvatar();SAVE_KEY='bs_town_v3_'+MP.uid+(SERVER==='wallstreet'?'':'_'+SERVER);
   try{if(!localStorage.getItem(SAVE_KEY)&&localStorage.getItem('bs_town_v2')){localStorage.setItem(SAVE_KEY,localStorage.getItem('bs_town_v2'));localStorage.removeItem('bs_town_v2');}}catch(e){}
   LOCAL=readLocal();{let cloud=null;try{cloud=await MP.loadCloud();}catch(e){}const sc=d=>d&&d.S?(d.savedAt||0)+d.S.day*1e3:-1; // o save mais recente vence (aparelho × nuvem)
     if(cloud&&cloud.S&&(!LOCAL||!LOCAL.S||sc(cloud)>sc(LOCAL))){LOCAL=cloud;try{localStorage.setItem(SAVE_KEY,JSON.stringify(cloud));}catch(e){}}}
   if(hasSave())loadGame(LOCAL);else newGame(uname);S.name=uname;rebuildHero();paintMiniBase();
-  mpReady=MP.begin();mpReady.then(()=>{mpDone=true;const el=document.getElementById('mNet');if(el)el.textContent=netLabel();});openMenu('home');}
+  mpReady=MP.begin();mpReady.then(()=>{mpDone=true;const el=document.getElementById('mNet');if(el)el.textContent=netLabel();if(menuOpen&&document.getElementById('menu').classList.contains('home'))renderMenu('home');});openMenu('home');}
 async function logout(){try{saveLocal();await MP.saveCloud();await MP.sb.auth.signOut();}catch(e){}location.reload();}
 
 /* ============================ LAÇO ============================ */
@@ -4728,6 +4762,7 @@ function ledgerRows(L){return L.map(e=>{const ic=TX_CAT[e.c]||TX_CAT.outros;retu
 
 /* ============================ SAVE (local + nuvem) ============================ */
 let SAVE_KEY='bs_town_v2';
+let SERVER='wallstreet'; // cada servidor (cidade) tem a sua vida: save próprio; o personagem (AVATAR) é o mesmo em todos
 function serialize(){return {v:3,savedAt:Date.now(),S,companies:companies.map(c=>{const o=Object.assign({},c);delete o.b;o.gx=c.b?c.b.gx:null;o.gy=c.b?c.b.gy:null;return o;}),
   rivals:rivals.map(r=>{const o=Object.assign({},r);delete o.b;o.gx=r.b?r.b.gx:null;o.gy=r.b?r.b.gy:null;return o;}),contacts,sede:sede?{gx:sede.gx,gy:sede.gy}:null,
   hero:hero?{x:hero.x,y:hero.y}:null,feed:FEED.slice(0,30),avatar:AVATAR,hist:HIST.slice(-200),map:'fidi'};}
@@ -4902,8 +4937,8 @@ const MP={sb:null,uid:null,on:false,status:'offline (servidor não configurado)'
       if(!session){this.status='faça login';return false;}
       this.user=session.user;this.uid=session.user.id;this.on=true;this.status='online';return true;
     }catch(e){console.warn('MP init',e);this.status='offline ('+(e.message||e)+')';this.on=false;return false;}},
-  async loadCloud(){if(!this.on)return null;const {data,error}=await this.sb.from('saves').select('data,updated_at').eq('user_id',this.uid).maybeSingle();if(error){console.warn(error);return null;}return data?data.data:null;},
-  async saveCloud(){if(!this.on||!started)return;try{await this.sb.from('saves').upsert({user_id:this.uid,data:serialize(),updated_at:new Date().toISOString()});}catch(e){console.warn(e);}},
+  async loadCloud(){if(!this.on)return null;const {data,error}=await this.sb.from('saves').select('data,updated_at').eq('user_id',this.uid).eq('server',SERVER).maybeSingle();if(error){console.warn(error);return null;}return data?data.data:null;},
+  async saveCloud(){if(!this.on||!started)return;try{await this.sb.from('saves').upsert({user_id:this.uid,server:SERVER,data:serialize(),updated_at:new Date().toISOString()},{onConflict:'user_id,server'});}catch(e){console.warn(e);}},
   async sync(){if(!this.on||!started)return;try{
     await this.sb.from('players').upsert({id:this.uid,name:S.name,net_worth:Math.round(netWorth()),phase:S.phase,day:S.day,companies:companies.length,updated_at:new Date().toISOString()});
     const rows=companies.map(c=>({id:c.id,owner:this.uid,owner_name:S.name,name:c.name,niche:c.niche,value:Math.round(coValue(c)),profit:Math.round(coProfit(c)),employees:c.employees.length,is_public:!!c.public,stake:stakeOf(c),
@@ -4973,7 +5008,7 @@ let LOCAL=null; // save deste aparelho (lido no boot)
 function hasSave(){return !!(LOCAL&&LOCAL.S&&!LOCAL.S.over);}
 function openMenu(page){menuOpen=true;document.getElementById('menu').classList.remove('off');document.getElementById('hud').classList.add('off');document.getElementById('tray').classList.remove('on');if(placing)cancelPlacing();renderMenu(page||'home');}
 function closeMenu(){if(!started)return;releasePreview();menuOpen=false;document.getElementById('menu').classList.add('off');document.getElementById('hud').classList.remove('off');CAM.mode='play';refreshHUD();}
-function netLabel(){return MP.on?'Online · '+Object.keys(MP.online).length+' em Wall Street':MP.configured()&&!mpDone?'Conectando…':MP.status;}
+function netLabel(){return MP.on?'Online · '+(Object.keys(MP.online).length+(MP.online[MP.uid]?0:1))+' em Wall Street':MP.configured()&&!mpDone?'Conectando…':MP.status;}
 let mpDone=false;
 function navBtn(k,t,on,cls){return '<button class="nb'+(on?' on':'')+(cls?' '+cls:'')+'" data-p="'+k+'"><span class="e">'+icon({friends:'net',stats:'market'}[k]||k)+'</span><span>'+t+'</span></button>';}
 function renderMenu(page){const m=document.getElementById('menu');CAM.mode=page==='perso'?'avatar':started?'play':'menu';if(page!=='perso')releasePreview();
@@ -4981,20 +5016,59 @@ function renderMenu(page){const m=document.getElementById('menu');CAM.mode=page=
   const playLabel=icon('play')+(started?'Voltar ao jogo':sv?'Continuar<small>· '+dateOf(sv.day,sv)+'</small>':'Jogar');
   const card=started?'<b>'+esc(S.name)+'</b><br>Fase '+S.phase+' · '+esc(S.phaseName)+'<br>Patrimônio <b>'+money(netWorth())+'</b>':sv?'<b>'+esc(sv.name||AVATAR.name||'—')+'</b><br>Fase '+(sv.phase||1)+' · '+dateOf(sv.day,sv):'<b>'+(AVATAR.name?esc(AVATAR.name):'Sem nome ainda')+'</b><br>Você chega com $3k e um notebook velho.';
   const ini=esc(((started?S.name:sv?(sv.name||AVATAR.name):AVATAR.name)||'?').trim().slice(0,1).toUpperCase());
-  let html='<div class="nav"><div class="logo"><img src="logo.png" alt=""><div>Auvra Club<small>Wall Street · NYC</small></div></div>'+
-    '<button class="nb play" id="mPlay">'+playLabel+'</button>'+((sv||started)?navBtn('new','Novo jogo',page==='new'):'')+
+  let html='<div class="nav"><div class="logo" id="mLogo"><img src="logo.png" alt=""><div>Auvra Club<small>Wall Street · NYC</small></div></div>'+
+    '<button class="nb play" id="mPlay">'+playLabel+'</button>'+navBtn('home','Servidores',false)+((sv||started)?navBtn('new','Novo jogo',page==='new'):'')+
     navBtn('perso','Personagem',page==='perso')+navBtn('friends','Amigos',page==='friends')+navBtn('stats','Indicadores',page==='stats')+
     navBtn('settings','Ajustes',page==='settings')+navBtn('help','Como jogar',page==='help')+
     '<div class="pcard"><i class="pav">'+ini+'</i><div>'+card+'<br><span id="mNet">'+esc(netLabel())+'</span></div></div></div>';
-  if(page==='home'){const st0=started?S:sv;const stat=(l,v,c)=>'<div class="hs"><span>'+l+'</span><b'+(c?' style="color:'+c+'"':'')+'>'+v+'</b></div>';
-    const nx=started&&(S.agenda||[]).filter(a=>a.day>=S.day&&a.status==='pending').sort((a,b)=>a.day-b.day||a.hour-b.hour)[0];
-    html+='<div class="mhome"><div class="mh1"><b>Wall Street</b><span>Construa seu império a partir da esquina da Wall com a Broad.</span></div>'+
-      (st0?'<div class="mh2">'+stat('Dia',st0.day+(started?' · '+fmtHour(nowHour()):''))+stat('Caixa',money(st0.cash),st0.cash<0?'var(--red)':'')+stat('Fase',st0.phase+' · '+esc(st0.phaseName||''))+(started?stat('Patrimônio',money(netWorth()),'var(--gold)'):'')+'</div>':'')+
-      (started?'<div class="mh3">'+(nx?'📅 Próximo: <b>'+esc(nx.title)+'</b> · '+dateOf(nx.day)+' às '+fmtHour(nx.hour):'🎯 '+esc(currentObjective().quest))+'</div>':'')+'</div>';}
-  else html+='<div class="page on'+(page==='perso'?' character':'')+'" id="mPage">'+pageHTML(page)+'</div>';
+  m.classList.toggle('home',page==='home');
+  if(page==='home'){m.innerHTML=serversHTML(sv);bindServers();return;}
+  html+='<div class="page on'+(page==='perso'?' character':'')+'" id="mPage">'+pageHTML(page)+'</div>';
   m.innerHTML=html;
   m.querySelectorAll('.nb[data-p]').forEach(b=>b.onclick=()=>{const p=b.dataset.p;if(p==='friends'){openFriends();MP.refreshAll().then(()=>{if(document.getElementById('chatBox'))openFriends();});return;}if(p==='new')return confirmNew();renderMenu(p===page?'home':p);});
-  document.getElementById('mPlay').onclick=play;bindPage(page);}
+  document.getElementById('mPlay').onclick=play;document.getElementById('mLogo').onclick=()=>renderMenu('home');bindPage(page);}
+/* ---- tela de servidores: cada cidade é um servidor (mundo + economia + jogadores próprios) ---- */
+const SERVERS=[
+  {id:'wallstreet',n:'Wall Street',city:'Nova York · EUA',flag:'🇺🇸',open:true,txt:'O coração financeiro do mundo. Comece na esquina da Wall com a Broad.'},
+  {id:'bc',n:'Balneário Camboriú',city:'Santa Catarina · Brasil',flag:'🇧🇷',open:false,txt:'A cidade dos arranha-céus à beira-mar. Mesmo personagem, vida nova: você começa do zero.'}];
+function serverArt(id){let r=id==='bc'?7:3;const rnd=()=>(r=(r*9301+49297)%233280)/233280;let t='';
+  if(id==='bc'){t+='<defs><linearGradient id="gbc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b2350"/><stop offset=".45" stop-color="#c8577a"/><stop offset=".72" stop-color="#f2a65a"/><stop offset="1" stop-color="#f7d08a"/></linearGradient></defs><rect width="400" height="220" fill="url(#gbc)"/><circle cx="300" cy="140" r="26" fill="#ffd9a0" opacity=".9"/>';
+    for(let x=6;x<330;){const w=12+rnd()*16,h=60+rnd()*(x>120&&x<240?110:80);t+='<rect x="'+x.toFixed(0)+'" y="'+(160-h).toFixed(0)+'" width="'+w.toFixed(0)+'" height="'+h.toFixed(0)+'" fill="#1d1830" opacity=".92"/>';
+      for(let wy=166-h;wy<154;wy+=7)if(rnd()<.35)t+='<rect x="'+(x+3).toFixed(0)+'" y="'+wy.toFixed(0)+'" width="'+(w-6).toFixed(0)+'" height="2" fill="#ffcf8a" opacity=".55"/>';x+=w+2+rnd()*4;}
+    t+='<path d="M330 160 Q360 120 400 112 L400 160Z" fill="#2a3b2c"/><rect y="158" width="400" height="10" fill="#e8c890"/><rect y="168" width="400" height="52" fill="#1f5470"/>';
+    for(let i=0;i<7;i++)t+='<path d="M'+(i*62-10)+' '+(178+i%3*12)+' q15 -4 30 0 t30 0" stroke="#f7d08a" stroke-width="1.6" fill="none" opacity=".45"/>';}
+  else{t+='<defs><linearGradient id="gws" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1222"/><stop offset=".7" stop-color="#1f2d4a"/><stop offset="1" stop-color="#3a3a4a"/></linearGradient></defs><rect width="400" height="220" fill="url(#gws)"/>';
+    for(let i=0;i<40;i++)t+='<circle cx="'+(rnd()*400).toFixed(0)+'" cy="'+(rnd()*70).toFixed(0)+'" r=".8" fill="#fff" opacity=".5"/>';
+    for(let x=0;x<400;){const w=18+rnd()*28,h=70+rnd()*120;const y=220-h;t+='<rect x="'+x.toFixed(0)+'" y="'+y.toFixed(0)+'" width="'+w.toFixed(0)+'" height="'+h.toFixed(0)+'" fill="'+(rnd()<.5?'#141a28':'#10141f')+'"/>';
+      if(rnd()<.3)t+='<path d="M'+x.toFixed(0)+' '+y.toFixed(0)+' l'+(w/2).toFixed(0)+' -'+(10+rnd()*14).toFixed(0)+' l'+(w/2).toFixed(0)+' '+(10+rnd()*14).toFixed(0)+'z" fill="#141a28"/>';
+      for(let wy=y+6;wy<214;wy+=6)for(let wx=x+3;wx<x+w-3;wx+=5)if(rnd()<.28)t+='<rect x="'+wx.toFixed(0)+'" y="'+wy.toFixed(0)+'" width="2" height="2.4" fill="#f1cf7a" opacity="'+(.35+rnd()*.5).toFixed(2)+'"/>';x+=w+1;}}
+  return '<svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true">'+t+'</svg>';}
+function notifyBC(){try{return localStorage.getItem('auvra.notify.bc')==='1';}catch(e){return false;}}
+function serversHTML(sv){const st0=started?S:sv,ini=esc(((started?S.name:sv?(sv.name||AVATAR.name):AVATAR.name)||'?').trim().slice(0,1).toUpperCase()),nm=esc((started?S.name:sv?(sv.name||AVATAR.name):AVATAR.name)||'Sem nome ainda');
+  const on=MP.on?Object.keys(MP.online).length+(MP.online[MP.uid]?0:1):0,stat=(l,v,c)=>'<div><span>'+l+'</span><b'+(c?' style="color:'+c+'"':'')+'>'+v+'</b></div>';
+  const nx=started&&(S.agenda||[]).filter(a=>a.day>=S.day&&a.status==='pending').sort((a,b)=>a.day-b.day||a.hour-b.hour)[0];
+  const go=started?'Voltar ao jogo':sv?'Continuar':'Começar em Wall Street';
+  const cards=SERVERS.map(v=>{const art='<div class="sv-art">'+serverArt(v.id)+'</div>';
+    if(!v.open)return '<div class="sv-card locked" data-sv="'+v.id+'" role="button" tabindex="0" aria-label="'+v.n+', em breve">'+art+'<span class="sv-badge">🔒 EM BREVE</span>'+
+      '<div class="sv-body"><div class="sv-head"><span class="sv-flag">'+v.flag+'</span><div><b>'+v.n+'</b><span>'+v.city+'</span></div></div><p>'+v.txt+'</p>'+
+      '<button class="sv-go ghost" id="mNotify">'+(notifyBC()?'✓ Você será avisado':'🔔 Avise-me quando abrir')+'</button></div></div>';
+    return '<div class="sv-card open" data-sv="'+v.id+'">'+art+'<span class="sv-live"><i></i>'+(MP.on?on+' online':MP.configured()&&!mpDone?'conectando…':'offline')+'</span>'+
+      '<div class="sv-body"><div class="sv-head"><span class="sv-flag">'+v.flag+'</span><div><b>'+v.n+'</b><span>'+v.city+'</span></div></div>'+
+      (st0?'<div class="sv-stats">'+stat('Data',dateOf(st0.day,st0)+(started?' · '+fmtHour(nowHour()):''))+stat('Caixa',money(st0.cash),st0.cash<0?'var(--red)':'')+stat('Fase',st0.phase+' · '+esc(st0.phaseName||''))+(started?stat('Patrimônio',money(netWorth()),'var(--gold)'):'')+'</div>':'<p>'+v.txt+'</p>')+
+      (nx?'<div class="sv-next">📅 '+esc(nx.title)+' · '+dateOf(nx.day)+' às '+fmtHour(nx.hour)+'</div>':'')+
+      '<button class="sv-go" id="mPlay">'+icon('play')+go+'</button></div></div>';}).join('');
+  const dock=[...((sv||started)?[['new','Novo jogo']]:[]),['perso','Personagem'],['friends','Amigos'],['stats','Indicadores'],['settings','Ajustes'],['help','Como jogar']];
+  return '<div class="sv-wrap"><header class="sv-top"><div class="logo"><img src="logo.png" alt=""><div>Auvra Club<small>Um personagem · uma vida em cada cidade</small></div></div>'+
+    '<div class="sv-me" data-p="perso" role="button"><i class="pav">'+ini+'</i><div><b>'+nm+'</b><span id="mNet">'+esc(netLabel())+'</span></div></div></header>'+
+    '<div class="sv-label">SERVIDORES</div><div class="sv-row">'+cards+'</div>'+
+    '<nav class="sv-dock">'+dock.map(([k,t])=>'<button class="sv-db" data-p="'+k+'">'+icon({friends:'net',stats:'market'}[k]||k)+'<span>'+t+'</span></button>').join('')+'</nav></div>';}
+function bindServers(){const m=document.getElementById('menu');
+  m.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const p=b.dataset.p;if(p==='friends'){openFriends();MP.refreshAll().then(()=>{if(document.getElementById('chatBox'))openFriends();});return;}if(p==='new')return confirmNew();renderMenu(p);});
+  document.getElementById('mPlay').onclick=play;
+  const ws=m.querySelector('.sv-card.open');if(ws)ws.onclick=e=>{if(!e.target.closest('button'))play();};
+  const bc=m.querySelector('.sv-card.locked');if(bc)bc.onclick=e=>{if(e.target.closest('#mNotify'))return;modal('🏖️','Balneário Camboriú · em breve','<p>O segundo servidor do Auvra Club está em construção: uma cidade nova, com economia, negócios e jogadores próprios.</p><p><b>Seu personagem é o mesmo</b> (visual, nome e roupas), mas em cada cidade ele tem uma <b>vida diferente</b>: lá você começa do zero, com dinheiro, casa, empresas, emprego e contatos próprios.</p><p class="small">Nada do que você construir em Wall Street muda em Balneário, e vice-versa. Seu império em Nova York continua do jeito que você deixou.</p>',[{t:notifyBC()?'✓ Você será avisado':'🔔 Avise-me quando abrir',fn:()=>{closeModal();toggleNotifyBC();}},{t:'↩ Fechar',fn:closeModal}]);};
+  const nb=document.getElementById('mNotify');if(nb)nb.onclick=e=>{e.stopPropagation();toggleNotifyBC();};}
+function toggleNotifyBC(){const v=!notifyBC();try{localStorage.setItem('auvra.notify.bc',v?'1':'0');}catch(e){}toast(v?'🔔 Vamos te avisar quando Balneário Camboriú abrir':'Aviso desligado');if(menuOpen)renderMenu('home');}
 const AVATAR_TABS=['Corpo','Rosto','Cabelo','Roupa','Acessórios'];
 const AVATAR_RANGES={
   height:['Altura',.9,1.1],mass:['Massa',.78,1.24],shoulders:['Ombros',.84,1.16],

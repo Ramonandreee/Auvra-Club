@@ -204,6 +204,14 @@ menu ou painel aberto.
 
 ## Menu principal
 
+A tela inicial é a **escolha de servidor**: cada cidade é um servidor, com mundo, economia e jogadores próprios.
+
+- **Wall Street · Nova York:** aberto.
+- **Balneário Camboriú · SC:** visível e bloqueado ("em breve", com "Avise-me").
+
+O **personagem é o mesmo** em todas as cidades, mas cada servidor tem **uma vida própria que começa do zero**. O save local e o da nuvem são separados por servidor (`saves.server`).
+
+Os atalhos ficam numa barra no rodapé:
 **Jogar / Continuar**, **Novo jogo**, **Personagem**, **Amigos**, **Indicadores**, **Ajustes** e
 **Como jogar**. Indicadores reúne patrimônio, caixa, dívida, lucro por dia, ranking e a tabela das empresas.
 Ajustes reúne qualidade gráfica, câmera, ciclo dia/noite, trânsito, tela cheia, instalação e save.
