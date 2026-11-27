@@ -909,7 +909,8 @@ function stripeTex(col){const {c,g}=makeCanvas(64,8);for(let i=0;i<8;i++){g.fill
 
 
 const PAL={skin:[0xf1cdb0,0xe2b893,0xcf9e74,0xb07a50,0x8d5c3a,0x5f3c25],hair:[0x15100c,0x2e2014,0x4d3520,0x7a5530,0xb08a50,0x9a9690,0x6a2a1a],
-  top:[0x1e2533,0x2b2f38,0x101215,0x3b4a62,0x5a2a2a,0x2f4a3a,0x6b5a48,0xd8d2c4,0x7a8a9a,0x8a3a5a],pants:[0x1a1d22,0x2a2d33,0x3a3226,0x1f2a3a,0x5a5248,0xc8c0b0],
+  shirt:[0xe9edf2,0x8fa8c8,0x23262c,0xf2e6d8,0xd9c8d6,0x6a2a34],
+  top:[0x1e2533,0x2b2f38,0x101215,0x3b4a62,0x5a2a2a,0x2f4a3a,0x6b5a48,0xd8d2c4,0x7a8a9a,0x8a3a5a],pants:[0x1a1d22,0x2a2d33,0x3a3226,0x1f2a3a,0x5a5248,0xc8c0b0,0x2c3a52,0x46597a],
   };
 function paint(g,hex){const c=new THREE.Color(hex);const n=g.attributes.position.count;const a=new Float32Array(n*3);for(let i=0;i<n;i++){a[i*3]=c.r;a[i*3+1]=c.g;a[i*3+2]=c.b;}g.setAttribute('color',new THREE.BufferAttribute(a,3));return g;}
 function shade(hex,k){const c=new THREE.Color(hex);c.multiplyScalar(k);return c.getHex();}
@@ -933,11 +934,11 @@ const HAIR={
   curto:[.026,.024,0],raspado:[.004,.002,0],médio:[.035,.048,.1],
   longo:[.028,.066,.27],coque:[.022,.028,.025],careca:null,
   repartido:[.042,.025,.015],ondulado:[.042,.037,.11],cacheado:[.053,.045,.085],
-  preso:[.02,.03,.16]
+  preso:[.02,.03,.16],degradê:[.045,.006,0],franja:[.03,.07,.27]
 };
-const OUTFITS=['camiseta','polo','casual','moletom','esportivo','tricô','jaqueta','social','saia','vestido','blazer','terno','sobretudo','alfaiataria','old-money','smoking','gala','luxo'];
-const OUTFIT_LABELS=['Camiseta básica','Polo','Camisa casual','Moletom','Esportivo','Suéter de tricô','Jaqueta de couro','Camisa social','Saia e camisa','Vestido','Blazer','Terno executivo','Sobretudo','Terno sob medida','Old money','Smoking','Vestido de gala','Luxo discreto'];
-const SHOES=['auto','tênis','sapato','salto','oxford','stiletto'];
+const OUTFITS=['camiseta','polo','casual','moletom','esportivo','tricô','jaqueta','social','saia','vestido','blazer','terno','sobretudo','alfaiataria','old-money','smart','smoking','gala','luxo'];
+const OUTFIT_LABELS=['Camiseta básica','Polo','Camisa casual','Moletom','Esportivo','Suéter de tricô','Jaqueta de couro','Camisa social','Saia e camisa','Vestido','Blazer','Terno executivo','Sobretudo','Terno sob medida','Old money','Blazer e camisa aberta','Smoking','Vestido de gala','Luxo discreto'];
+const SHOES=['auto','tênis','sapato','salto','oxford','stiletto','botas'];
 const ACCESS=['','bag','phone','coffee','glasses','watch','badge','cap','hat','scarf','pearls'];
 const personCache=new Map();
 /* AVATAR_HEAD_BEGIN */
@@ -1439,6 +1440,15 @@ const headLODs=HEAD_PACKED.map(encoded=>{
 const personMaterials=[];
 function personMaterial(lod){
   if(personMaterials[lod])return personMaterials[lod];
+  if(lod===0){ // pele, tecidos, couro e cabelo com respostas de luz diferentes (ordem = GARMENT_ROUGH)
+    const P=o=>new THREE.MeshPhysicalMaterial(Object.assign({vertexColors:true,envMapIntensity:.4},o));
+    return personMaterials[0]=[
+      P({roughness:.86,sheen:.9,sheenRoughness:.65,sheenColor:new THREE.Color(0x8a8a8a)}),   // lã
+      P({roughness:.76,sheen:.55,sheenRoughness:.55,sheenColor:new THREE.Color(0x9a9a9a)}),  // algodão
+      P({roughness:.34,clearcoat:.35,clearcoatRoughness:.45,envMapIntensity:.7}),           // couro
+      P({roughness:.52,specularIntensity:.45,sheen:.35,sheenRoughness:.8,sheenColor:new THREE.Color(0xff9c80)}), // pele (luz "por baixo")
+      P({roughness:.42,sheen:1,sheenRoughness:.3,sheenColor:new THREE.Color(0x705040)})];   // cabelo com brilho de fio
+  }
   const mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.82,envMapIntensity:.35});
   if(lod<2){
     const {c,g}=makeCanvas(128,2);
@@ -1462,20 +1472,26 @@ function facialTint(x,y,z,L,skin,hair){
   const stubble=L.beard==='cheia'||L.beard==='sim'||L.beard===true?.76:L.beard==='por fazer'?.34:0;
   const beard=stubble*sstep(.64,1.22,z)*sstep(6.02,6.24,y)*
     (1-sstep(6.67+Math.abs(x)*.39,6.95+Math.abs(x)*.39,y))*(1-lips);
-  const variation=.024*Math.sin(x*68+y*97+z*110);
-  const color=skin.clone().multiplyScalar(1+variation-.17*socket-.40*line);
-  color.r*=1+.10*cheek+.05*lips;
-  color.g*=1-.19*lips-.047*cheek;
-  color.b*=1-.10*lips-.028*cheek;
+  const fem=L.build==='B';
+  const noseSide=front*gaussian(Math.abs(x)-.16,.06)*gaussian(y-7.02,.22);           // sombra nas laterais do nariz
+  const noseTip=sstep(1.55,1.7,z)*gaussian(x,.08)*gaussian(y-6.92,.09);              // ponta do nariz pega luz
+  const under=front*gaussian(Math.abs(x)-.42,.13)*gaussian(y-6.82,.12);              // contorno sob as maçãs
+  const lid=front*gaussian(Math.abs(x)-.31,.16)*gaussian(y-7.38,.05);                 // linha da pálpebra
+  const variation=.024*Math.sin(x*68+y*97+z*110)+.012*Math.sin(x*190+y*230);
+  const color=skin.clone().multiplyScalar(1+variation-.17*socket-.40*line-.09*noseSide+.06*noseTip-.06*under-(fem?.22:.12)*lid);
+  const lipK=fem?1.7:1;color.r*=1+(fem?.16:.10)*cheek+.05*lips*lipK;
+  color.g*=1-.19*lips*lipK-.047*cheek;
+  color.b*=1-.10*lips*lipK-.028*cheek+(fem?.04*lips:0);
   return color.lerp(hair,Math.min(.92,beard)).getHex();
 }
 
 function personGeometry(look,lod=0){
-  const L={...SHAPE,...look}, n=lod===2?8:lod===1?16:24, m=lod===2?6:lod===1?8:12;
-  const profile=L.build==='B', shoulder=.176*L.shoulders*(profile?.93:1);
+  const L={...SHAPE,...look}, n=lod===2?8:lod===1?16:32, m=lod===2?6:lod===1?8:16;
+  const profile=L.build==='B';if(profile){L.jaw*=.88;L.nose*=.8;L.eyes*=1.1;L.faceWidth*=.97;L.brows*=.85;} // traços femininos
+  const shoulder=.176*L.shoulders*(profile?.93:1);
   const hip=.146*L.hips*(profile?1.09:1), waist=.117*L.waist*(profile?.91:1);
   const mass=Math.sqrt(L.mass), st=L.topStyle;
-  const suit=['terno','sobretudo','alfaiataria','luxo','blazer','smoking'].includes(st);const openFront=suit||st==='jaqueta';
+  const suit=['terno','sobretudo','alfaiataria','luxo','blazer','smoking','smart'].includes(st);const openFront=suit||st==='jaqueta';
   const skirt=st==='vestido'||st==='saia'||st==='gala', shirt=st==='saia'?0xe9edf2:(L.shirt??0xe9edf2);
   const skin=L.skin??PAL.skin[1], top=st==='smoking'?0x101114:(L.top??PAL.top[0]), pants=st==='smoking'?0x0c0d10:(L.pants??PAL.pants[0]);
   const hair=L.hair??PAL.hair[1];
@@ -1602,10 +1618,10 @@ function personGeometry(look,lod=0){
         let prev=null;
         for(let i=0;i<browDepth.length;i++){
           const f=i/(browDepth.length-1), x=s*(.13+.45*f)*.108*faceShape;
-          const y=1.673+(7.48+.12*Math.sin(Math.PI*f*.94)-7.284)*.096;
-          const thick=.001+(.0032-.0014*f)*Math.sin(Math.PI*f)**.6*L.brows;
+          const y=1.673+(7.48+(profile?.17:.12)*Math.sin(Math.PI*f*.94)-7.284)*.096;
+          const thick=(.0012+(.0036-.0016*f)*Math.sin(Math.PI*f)**.6*L.brows)*(profile?.72:1);
           const z=(browDepth[i]-.53)*.102+.0024;
-          const row=[vertex(x,y-thick,z,shade(hair,1.4),'head'),vertex(x,y+thick,z,shade(hair,1.25),'head')];
+          const row=[vertex(x,y-thick,z,shade(hair,.92),'head','head',0,'hair'),vertex(x,y+thick,z,shade(hair,.8),'head','head',0,'hair')];
           if(prev){
             if(s>0)idx.push(prev[0],row[0],prev[1],prev[1],row[0],row[1]);
             else idx.push(prev[0],prev[1],row[0],prev[1],row[1],row[0]);
@@ -1616,6 +1632,7 @@ function personGeometry(look,lod=0){
       const bone='eye'+side, x=s*.0333*faceShape, y=1.673, z=.074;
       const radius=.0147, iris=.0054;
       piece(xf(new THREE.SphereGeometry(radius,12,8),x,y,z,0,0,0,1.09,.90,1),0xe5dcd4,bone,'skin');
+      if(detail){piece(xf(new THREE.TorusGeometry(radius*1.02,profile?.0016:.0011,4,14,Math.PI*0.92),x,y+.0009,z+.0045,0,0,Math.PI*0.04,1.12,.78,1),0x16100e,'head','hair');}
       let inner=[vertex(x,y,z+radius+.00025,0x20191a,bone)];
       for(const [ratio,col] of [[.43,0x231b19],[.68,irisColor],[.87,shade(irisColor,.77)],[1,0x332b28]]){
         const edge=Array.from({length:16},(_,i)=>{
@@ -1645,7 +1662,7 @@ function personGeometry(look,lod=0){
     const rings=lod===0?12:lod===1?7:4;
     const strands=lod===0?48:lod===1?24:12;
     const textured=['cacheado','ondulado'].includes(L.hairStyle);
-    const swept=['curto','repartido','ondulado'].includes(L.hairStyle);
+    const swept=['curto','repartido','ondulado','degradê'].includes(L.hairStyle);
     const scalpWidth=L.faceWidth*(profile?.959:1);
     let last=null;
     for(let i=0;i<=rings;i++){
@@ -1654,7 +1671,8 @@ function personGeometry(look,lod=0){
         const front=Math.max(0,cz), back=Math.max(0,-cz);
         const part=swept?.011*Math.cos(a*2-.65)*front:0;
         const curl=textured?Math.sin(a*11+f*7)*Math.sin(a*7-f*4):Math.sin(a*19+f*2);
-        const edge=1.696+.047*front-.036*back-drop*(.30+.77*back)*(1-front)+part;
+        const fade=L.hairStyle==='degradê'?.012*(1-front)*back:0,fringe=L.hairStyle==='franja'?-.05*front*front:0;
+        const edge=1.696+.047*front-.036*back-drop*(.30+.77*back)*(1-front)+part+fade+fringe;
         const crown=1.797+lift*.73;
         const y=lerp(crown-.001,edge,f)+(textured?.009:.002)*curl*f;
         const skull=Math.sqrt(Math.max(.0001,1-Math.pow(cl((y-1.684)/(crown-1.682),0,1),2)));
@@ -1666,7 +1684,7 @@ function personGeometry(look,lod=0){
         if(scalp){ // assenta no crânio: raio real da cabeça + volume do corte (afina na borda, sem vão)
           const crownY=crown-.001,over=y>scalp.top?Math.sqrt(Math.max(0,1-Math.pow((y-scalp.top)/Math.max(.004,crownY-scalp.top+.002),2))):1;
           const head=scalp.at(Math.min(y,scalp.top),angle)*over;
-          const vol=(.0028+width*.34+locks*.8)*(.35+.65*(1-f*f))+(textured?.004*curl*f:0);
+          const vol=(.0028+width*.34+locks*.8)*(.45+.55*(1-f*f))+.0026+(textured?.004*curl*f:0); // borda com espessura mínima: sem disputa com a pele
           let rr=head+vol;if(drop>.06&&back>.25&&y<1.69)rr=Math.max(rr,scalp.max(angle)*.9+vol*.6);
           return vertex(Math.sin(angle)*rr,y,scalp.cz+Math.cos(angle)*rr-back*drop*.05*f,shade(hair,tint),'head','head',0,'hair');}
         const z=Math.cos(angle)*rz+.004-back*drop*.06*f;
@@ -1690,7 +1708,7 @@ function personGeometry(look,lod=0){
   const clothes=jacket.map(([x,y,z,rx,rz,a,b,w])=>ring([],n,top,mat,(sx,cz)=>{
     const weave=st==='tricô'?1+Math.sin(sx*60)*.05+(y<.95?Math.sin(sx*90)*.08:0):st==='jaqueta'?1+Math.max(0,cz)*.12-Math.abs(sx)*.04:1+Math.sin(sx*33+y*52)*.012+Math.cos(y*41+cz*12)*.018;
     const shape=profile?.023*Math.max(0,cz)**3*Math.exp(-Math.pow((y-1.34)/.13,2)):0;
-    const fabric=openFront&&cz>.78&&Math.abs(sx)<lerp(st==='jaqueta'?.16:.12,st==='jaqueta'?.24:.29,sstep(1.17,1.49,y))?(st==='jaqueta'?0x2a2c30:shirt):top;
+    const fabric=st==='smart'?(cz>.74&&Math.abs(sx)<lerp(.13,.3,sstep(.95,1.49,y))?shirt:top):openFront&&cz>.78&&Math.abs(sx)<lerp(st==='jaqueta'?.16:.12,st==='jaqueta'?.24:.29,sstep(1.17,1.49,y))?(st==='jaqueta'?0x2a2c30:shirt):top;
     return vertex(x+sx*rx,y,z+cz*rz+shape,shade(fabric,weave),a,b,w,mat);
   }));
   for(let i=1;i<clothes.length;i++){
@@ -1719,9 +1737,10 @@ function personGeometry(look,lod=0){
     ],m,pants,mat,false);
     const shoeStyle=L.shoeStyle==='auto'||!L.shoeStyle?(skirt?'salto':suit?'sapato':'tênis'):L.shoeStyle;
     const sneaker=shoeStyle==='tênis', heel=shoeStyle==='salto'||shoeStyle==='stiletto', oxf=shoeStyle==='oxford', foot='foot'+side;
+    const boots=shoeStyle==='botas';
     loft([[s*.09,.014,.044,.043,.088,foot],[s*.09,.034,.039,.046,.098,foot],
-      [s*.09,heel?.073:.083,.025,.039,.068,foot],[s*.09,.096,0,.03,.042,foot]],m,
-      sneaker?0x454954:oxf?0x4a2614:shoeStyle==='stiletto'?0x0a0a0c:0x231d1b,sneaker?'cotton':'leather');
+      [s*.09,heel?.073:.083,.025,.039,.068,foot],[s*.09,.096,0,boots?.044:.03,boots?.05:.042,foot]].concat(boots?[[s*.09,.17,0,.045,.05,'sh'+side,foot,.3]]:[]),m,
+      sneaker?0x454954:oxf?0x4a2614:shoeStyle==='stiletto'?0x0a0a0c:boots?0x1c1715:0x231d1b,sneaker?'cotton':'leather');
     if(lod<2){piece(xf(new THREE.BoxGeometry(.084,.016,.19),s*.09,.008,.03),sneaker?0xeeebe3:oxf?0x2a160c:0x141110,foot,sneaker?'cotton':'leather'); // solado
       if(oxf)piece(xf(new THREE.SphereGeometry(.04,8,5),s*.09,.045,.1,0,0,0,1,.55,1.1),0x5a2e18,foot,'leather');
       if(sneaker)for(const z of [.03,.055])piece(xf(new THREE.BoxGeometry(.05,.005,.006),s*.09,.074,z),0xf2efe8,foot,'cotton');}
@@ -1744,7 +1763,10 @@ function personGeometry(look,lod=0){
         if(side===1)idx.push(lapel[0],lapel[2],lapel[1],lapel[1],lapel[2],lapel[3]);
         else idx.push(lapel[0],lapel[1],lapel[2],lapel[1],lapel[3],lapel[2]);
       }
-      if(st!=='luxo'&&st!=='blazer'&&st!=='smoking'){
+      if(st==='smart'){piece(xf(new THREE.BoxGeometry(.13,.03,.012),0,.95,.108*mass+bulk*.4),0x15110f,'hips','leather');piece(xf(new THREE.BoxGeometry(.026,.022,.014),0,.95,.112*mass+bulk*.4),0xb8bcc2,'hips','leather');
+        for(const y of [1.36,1.29,1.22,1.15,1.08])piece(xf(new THREE.SphereGeometry(.004,6,4),0,y,lerp(.1*mass+bulk,.09*mass+bulk,cl((1.4-y)/.3,0,1))),shade(shirt,.8),'chest','cotton');
+        for(const sd of [-1,1])piece(xf(new THREE.BoxGeometry(.04,.012,.03),sd*.045,1.462,.075+bulk,.5,sd*.35,sd*.6),shirt,'chest','cotton');}
+      if(st!=='luxo'&&st!=='blazer'&&st!=='smoking'&&st!=='smart'){
         const knot=vertex(0,1.456,upperZ+.008,shade(tie,1.13),'chest','chest',0,'wool');
         const points=[[-.009,1.425,chestDepth+.009],[.009,1.425,chestDepth+.009],[-.013,1.238,lowerZ+.028],[.013,1.238,lowerZ+.028],[0,1.214,lowerZ+.028]];
         const [a,b,c,d,e]=points.map(([x,y,z])=>vertex(x,y,z,tie,'chest','spine',y<1.3?.38:0,'wool'));
@@ -1792,6 +1814,10 @@ function personGeometry(look,lod=0){
   geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
   geo.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(si,4));
   geo.setAttribute('skinWeight',new THREE.Float32BufferAttribute(sw,4));
+  if(lod===0){ // agrupa triângulos por material para os materiais físicos
+    const nm=Object.keys(GARMENT_ROUGH).length,buckets=Array.from({length:nm},()=>[]);
+    for(let t=0;t<idx.length;t+=3){const k=Math.max(0,Math.min(nm-1,Math.round((uv[idx[t]*2]*128-4)/24)));buckets[k].push(idx[t],idx[t+1],idx[t+2]);}
+    idx.length=0;let start=0;buckets.forEach((b,k)=>{for(const v of b)idx.push(v);if(b.length)geo.addGroup(start,b.length,k);start+=b.length;});}
   geo.setIndex(idx);geo.computeVertexNormals();return geo;
 }
 
@@ -2213,11 +2239,11 @@ const WARD=[ // [slot, valor, preço, nível de estilo 0–5, loja, gênero u/m/
   ['topStyle','social',180,2,'maiden'],['topStyle','saia',260,2,'maiden','f'],['topStyle','blazer',720,3,'maiden'],['topStyle','terno',1400,3,'maiden'],['topStyle','sobretudo',2200,3,'maiden'],['topStyle','alfaiataria',4800,4,'maiden'],
   ['topStyle','vestido',420,2,'verlaine','f'],['topStyle','old-money',6500,4,'verlaine'],['topStyle','smoking',9000,5,'verlaine','m'],['topStyle','luxo',15000,5,'verlaine'],
   ['shoeStyle','auto',0,0,null],['shoeStyle','tênis',0,0,null],['shoeStyle','sapato',240,2,'maiden','m'],['shoeStyle','salto',300,2,'verlaine','f'],['shoeStyle','oxford',1800,4,'verlaine','m'],
-  ['acc','',0,0,null],['acc','phone',0,0,null],['acc','coffee',0,0,null],['acc','badge',0,0,null],['acc','cap',40,1,'front'],['acc','bag',220,2,'maiden'],['acc','glasses',300,2,'verlaine'],['acc','scarf',260,2,'verlaine'],['acc','watch',900,3,'verlaine'],['acc','hat',700,4,'verlaine'],['topStyle','gala',11000,5,'verlaine','f'],['shoeStyle','stiletto',1600,4,'verlaine','f'],['acc','pearls',2400,4,'verlaine','f']];
+  ['acc','',0,0,null],['acc','phone',0,0,null],['acc','coffee',0,0,null],['acc','badge',0,0,null],['acc','cap',40,1,'front'],['acc','bag',220,2,'maiden'],['acc','glasses',300,2,'verlaine'],['acc','scarf',260,2,'verlaine'],['acc','watch',900,3,'verlaine'],['acc','hat',700,4,'verlaine'],['topStyle','gala',11000,5,'verlaine','f'],['topStyle','smart',950,3,'maiden'],['shoeStyle','botas',520,3,'front'],['shoeStyle','stiletto',1600,4,'verlaine','f'],['acc','pearls',2400,4,'verlaine','f']];
 const genderOf=()=>AVATAR.gender||(AVATAR.build==='B'?'f':'m');const fits=w=>!w[5]||w[5]===genderOf();
 const wkey=(k,v)=>k+':'+v,witem=(k,v)=>WARD.find(w=>w[0]===k&&w[1]===v);
 function owned(k,v){const w=witem(k,v);if(!w||!w[2])return true;return !!(started&&S.wardrobe&&S.wardrobe.includes(wkey(k,v)));}
-function itemName(k,v){if(genderOf()==='f'&&k==='topStyle'&&({terno:1,alfaiataria:1})[v])return v==='terno'?'Tailleur executivo':'Tailleur sob medida';const L_={topStyle:[OUTFITS,OUTFIT_LABELS],shoeStyle:[SHOES,['Automático','Tênis','Sapato social','Salto','Oxford italiano','Scarpin stiletto']],acc:[ACCESS,['Nenhum','Pasta de couro','Celular','Café','Óculos','Relógio','Crachá','Boné','Chapéu fedora','Cachecol','Colar de pérolas']]}[k];return L_?L_[1][L_[0].indexOf(v)]||v:v;}
+function itemName(k,v){if(genderOf()==='f'&&k==='topStyle'&&({terno:1,alfaiataria:1})[v])return v==='terno'?'Tailleur executivo':'Tailleur sob medida';const L_={topStyle:[OUTFITS,OUTFIT_LABELS],shoeStyle:[SHOES,['Automático','Tênis','Sapato social','Salto','Oxford italiano','Scarpin stiletto','Botas de couro']],acc:[ACCESS,['Nenhum','Pasta de couro','Celular','Café','Óculos','Relógio','Crachá','Boné','Chapéu fedora','Cachecol','Colar de pérolas']]}[k];return L_?L_[1][L_[0].indexOf(v)]||v:v;}
 function ensureWardrobe(){if(!S.wardrobe){S.wardrobe=[];for(const k of ['topStyle','shoeStyle','acc']){const w=witem(k,AVATAR[k]);if(w&&w[2]&&S.day>1)S.wardrobe.push(wkey(k,AVATAR[k]));}}
   fixGender();for(const k of ['topStyle','shoeStyle','acc'])if(!owned(k,AVATAR[k])){AVATAR[k]=k==='topStyle'?'camiseta':k==='shoeStyle'?'tênis':'';}}
 function fixGender(){for(const [k,d] of [['topStyle','camiseta'],['shoeStyle','auto'],['acc','']]){const w=witem(k,AVATAR[k]);if(w&&!fits(w))AVATAR[k]=d;}}
@@ -2226,7 +2252,7 @@ function lookLabel(v){v=v??lookScore();return v>=80?'Ícone':v>=60?'Executivo':v
 const lookBonus=()=>started?lookScore()/100:0;
 function avatarLook(){
   const colors={skin:PAL.skin[AVATAR.skin]??PAL.skin[1],hair:PAL.hair[AVATAR.hair]??PAL.hair[1],
-    top:PAL.top[AVATAR.top]??PAL.top[0],pants:PAL.pants[AVATAR.pants]??PAL.pants[0]};
+    top:PAL.top[AVATAR.top]??PAL.top[0],pants:PAL.pants[AVATAR.pants]??PAL.pants[0],shirt:PAL.shirt[AVATAR.shirt]??(genderOf()==='f'&&['blazer','smart','terno','alfaiataria'].includes(AVATAR.topStyle)?0x23262c:PAL.shirt[0])};
   return {...AVATAR,...colors,tie:0xc9a24a};
 }
 const PREVIEW_MOTIONS={
@@ -4010,8 +4036,8 @@ const AVATAR_CHOICES={
   Rosto:[['iris','Íris',['castanho','verde','azul']]],
   Cabelo:[['hairStyle','Corte',Object.keys(HAIR)],['hair','Cor',PAL.hair,true],['beard','Barba',['não','por fazer','cheia'],false,['Sem barba','Por fazer','Cheia']]],
   Roupa:[['topStyle','Estilo',OUTFITS,false,OUTFIT_LABELS],
-    ['top','Cor principal',PAL.top,true],['pants','Cor da parte de baixo',PAL.pants,true],
-    ['shoeStyle','Calçado',SHOES,false,['Automático','Tênis','Sapato social','Salto','Oxford italiano','Scarpin stiletto']]],
+    ['top','Cor principal',PAL.top,true],['shirt','Cor da camisa / blusa',PAL.shirt,true],['pants','Cor da parte de baixo',PAL.pants,true],
+    ['shoeStyle','Calçado',SHOES,false,['Automático','Tênis','Sapato social','Salto','Oxford italiano','Scarpin stiletto','Botas de couro']]],
   Acessórios:[['acc','Acessório',ACCESS,false,['Nenhum','Pasta de couro','Celular','Café','Óculos','Relógio','Crachá','Boné','Chapéu fedora','Cachecol','Colar de pérolas']]]
 };
 function chipRow(key,label,vals,isColor,labels){if(key==='gender'&&!AVATAR.gender)AVATAR.gender=genderOf();
@@ -4225,7 +4251,7 @@ async function boot(){
   if(!MP.on)await showAuth('login',MP.sb?'':'Sem conexão com o servidor. Confira a internet e tente de novo.');
   await enterAccount();
   window.__townReady=true;
-  window.__game={get ROUTE(){return ROUTE;},solidAt,bodyFree,setWaypoint,clearWaypoint,openBigMap,closeBigMap,goTo,get S(){return S;},get hero(){return hero;},get companies(){return companies;},get buildings(){return buildings;},canBuild,foundCompany,tryPlace,startPlacing,BUILD,get placing(){return placing;},renderer:()=>renderer,camera:()=>camera,CAM,openMenu,closeMenu,TILE,TS,M,PX,WORLD:()=>WORLD,STATS:()=>renderer.info.render,setDayAcc:v=>{dayAcc=v;},scheduleShiftX:()=>scheduleShift(),contactsX:()=>contacts,addAgenda,CARSX:()=>CARS,heroFree,WP:()=>WAYPOINT,actHire,genPerson,enterInterior,exitInterior,get SPECIAL(){return SPECIAL;},get PCAR(){return PCAR;},get INT(){return INT;},CROWD,setTod:v=>{tod=v;},sede:()=>sede,bFront,doInteract,get interact(){return interactTarget;}};}
+  window.__game={AVATAR,rebuildHero,get ROUTE(){return ROUTE;},solidAt,bodyFree,setWaypoint,clearWaypoint,openBigMap,closeBigMap,goTo,get S(){return S;},get hero(){return hero;},get companies(){return companies;},get buildings(){return buildings;},canBuild,foundCompany,tryPlace,startPlacing,BUILD,get placing(){return placing;},renderer:()=>renderer,camera:()=>camera,CAM,openMenu,closeMenu,TILE,TS,M,PX,WORLD:()=>WORLD,STATS:()=>renderer.info.render,setDayAcc:v=>{dayAcc=v;},scheduleShiftX:()=>scheduleShift(),contactsX:()=>contacts,addAgenda,CARSX:()=>CARS,heroFree,WP:()=>WAYPOINT,actHire,genPerson,enterInterior,exitInterior,get SPECIAL(){return SPECIAL;},get PCAR(){return PCAR;},get INT(){return INT;},CROWD,setTod:v=>{tod=v;},sede:()=>sede,bFront,doInteract,get interact(){return interactTarget;}};}
 boot().catch(e=>{console.error(e);window.__fail('Erro ao iniciar: '+(e&&e.message||e));});
 </script>
 </body>
