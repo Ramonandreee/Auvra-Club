@@ -2,6 +2,20 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.17.0 — 2026-11-27
+- **feat(town): rosto procedural novo.** A cabeça deixa de ser uma malha empacotada esticada e passa a ser gerada por seções (`headForm`/`headRows`/`headTint`), lisa e com mais vértices na frente do rosto.
+  - **Relevo:** crânio, testa, arco das sobrancelhas, órbitas, maçãs do rosto, nariz (ponte, ponta e asas), lábios, filtro, queixo, mandíbula, pomo de adão e orelhas.
+  - **Olhos:** a pele abraça o globo e abre em amêndoa, então aparecem o branco, a íris e os cílios.
+  - **Boca e narinas:** traço fino da boca e narinas de perto.
+  - **Sombras pintadas:** sob o nariz, sob o lábio, sulcos nasolabiais, cantos dos olhos e sob a sobrancelha.
+  - **Gênero e sliders:** masculino e feminino têm formas próprias (mandíbula, pescoço, arco, lábios), e os controles do editor atuam na forma.
+- **feat(town): mãos** (palma, dedos e polegar). Braços um pouco mais cheios e alinhados ao ombro; cintura e quadril femininos mais marcados.
+- **feat(town): NPCs mais variados:** grisalhos, ombros, olhos e sobrancelhas.
+- **fix(town): mancha preta no pescoço.**
+  - **Causa:** a gola careca (e o cachecol) estava girada no eixo errado e aparecia em pé, como uma lâmina preta.
+  - **Correção:** gola deitada em volta do pescoço, decote fechado com pele e base do pescoço alargada. Óculos e aviador também giravam no eixo errado.
+- **fix(town):** linha do cabelo sem dente de serra; sobrancelhas mais finas.
+
 ## 2.16.1 — 2026-11-27
 - **fix(town): passeios jogáveis.**
   - **Barra compacta:** o cartão grande no topo virou uma barra pequena embaixo, com botões de ícone (💬 conversar, 👁️/🎥 dentro/fora, ⏩ pular). As falas aparecem como legenda e somem sozinhas.
