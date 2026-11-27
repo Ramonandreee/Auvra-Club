@@ -66,10 +66,27 @@ menu ou painel aberto.
   empreendedora, estudante, vendedor de cachorro-quente — cada encontro tem um efeito pequeno.
 - **Mais gente na rua:** multidão 16/34/52 pessoas (qualidade baixa/média/alta).
 
+## Tela limpa, corpo físico e GPS
+
+- **HUD mínimo:** caixa e energia no canto, relógio + 🗺 mapa + ▦ ações + ☰ menu no outro, minimapa redondo. A barra de
+  ferramentas só aparece ao tocar em ▦; a missão aparece por alguns segundos quando muda (toque no caixa para revê-la).
+- **Nada atravessa nada:** prédios, postes, árvores, semáforos, bancas do metrô, estátua, touro, chafariz e
+  balizadores têm corpo. Você não atravessa pessoas nem carros; a multidão desvia (ou espera) de obstáculos, de outras
+  pessoas e de você; os NPCs escolhem outro caminho; os táxis param para pedestres; seu carro bate na quina dos prédios
+  e para quando tem gente na frente.
+- **GPS:** marque um destino (no mapa, num atalho ou na agenda) e o jogo traça **a melhor rota** (A* pelas calçadas a pé;
+  pelas ruas de carro), com setas no chão, linha azul no minimapa/mapa e instrução de curva
+  ("Em 30 m, vire à esquerda na Wall St"), distância e horário de chegada. Desviou? Recalcula sozinho.
+- **Mapa novo:** arte vetorial (quarteirões, prédios, marcos, faixas, árvores, rio), nomes das ruas, arrastar e
+  aproximar (pinça ou ＋/－), atalhos "Ir para" (casa, sede, trabalho, carros, restaurante, compromisso) e filtros.
+
 ## Carreira e agenda (a jogabilidade que é só nossa)
 
-- **Relógio e dias longos:** o HUD mostra a hora (07:00–23:00). Um dia de jogo dura **~4,8 min reais** em 1×
-  (18 s por hora; no máximo 2×) e o sol acompanha o relógio. Pontualidade muda o resultado. A economia continua por dia.
+- **Relógio e dias longos:** o HUD mostra a hora (07:00–23:00). Um dia de jogo dura **~4,8 min reais** (18 s por hora)
+  e **o tempo não acelera** (só para com o menu aberto). O sol acompanha o relógio. Pontualidade muda o resultado.
+- **Energia é esforço, não tudo:** só trabalho gasta energia (freela, turno, estudo, otimizar empresa). **Networking**
+  (conversar com contatos, fechar contrato com eles, abordar pessoas), reuniões, mercado, banco, construir e contratar
+  **não gastam**. Com menos de ⚡15 você fica exausto e anda devagar; comer recupera um pouco.
 - **Dormir é parte do jogo:** a energia só volta inteira se você **dormir em casa** (🏠 → Dormir). Virou a noite na
   rua? A energia recupera só um pouco (+35) e o bônus da casa não entra. Crescer exige trabalhar, voltar e descansar.
 - **📱 AuvraOS (ferramenta Celular):** Agenda (toque para marcar o destino), Mensagens, Vagas e Notícias.
@@ -195,7 +212,7 @@ o plano grátis do Supabase **pausa o projeto após 1 semana sem uso** (reative 
   dia 500 · alavancado ~45% falência.
 - O bloco de economia fica entre os marcadores `/*@ECON-BEGIN*/` e `/*@ECON-END*/` — mantenha-os.
 - 3D/UI: smoke test com Playwright em celular emulado na horizontal (carrega, menu, personagem,
-  freela, construir, painéis, 2×, recarregar/continuar) e também **em pé** (tela girada) + fluxo de login com uma
+  freela, construir, painéis, GPS/mapa, colisão, recarregar/continuar) e também **em pé** (tela girada) + fluxo de login com uma
   conta de teste criada e apagada no banco — no scratchpad.
 - Para medir o passe principal, consulte `window.__game.STATS()` depois de entrar no distrito.
   Os campos `calls` e `triangles` vêm de `renderer.info.render`. O Three.js reinicia esses

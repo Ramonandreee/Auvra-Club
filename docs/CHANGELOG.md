@@ -2,6 +2,14 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## [1.6.0] — 2026-11-27 — *Tela limpa, mundo sólido e GPS*
+- HUD mínimo (caixa/energia, relógio, mapa, ações, menu, minimapa redondo); ferramentas sob demanda; missão temporária.
+- Sem acelerar o tempo. Energia só para esforço (trabalho/estudo); networking, reuniões, mercado e banco são livres;
+  exausto anda devagar.
+- Colisão em tudo: prédios, mobiliário urbano, pessoas e carros (multidão desvia, carros param para pedestres).
+- GPS com A* (a pé/de carro), setas no chão e instruções de curva; mapa redesenhado com zoom, arraste e atalhos.
+- Celular em pé: abertura já deitada desde o 1º quadro e teclado próprio deitado (o do sistema fica em pé).
+
 ## [1.5.0] — 2026-11-27 — *Contas, abertura e dias que pesam*
 - Jogo (`town/`): abertura com a nova logo (a mesma do Instagram) → **login/cadastro obrigatório** (uma conta por
   e-mail, nome de usuário único garantido no banco, sem login anônimo); save por conta.
