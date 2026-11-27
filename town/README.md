@@ -95,6 +95,11 @@ menu ou painel aberto.
 - **Noite visível:** céu com brilho da cidade, luar mais forte e poças de luz quente sob os postes.
 - **HUD mínimo:** caixa e energia no canto, relógio + 🗺 mapa + ▦ ações + ☰ menu no outro, minimapa redondo. A barra de
   ferramentas só aparece ao tocar em ▦; a missão aparece por alguns segundos quando muda (toque no caixa para revê-la).
+- **Trânsito com regras:** cada rua tem a mão real (mão direita nas de mão dupla). Carros, táxis, ônibus e **motos**
+  andam no centro da faixa, param antes da faixa de pedestres no vermelho, decidem no amarelo se dá para passar,
+  mantêm distância, dão **seta** e viram em curva suave (direita só da faixa da direita, esquerda só da esquerda,
+  esperando quem vem de frente). Ninguém entra no cruzamento sem espaço do outro lado. Pedestres esperam na calçada e
+  atravessam com o sinal. Táxi, corrida e GPS de carro seguem as faixas e a mão das ruas.
 - **Nada atravessa nada:** prédios, postes, árvores, semáforos, bancas do metrô, estátua, touro, chafariz e
   balizadores têm corpo. Você não atravessa pessoas nem carros; a multidão desvia (ou espera) de obstáculos, de outras
   pessoas e de você; os NPCs escolhem outro caminho; os táxis param para pedestres; seu carro bate na quina dos prédios
