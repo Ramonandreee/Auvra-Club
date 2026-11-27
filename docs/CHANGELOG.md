@@ -2,6 +2,9 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.3.1 — 2026-11-27
+- **fix(town):** o herói voltou a andar na rua. Um comentário de uma linha engolia o código de colisão ao ar livre (`heroFree`), e o joystick não movia o boneco. Mesmo defeito corrigido no ajuste do trench coat.
+
 ## [2.3.0] — 2026-11-28 — *Do básico ao bilionário*
 - 5 lojas em escada: Bowling Green Basics (básicos), Front Street (casual/couro), Maiden Lane (social/alfaiataria),
   Maison Verlaine (luxo) e Atelier Ravelle (alta-costura, só com patrimônio a partir de $1M ou fase 4).
