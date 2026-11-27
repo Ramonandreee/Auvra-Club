@@ -22,11 +22,28 @@ rig=HS.add_builtin_rig(bm,'game_engine')
 HS.set_character_skin(f('skins',args['skin'],'mhmat'),bm,skin_type='GAMEENGINE',material_instances=False)
 def add(path,typ,sub=0):
     return HS.add_mhclo_asset(path,bm,asset_type=typ,subdiv_levels=sub,material_type='GAMEENGINE')
-add(glob.glob(os.path.join(U,'eyes','low-poly','*.mhclo'))[0],'Eyes')
-add(f('eyebrows',args.get('eyebrows','eyebrow001')),'Eyebrows')
-add(f('eyelashes',args.get('eyelashes','eyelashes01')),'Eyelashes')
+HAIRONLY=args.get('haironly',False)
+if not HAIRONLY:
+    add(glob.glob(os.path.join(U,'eyes','low-poly','*.mhclo'))[0],'Eyes')
+if not HAIRONLY:
+    add(f('eyebrows',args.get('eyebrows','eyebrow001')),'Eyebrows')
+    add(f('eyelashes',args.get('eyelashes','eyelashes01')),'Eyelashes')
 if args.get('hair'):add(f('hair',args['hair']),'Hair')
-for c in args['clothes']:add(f('clothes',c),'Clothes')
+for c in args.get('clothes',[]):add(f('clothes',c),'Clothes')
+TS.bake_targets(bm)
+# alvos de rosto como morphs (o editor do jogo mexe neles): largura do rosto, maxilar, nariz, olhos
+MD=LS.get_mpfb_data('targets')
+def T(rel):return os.path.join(MD,rel+'.target.gz')
+MORPHS={'fw+':['head/head-scale-horiz-incr'],'fw-':['head/head-scale-horiz-decr'],'jaw+':['chin/chin-width-incr'],'jaw-':['chin/chin-width-decr'],
+  'nose+':['nose/nose-volume-incr'],'nose-':['nose/nose-volume-decr'],'eyes+':['eyes/l-eye-scale-incr','eyes/r-eye-scale-incr'],'eyes-':['eyes/l-eye-scale-decr','eyes/r-eye-scale-decr']}
+if not HAIRONLY:
+    if not bm.data.shape_keys: bm.shape_key_add(name='Basis',from_mix=False)
+    for mname,rels in MORPHS.items():
+        tmp=[TS.load_target(bm,T(r),weight=0.0,name='tmp_'+mname+str(i)) for i,r in enumerate(rels)]
+        for k in bm.data.shape_keys.key_blocks:k.value=0.0
+        for k in tmp:k.value=1.0
+        nk=bm.shape_key_add(name=mname,from_mix=True);nk.value=0.0
+        for k in tmp:bm.shape_key_remove(k)
 # malha mais leve para celular: roupas, sapatos e cabelo simplificados (o corpo/rosto fica com o detalhe)
 for o in list(bpy.data.objects):
     if o.type!='MESH' or o.name=='Human' or any(k in o.name for k in ('eyebrow','eyelash','low-poly')):continue
@@ -37,6 +54,9 @@ for o in list(bpy.data.objects):
         bpy.context.view_layer.objects.active=o
         while o.modifiers.find('decimar')>0: bpy.ops.object.modifier_move_up(modifier='decimar')
 XS.bake_modifiers_remove_helpers(bm,bake_masks=True,bake_subdiv=False,remove_helpers=True)
+if HAIRONLY:
+    for o in list(bpy.data.objects):
+        if o.type=='MESH' and o.name=='Human':bpy.data.objects.remove(o,do_unlink=True)
 # texturas menores (o celular agradece)
 skinimg=set()
 for mat in bpy.data.materials:
@@ -62,5 +82,5 @@ for mat in bpy.data.materials:
 stats={o.name:(len(o.data.vertices) if o.type=='MESH' else 0) for o in bpy.data.objects}
 print('STATS',json.dumps(stats))
 bpy.ops.export_scene.gltf(filepath=args['out'],export_format='GLB',export_apply=True,export_image_format='JPEG',export_jpeg_quality=args.get('q',82),
-  export_skins=True,export_animations=False,export_morph=False,export_yup=True,export_texcoords=True,export_normals=True,export_tangents=False)
+  export_skins=True,export_animations=False,export_morph=True,export_morph_normal=False,export_try_sparse_sk=True,export_yup=True,export_texcoords=True,export_normals=True,export_tangents=False)
 print('DONE',os.path.getsize(args['out']))

@@ -52,4 +52,10 @@ registramos os autores:
 | skins | young_caucasian_male | MakeHuman | CC0 |
 | skins | young_caucasian_male2 | MakeHuman | CC0 |
 
+## Cortes de cabelo (`hair/`)
+Malhas de cabelo trocáveis (`m_*.glb`, `f_*.glb`), presas ao esqueleto no jogo: `short01–04`, `afro01`, `long01`, `ponytail01`, `braid01` (MakeHuman, CC0) e `toigo_curled_under_bob`, `toigo_blunt_bob_with_bangs` (MargaretToigo, CC0).
+
+## Formas do rosto (morphs)
+Os modelos trazem 8 morphs gerados dos *targets* do MakeHuman (CC0): largura da cabeça, largura do queixo, volume do nariz e tamanho dos olhos (+/−).
+
 Para regenerar ou criar novos personagens: `tools/mh/README.md`.

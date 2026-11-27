@@ -450,5 +450,385 @@
    "toigo_wool_pants",
    "shoes06"
   ]
+ },
+ {
+  "id": "h_m_short01",
+  "haironly": true,
+  "macro": {
+   "gender": 1.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_male",
+  "hair": "short01",
+  "clothes": []
+ },
+ {
+  "id": "h_m_short02",
+  "haironly": true,
+  "macro": {
+   "gender": 1.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_male",
+  "hair": "short02",
+  "clothes": []
+ },
+ {
+  "id": "h_m_short03",
+  "haironly": true,
+  "macro": {
+   "gender": 1.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_male",
+  "hair": "short03",
+  "clothes": []
+ },
+ {
+  "id": "h_m_short04",
+  "haironly": true,
+  "macro": {
+   "gender": 1.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_male",
+  "hair": "short04",
+  "clothes": []
+ },
+ {
+  "id": "h_m_afro01",
+  "haironly": true,
+  "macro": {
+   "gender": 1.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_male",
+  "hair": "afro01",
+  "clothes": []
+ },
+ {
+  "id": "h_m_long01",
+  "haironly": true,
+  "macro": {
+   "gender": 1.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_male",
+  "hair": "long01",
+  "clothes": []
+ },
+ {
+  "id": "h_m_ponytail01",
+  "haironly": true,
+  "macro": {
+   "gender": 1.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_male",
+  "hair": "ponytail01",
+  "clothes": []
+ },
+ {
+  "id": "h_m_toigo_curled_under_bob",
+  "haironly": true,
+  "macro": {
+   "gender": 1.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_male",
+  "hair": "toigo_curled_under_bob",
+  "clothes": []
+ },
+ {
+  "id": "h_m_toigo_blunt_bob_with_bangs",
+  "haironly": true,
+  "macro": {
+   "gender": 1.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_male",
+  "hair": "toigo_blunt_bob_with_bangs",
+  "clothes": []
+ },
+ {
+  "id": "h_m_braid01",
+  "haironly": true,
+  "macro": {
+   "gender": 1.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_male",
+  "hair": "braid01",
+  "clothes": []
+ },
+ {
+  "id": "h_f_short01",
+  "haironly": true,
+  "macro": {
+   "gender": 0.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_female",
+  "hair": "short01",
+  "clothes": []
+ },
+ {
+  "id": "h_f_short02",
+  "haironly": true,
+  "macro": {
+   "gender": 0.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_female",
+  "hair": "short02",
+  "clothes": []
+ },
+ {
+  "id": "h_f_short03",
+  "haironly": true,
+  "macro": {
+   "gender": 0.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_female",
+  "hair": "short03",
+  "clothes": []
+ },
+ {
+  "id": "h_f_short04",
+  "haironly": true,
+  "macro": {
+   "gender": 0.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_female",
+  "hair": "short04",
+  "clothes": []
+ },
+ {
+  "id": "h_f_afro01",
+  "haironly": true,
+  "macro": {
+   "gender": 0.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_female",
+  "hair": "afro01",
+  "clothes": []
+ },
+ {
+  "id": "h_f_long01",
+  "haironly": true,
+  "macro": {
+   "gender": 0.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_female",
+  "hair": "long01",
+  "clothes": []
+ },
+ {
+  "id": "h_f_ponytail01",
+  "haironly": true,
+  "macro": {
+   "gender": 0.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_female",
+  "hair": "ponytail01",
+  "clothes": []
+ },
+ {
+  "id": "h_f_toigo_curled_under_bob",
+  "haironly": true,
+  "macro": {
+   "gender": 0.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_female",
+  "hair": "toigo_curled_under_bob",
+  "clothes": []
+ },
+ {
+  "id": "h_f_toigo_blunt_bob_with_bangs",
+  "haironly": true,
+  "macro": {
+   "gender": 0.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_female",
+  "hair": "toigo_blunt_bob_with_bangs",
+  "clothes": []
+ },
+ {
+  "id": "h_f_braid01",
+  "haironly": true,
+  "macro": {
+   "gender": 0.0,
+   "age": 0.45,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.25,
+    "asian": 0.25
+   }
+  },
+  "skin": "young_caucasian_female",
+  "hair": "braid01",
+  "clothes": []
  }
 ]
