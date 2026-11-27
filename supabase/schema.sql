@@ -236,3 +236,83 @@ begin
 end $$;
 drop trigger if exists players_keep_name on public.players;
 create trigger players_keep_name before update on public.players for each row execute function public.players_keep_name();
+
+-- Social em tempo real: mensagens privadas (chat do celular) e presentes entre jogadores ----------
+-- Posição e visual dos jogadores trafegam pelo Realtime (presence/broadcast), sem tabela.
+create table if not exists public.dms (
+  id          bigint generated always as identity primary key,
+  from_id     uuid not null default auth.uid() references public.players(id) on delete cascade,
+  to_id       uuid not null references public.players(id) on delete cascade,
+  text        text not null check (char_length(text) between 1 and 500),
+  created_at  timestamptz not null default now(),
+  read_at     timestamptz
+);
+create index if not exists dms_pair on public.dms (least(from_id,to_id), greatest(from_id,to_id), created_at desc);
+create index if not exists dms_to_unread on public.dms (to_id) where read_at is null;
+alter table public.dms enable row level security;
+drop policy if exists dms_read on public.dms;
+create policy dms_read on public.dms for select to authenticated using ((select auth.uid()) in (from_id, to_id));
+drop policy if exists dms_send on public.dms;
+create policy dms_send on public.dms for insert to authenticated with check (from_id = (select auth.uid()) and to_id <> (select auth.uid()));
+drop policy if exists dms_mark_read on public.dms;
+create policy dms_mark_read on public.dms for update to authenticated using (to_id = (select auth.uid())) with check (to_id = (select auth.uid()));
+-- só a coluna read_at pode mudar
+create or replace function public.dms_only_read()
+returns trigger language plpgsql set search_path = '' as $$
+begin
+  if new.from_id is distinct from old.from_id or new.to_id is distinct from old.to_id or new.text is distinct from old.text or new.created_at is distinct from old.created_at then
+    raise exception 'dm_readonly'; end if;
+  return new;
+end $$;
+drop trigger if exists dms_only_read on public.dms;
+create trigger dms_only_read before update on public.dms for each row execute function public.dms_only_read();
+
+create table if not exists public.gifts (
+  id          bigint generated always as identity primary key,
+  from_id     uuid not null references public.players(id) on delete cascade,
+  from_name   text not null,
+  to_id       uuid not null references public.players(id) on delete cascade,
+  kind        text not null check (kind in ('cash','drink','coffee','item')),
+  amount      bigint not null default 0 check (amount between 0 and 10000),
+  item        text check (char_length(item) <= 40),
+  created_at  timestamptz not null default now(),
+  claimed_at  timestamptz
+);
+create index if not exists gifts_to_open on public.gifts (to_id) where claimed_at is null;
+create index if not exists gifts_from_day on public.gifts (from_id, created_at);
+alter table public.gifts enable row level security;
+drop policy if exists gifts_read on public.gifts;
+create policy gifts_read on public.gifts for select to authenticated using ((select auth.uid()) in (from_id, to_id));
+-- sem insert/update direto: só pelas funções abaixo
+
+-- Enviar presente: dinheiro até $10 mil por envio e $25 mil por dia (por remetente)
+create or replace function public.send_gift(p_to uuid, p_kind text, p_amount bigint default 0, p_item text default null)
+returns bigint language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid(); nm text; gid bigint; today bigint;
+begin
+  if me is null then raise exception 'not_authenticated'; end if;
+  if p_to = me then raise exception 'self_gift'; end if;
+  select name into nm from public.players where id = me;
+  if nm is null or not exists (select 1 from public.players where id = p_to) then raise exception 'unknown_player'; end if;
+  if p_kind not in ('cash','drink','coffee','item') then raise exception 'bad_kind'; end if;
+  if p_kind = 'cash' then
+    if p_amount < 1 or p_amount > 10000 then raise exception 'bad_amount'; end if;
+    select coalesce(sum(amount),0) into today from public.gifts where from_id = me and kind = 'cash' and created_at > now() - interval '1 day';
+    if today + p_amount > 25000 then raise exception 'daily_limit'; end if;
+  elsif p_kind = 'item' then
+    if p_item is null or char_length(p_item) = 0 or char_length(p_item) > 40 then raise exception 'bad_item'; end if;
+  end if;
+  insert into public.gifts(from_id, from_name, to_id, kind, amount, item)
+    values (me, nm, p_to, p_kind, case when p_kind = 'cash' then p_amount else 0 end, case when p_kind = 'item' then p_item end)
+    returning id into gid;
+  return gid;
+end $$;
+-- Receber: marca como resgatado e devolve (atômico: cada presente é aplicado uma vez só)
+create or replace function public.claim_gifts()
+returns setof public.gifts language sql security definer set search_path = '' as $$
+  update public.gifts set claimed_at = now() where to_id = auth.uid() and claimed_at is null returning *;
+$$;
+revoke all on function public.send_gift(uuid,text,bigint,text) from public, anon;
+revoke all on function public.claim_gifts() from public, anon;
+grant execute on function public.send_gift(uuid,text,bigint,text) to authenticated;
+grant execute on function public.claim_gifts() to authenticated;

@@ -404,6 +404,7 @@
   #bigmap .bmfbtn{background:none;border:0;text-align:left;padding:2px 0;cursor:pointer}
   #bigmap .bmchips button{padding:4px 8px!important;font-size:11px!important}
   #bigmap .bmx{width:32px!important;height:32px!important;font-size:14px!important}
+  .dmbox{max-height:calc(var(--uh,1vh)*42);min-height:120px;display:flex;flex-direction:column;gap:5px}.dm{align-self:flex-start;max-width:80%;background:#24282f;border-radius:12px 12px 12px 3px;padding:6px 10px;font-size:13px;line-height:1.35}.dm.me{align-self:flex-end;background:#3a5f2e;border-radius:12px 12px 3px 12px}.dm i{display:block;font-style:normal;font-size:10px;color:var(--dim);text-align:right;margin-top:2px}.badge{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:#e8503a;color:#fff;font-size:11px;font-weight:800;text-align:center}
   .elev{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}.ebtn{display:grid;grid-template-columns:38px 1fr;grid-template-rows:auto auto;align-items:center;text-align:left;background:#1d2026;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:6px 8px;color:var(--cream);column-gap:8px}
   .ebtn b{grid-row:1/3;width:34px;height:34px;border-radius:50%;border:2px solid #c89a3a;display:flex;align-items:center;justify-content:center;font-size:14px;color:#f1cf7a}.ebtn span{font-weight:700;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ebtn i{font-style:normal;font-size:11px;color:var(--dim)}.ebtn.cur{opacity:.45}.ebtn.cur b{background:#c89a3a;color:#1a1408}
   #bigmap .bmtabs{display:grid;grid-template-columns:1fr 1fr;background:#1c1f24;border-radius:10px;padding:3px;gap:3px;flex:none}
@@ -2425,7 +2426,7 @@ function updateLighting(){const a=(tod-0.25)*Math.PI*2,el=Math.sin(a),az=Math.co
 /* ============================ VOCÊ (personagem configurável) ============================ */
 const AVATAR=Object.assign({...SHAPE,name:'',skin:1,hair:1,hairStyle:'curto',top:0,
   topStyle:'terno',pants:0,build:'A',height:1,iris:'castanho',beard:'não',shoeStyle:'auto',acc:''},readJSON('auvra_avatar')||{});
-function saveAvatar(){writeJSON('auvra_avatar',AVATAR);}
+function saveAvatar(){writeJSON('auvra_avatar',AVATAR);if(typeof MP!=='undefined'&&MP.ch&&started){clearTimeout(saveAvatar.t);saveAvatar.t=setTimeout(()=>MP.trackMe(),800);}}
 function normalizeAvatar(){
   if(AVATAR.beard===true||AVATAR.beard==='sim')AVATAR.beard='cheia';
   if(AVATAR.beard===false)AVATAR.beard='não';
@@ -2612,7 +2613,8 @@ function updateInteract(){const act=document.getElementById('actBtn'),lbl=docume
   if(PCAR&&PCAR.driving){best={kind:'exitcar'};}
   else if(INT.active){const hx=M(hero.x)-IORIG.x,hz=M(hero.y)-IORIG.z;
     for(const p of INT.props){const d=Math.hypot(hx-p.x,hz-p.z);if(d<p.r&&d<bd){bd=d;best={kind:'prop',p};}}
-    for(const p of INT.people){const d=Math.hypot(hx-p.x,hz-p.z);if(d<1.5&&d<bd){bd=d;best={kind:'iperson',p};}}}
+    for(const p of INT.people){const d=Math.hypot(hx-p.x,hz-p.z);if(d<1.5&&d<bd){bd=d;best={kind:'iperson',p};}}
+    {const rn=remoteNear();if(rn&&M(rn.d)<1.6){best={kind:'mp',r:rn.r};}}}
   else{const R=TILE*1.7;
     for(const b of buildings){const [fx,fy]=bFront(b);const d=Math.hypot(hero.x-fx,hero.y-fy);if(d<R&&d<bd){bd=d;best={kind:'b',b};}}
     for(const w of workers){if(!w.contact)continue;const d=Math.hypot(hero.x-w.x,hero.y-w.y);if(d<TILE*1.5&&d<bd){bd=d;best={kind:'c',w};}}
@@ -2622,13 +2624,15 @@ function updateInteract(){const act=document.getElementById('actBtn'),lbl=docume
     {const gn=gbNear();if(gn&&gn.d+TILE*0.25<bd){bd=gn.d;best={kind:'gb',g:gn.g};}}
     if(PCAR){const d=PX(Math.hypot(M(hero.x)-PCAR.x,M(hero.y)-PCAR.z));if(d<TILE*0.85&&d<bd){bd=d;best={kind:'car'};}}
     if(TAXI&&TAXI.ready){const d=PX(Math.hypot(M(hero.x)-TAXI.x,M(hero.y)-TAXI.z));if(d<TILE*1.0&&d<bd){bd=d;best={kind:'taxi'};}}
-    for(const c of CROWD){const d=PX(Math.hypot(M(hero.x)-c.mesh.position.x,M(hero.y)-c.mesh.position.z));if(d<TILE*0.42&&d<bd){bd=d;best={kind:'ped',c};}}}
+    for(const c of CROWD){const d=PX(Math.hypot(M(hero.x)-c.mesh.position.x,M(hero.y)-c.mesh.position.z));if(d<TILE*0.42&&d<bd){bd=d;best={kind:'ped',c};}}
+    {const rn=remoteNear();if(rn&&rn.d<TILE*0.9){best={kind:'mp',r:rn.r};}}}
   interactTarget=best;if(!best){act.classList.remove('on');lbl.classList.remove('on');return;}
   if(best.kind==='b'){const b=best.b;if(b.sede){ico='⭐';txt='Entrar';sub='Sua sede — computador, estante, telefone';}else if(b.co&&b.co.build>0){ico='🏗️';txt='Obra';sub=b.co.name+' · pronta em '+b.co.build+' dia(s)';}else if(b.co){ico=NICHE[b.co.niche].ico;txt='Entrar';sub=b.co.name+' · ver a equipe trabalhando';}else{ico='🚩';txt='Visitar';sub=b.rv.name+' (concorrente)';}}
   else if(best.kind==='c'){ico='💬';txt='Conversar';sub=best.w.contact.name+' · '+best.w.contact.role;}
   else if(best.kind==='l'){const I=best.L.info,g=GB.find(x=>x.L===best.L&&x.face===best.L.face);ico=I.ico;txt=g||I.act==='market'?'Entrar':I.act==='bank'?'Banco':'Conhecer';sub=I.name+(g?' · '+({torre:g.floors+' andares',salao:'salão de eventos',banco:'salão do banco',museu:'museu',igreja:'igreja'})[g.type]:'');}
   else if(best.kind==='sp'){const S_=SPECIAL[best.k];ico=S_.ico;txt='Entrar';sub=best.k==='home'?'Sua casa — '+HOME_DEF[S.assets.home].n:best.k==='dealer'?S_.name+' · carros à venda':best.k==='rest'?S_.name+' · restaurante':best.k.startsWith('broker:')?S_.name+' · corretora':best.k.startsWith('shop:')?S_.name+' · '+SHOPS[best.k.slice(5)].txt.toLowerCase():(()=>{const j=JOBS.find(x=>'job:'+x.id===best.k);return S_.name+' · '+(S.job&&S.job.id===j.id?'seu emprego':'vaga: '+j.t);})();}
   else if(best.kind==='gb'){[ico,txt,sub]=gbLabel(best.g);}
+  else if(best.kind==='mp'){ico='🙂';txt='Falar';sub=best.r.name+' · jogador(a) online';}
   else if(best.kind==='meet'){ico='🤝';txt='Reunião';sub='Reunião marcada · '+fmtHour(best.a.hour);}
   else if(best.kind==='car'){ico='🚗';txt='Dirigir';sub='Seu '+CAR_DEF[PCAR.tier].n;}
   else if(best.kind==='taxi'){ico='🚕';txt='Entrar';sub='Táxi para '+TAXI.d.name;}
@@ -2637,9 +2641,9 @@ function updateInteract(){const act=document.getElementById('actBtn'),lbl=docume
   else if(best.kind==='prop'){ico=best.p.ico;txt=best.p.txt.length>12?best.p.txt.split(' ')[0]:best.p.txt;sub=best.p.txt+' · '+best.p.sub;}
   else if(best.kind==='iperson'&&best.p.staff){const p=best.p;ico='🧑‍💼';txt='Falar';sub=p.mem.name+' · '+p.roleName;}
   else if(best.kind==='iperson'){const p=best.p;ico='💬';txt=p.cand?'Entrevistar':'Falar';sub=p.cand?'Candidato(a) · '+p.cand.e.name+' · '+p.cand.e.role:p.e?p.e.name+' · '+p.e.role+(p.e.offer?' · 📞 proposta':''):'Puxar conversa';}
-  const key=best.kind+ico+txt+sub;if(act.dataset.k!==key){act.dataset.k=key;act.querySelector('.ai').innerHTML=icon(best.kind==='c'||best.kind==='ped'||best.kind==='iperson'?'chat':(best.kind==='car'||best.kind==='taxi')?'car':'enter');act.querySelector('.al').textContent=txt;lbl.innerHTML=esc(sub);}
+  const key=best.kind+ico+txt+sub;if(act.dataset.k!==key){act.dataset.k=key;act.querySelector('.ai').innerHTML=icon(best.kind==='c'||best.kind==='ped'||best.kind==='iperson'||best.kind==='mp'?'chat':(best.kind==='car'||best.kind==='taxi')?'car':'enter');act.querySelector('.al').textContent=txt;lbl.innerHTML=esc(sub);}
   act.classList.add('on');lbl.classList.add('on');}
-function doInteract(t){t=t||interactTarget;if(!t)return;if(t.kind==='gb'){gbEnter(t.g);return;}
+function doInteract(t){t=t||interactTarget;if(!t)return;if(t.kind==='gb'){gbEnter(t.g);return;}if(t.kind==='mp'){openPlayer(t.r);return;}
   if(t.kind==='b'){const b=t.b,ex=bFront(b);if(b.sede)enterInterior({kind:'sede',title:'Sua sede',exit:ex});else if(b.co&&b.co.build>0)openSite(b.co);else if(b.co)enterInterior({kind:'office',co:b.co,title:b.co.name,exit:ex});else if(b.rv)enterInterior({kind:'rival',rv:b.rv,title:b.rv.name,exit:ex});}
   else if(t.kind==='sp'){const sp=SPECIAL[t.k];if(t.k==='home')enterInterior({kind:'home',title:HOME_DEF[S.assets.home].n,exit:sp.front});else if(t.k==='dealer')enterInterior({kind:'dealer',title:'Manhattan Motors',exit:sp.front});else if(t.k==='rest')enterInterior({kind:'restaurant',title:'The Exchange Grill',exit:sp.front,key:'rest'});else if(t.k==='shop:ravelle'&&netWorth()<1e6&&S.phase<4)modal('👑','Atelier Ravelle','<p class="quote">"Boa tarde. Trabalhamos apenas com hora marcada."</p><p class="small">O ateliê atende clientes com patrimônio a partir de '+money(1e6)+' (o seu: '+money(netWorth())+'). Volte quando o seu nome chegar antes de você.</p>',[{t:'Ok',fn:closeModal}]);else if(t.k.startsWith('shop:'))enterInterior({kind:'shop',shop:t.k.slice(5),title:sp.name,exit:sp.front,key:t.k});else if(t.k.startsWith('broker:'))enterInterior({kind:'broker',broker:t.k.slice(7),title:sp.name,exit:sp.front,key:t.k});else{const j=JOBS.find(x=>'job:'+x.id===t.k);enterInterior({kind:'job',job:j,title:j.co,exit:sp.front,key:t.k});}}
   else if(t.kind==='meet')startMeeting(t.a);
@@ -3548,7 +3552,7 @@ function buildHeli(B,spec){const I=imat(),g=spec.gb,m=gbMeta(g),Fw=g.ground?16:g
 function enterInterior(spec){if(INT.active)exitInterior();if(PCAR&&PCAR.driving)return;closeModal();cancelPlacing&&placing&&cancelPlacing();document.getElementById('tray').classList.remove('on');
   INT.active=spec;INT.back={x:hero.x,y:hero.y,yaw:CAM.yaw,dist:CAM.dist,pitch:CAM.pitch};INT.obst=[];INT.props=[];INT.people=[];INT.spin=[];INT.spinFast=[];INT.seats=[];INT.talkP=null;
   if(spec.roof){IORIG.x=spec.ox;IORIG.z=spec.oz;HEROY=spec.y;} // heliponto: no topo real do prédio, com a cidade à vista
-  const keep=new Set([sun,sun.target,hemi,camera,heroMesh]);INT.hidden=[];if(!spec.roof)for(const o of scene.children)if(!keep.has(o)&&o.visible){INT.hidden.push(o);o.visible=false;}
+  const keep=new Set([sun,sun.target,hemi,camera,heroMesh,REMOTE_G]);INT.hidden=[];if(!spec.roof)for(const o of scene.children)if(!keep.has(o)&&o.visible){INT.hidden.push(o);o.visible=false;}
   INT.group=new THREE.Group();INT.group.position.set(IORIG.x,spec.roof?spec.y:0,IORIG.z);scene.add(INT.group);const B=new Batch();
   ({office:buildOffice,sede:buildSedeRoom,rival:buildRivalLobby,home:buildHome,dealer:buildShowroom,job:jobInterior,restaurant:restaurantInterior,garage:garageInterior,nyse:buildNYSE,broker:buildBroker,shop:buildShop,salao:buildSalao,banco:buildBanco,museu:buildMuseu,igreja:buildIgreja,store:buildStore,lobby:buildLobby,ofloor:buildOfficeFloor,apt:buildApt,lounge:buildLounge,pent:buildPent,heli:buildHeli})[spec.kind](B,spec);
   if(spec.kind==='office')placeCandidates(B,spec.co);if(spec.kind==='sede')sedeMeetingHook();INT.staffP=null;addStaff(spec);
@@ -3722,12 +3726,13 @@ function placeOf(key){if(key==='sede')return {x:bFront(sede)[0],y:bFront(sede)[1
   const sp=SPECIAL[key];return sp?{x:sp.front[0],y:sp.front[1],name:sp.name}:null;}
 /* ---- AuvraOS: o celular do jogador ---- */
 let osTab='agenda';
-function openOS(tab){osTab=tab||osTab;const unread=S.inbox.filter(m=>!m.read).length;const tabs=[['agenda','📅 Agenda'],['msg','✉️ Mensagens'+(unread?' ('+unread+')':'')],['invest','📈 Investir'],['taxi','🚕 Táxi'],['jobs','💼 Vagas'],['news','📰 Notícias']];
+function openOS(tab){osTab=tab||osTab;const unread=S.inbox.filter(m=>!m.read).length;const tabs=[['agenda','📅 Agenda'],['msg','✉️ Mensagens'+(unread?' ('+unread+')':'')],['amigos','👥 Contatos'+(dmUnreadTotal()?' ('+dmUnreadTotal()+')':'')],['invest','📈 Investir'],['taxi','🚕 Táxi'],['jobs','💼 Vagas'],['news','📰 Notícias']];
   let body='<div class="seg" style="margin-bottom:8px">'+tabs.map(([k,l])=>'<button data-os="'+k+'" class="'+(k===osTab?'on':'')+'">'+l+'</button>').join('')+'</div>';
   if(osTab==='agenda'){const it=S.agenda.filter(a=>a.day>=S.day).sort((a,b)=>a.day-b.day||a.hour-b.hour);
     body+='<p class="small">Agora: dia '+S.day+' · '+fmtHour(nowHour())+(timeScale()<1?' · ⏱ modo agenda (tempo mais lento)':'')+'</p>'+(it.length?it.map(a=>'<div class="lrow" data-wp="'+a.id+'"><span>'+(a.status==='done'?'✅':'📍')+' <b>'+esc(a.title)+'</b><br><span class="small">Dia '+a.day+' · '+fmtHour(a.hour)+' · '+esc(a.place?a.place.name:'')+'</span></span><span class="small">'+(a.status==='pending'?'Ir ›':a.status==='done'?'feito':'perdido')+'</span></div>').join(''):'<p class="small">Nenhum compromisso. Arrume um emprego ou aceite convites de reunião.</p>');}
   else if(osTab==='msg')body+=S.inbox.length?S.inbox.map(m=>{m.read=true;return '<div class="lrow"><span>'+m.ico+' <b>'+esc(m.from)+'</b><br><span class="small">'+esc(m.txt)+'</span></span><span class="small">dia '+m.d+'</span></div>';}).join(''):'<p class="small">Sem mensagens.</p>';
   else if(osTab==='invest'){osTab='agenda';closeModal();openInvest();return;}
+  else if(osTab==='amigos'){osTab='agenda';closeModal();openContacts();return;}
   else if(osTab==='taxi'&&!TAXI&&!INT.active&&!(PCAR&&PCAR.driving)){osTab='agenda';closeModal();openTaxiMap();return;}
   else if(osTab==='taxi')body+=taxiTab();
   else if(osTab==='jobs')body+=JOBS.map(j=>{const sp=SPECIAL['job:'+j.id];const ok=S.phase>=j.phase;const mine=S.job&&S.job.id===j.id;return '<div class="lrow" data-job="'+j.id+'"><span>'+j.ico+' <b>'+esc(j.t)+'</b> · '+esc(j.co)+'<br><span class="small">'+money(jobPay(j,0))+'/turno · turno às '+fmtHour(j.hour)+' · '+(ok?esc(j.req):'🔒 fase '+j.phase+'+')+'</span></span><span class="small">'+(mine?'seu emprego':'ver no mapa ›')+'</span></div>';}).join('');
@@ -3986,6 +3991,7 @@ function frame(now){const dt=Math.min((now-last)/1000,0.05);last=now;
     tod=SETTINGS.cycle?nowHour()/24:0.45;
     const dp=document.getElementById('dayProg');if(dp)dp.style.width=(dayAcc/DAY_SEC*100)+'%';
     if(INT.active){updateSleep(dt);updateHero(dt);updateInterior(dt);updateTicker(dt);}else{updateDelivery();updateFame(dt);updateWorkers(dt);updateDriving(dt);updateTaxi(dt);updateHero(dt);updateTraffic(dt);updateCrowd(dt);updateNPCs(dt);updateSteam(dt);syncBuildings();updateGhost();}updateCamera(dt);updateLighting();updateInteract();updateGuide(dt);
+    if(started){updateRemotes(dt);if(MP.on)MP.posTick(dt);}
     if(started&&now-(frame.saved||0)>30000){frame.saved=now;saveLocal();frame.n=(frame.n||0)+1;if(frame.n%2===0)MP.saveCloud();}
     if(SETTINGS.quality==='media'&&CAM.mode!=='menu'&&now-lastShadow>=125){sun.shadow.needsUpdate=true;lastShadow=now;}
     if(!INT.active)updatePersonLODs();renderer.render(scene,camera);
@@ -4348,6 +4354,113 @@ function loadGame(d){S=Object.assign(newState(),d.S);S.speed=1;companies=[];riva
   const h=(!fresh&&d.hero&&walkable(d.hero.x,d.hero.y))?d.hero:heroStart();makeHero(h.x,h.y);
   if(d.avatar&&!readJSON('auvra_avatar')){Object.assign(AVATAR,d.avatar);normalizeAvatar();saveAvatar();rebuildHero();}lastPhase=S.phase;}
 addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){saveLocal();MP.saveCloud();}});addEventListener('pagehide',()=>{saveLocal();MP.saveCloud();});
+/* ============================ ENCONTRO MULTIPLAYER ============================
+   Quem está online aparece no mapa (mesmo lugar = rua, ou o mesmo prédio/andar), com o próprio visual e o nome.
+   Perto dele(a): acenar, pagar café/drink, dar dinheiro ou roupa, adicionar aos contatos e conversar pelo celular.
+   Posição e visual: Supabase Realtime (broadcast/presence). Mensagens e presentes: tabelas dms/gifts (RLS + RPC). */
+const REMOTES=new Map();let REMOTE_G=null;
+function lookOfAv(av){const g=av.gender||(av.build==='B'?'f':'m');
+  const colors={skin:PAL.skin[av.skin]??PAL.skin[1],hair:PAL.hair[av.hair]??PAL.hair[1],top:PAL.top[av.top]??PAL.top[0],pants:PAL.pants[av.pants]??PAL.pants[0],
+    shirt:PAL.shirt[av.shirt]??(g==='f'&&['blazer','smart','terno','alfaiataria'].includes(av.topStyle)?0x23262c:PAL.shirt[0])};
+  return {...av,gender:g,...colors,tie:0xc9a24a};}
+// "espaço" onde o jogador está: a rua, ou um interior (casa/sede/empresa são privados de cada um)
+function mySpace(){const a=INT.active;if(!a)return 'city';const own=['home','sede','office','rival','garage'].includes(a.kind);
+  const id=a.key||a.shop||a.broker||(a.job&&a.job.id)||(a.co&&a.co.id)||a.title||'';return a.kind+':'+id+(a.floor!=null&&!String(id).includes('-'+a.floor)?':'+a.floor:'')+(own?':'+MP.uid:'');}
+function nameTag(name){const {c,g}=makeCanvas(256,64);g.font='bold 30px system-ui,sans-serif';const w=Math.min(244,g.measureText(name).width+30);
+  g.fillStyle='rgba(12,14,18,.78)';g.beginPath();g.roundRect((256-w)/2,10,w,44,22);g.fill();g.fillStyle='#4fe08a';g.beginPath();g.arc((256-w)/2+16,32,6,0,7);g.fill();
+  g.fillStyle='#f4efe4';g.textAlign='center';g.textBaseline='middle';g.fillText(name,128+8,33);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:texFrom(c),transparent:true,depthWrite:false}));sp.scale.set(1.2,0.3,1);sp.position.y=2.12;sp.renderOrder=5;return sp;}
+function remoteFor(id,p){let r=REMOTES.get(id);if(!REMOTE_G){REMOTE_G=new THREE.Group();scene.add(REMOTE_G);}
+  if(!r){r={id,name:p.name||'Jogador',x:0,y:0,cx:null,cy:null,h:0,sp:'?',hy:0,t:0,avk:'',mesh:null,tag:null,emo:null,emoT:0};REMOTES.set(id,r);}
+  const avk=JSON.stringify(p.av||{});if(p.av&&avk!==r.avk){r.avk=avk;const old=r.mesh;r.mesh=buildPerson(lookOfAv(p.av));personLOD(r.mesh,SETTINGS.quality==='baixa'?2:1);r.mesh.visible=false;REMOTE_G.add(r.mesh);
+    if(old){r.mesh.position.copy(old.position);r.mesh.rotation.y=old.rotation.y;REMOTE_G.remove(old);disposePerson(old);}}
+  if(p.name&&(p.name!==r.name||!r.tag)){r.name=p.name;if(r.tag){r.tag.parent&&r.tag.parent.remove(r.tag);r.tag.material.map.dispose();r.tag.material.dispose();}r.tag=nameTag(r.name);}
+  if(r.mesh&&r.tag&&r.tag.parent!==r.mesh)r.mesh.add(r.tag);return r;}
+function dropRemote(id){const r=REMOTES.get(id);if(!r)return;if(r.mesh){REMOTE_G.remove(r.mesh);disposePerson(r.mesh);}if(r.car){REMOTE_G.remove(r.car);r.car.geometry.dispose();}REMOTES.delete(id);}
+function remotePos(p){if(!p||p.id===MP.uid)return;const r=remoteFor(p.id,MP.online[p.id]||{name:p.name});r.x=p.x;r.y=p.y;r.h=p.h||0;r.sp=p.sp;r.hy=p.hy||0;r.dr=!!p.dr;r.t=performance.now();if(r.cx==null||r.sp!==r.lastSp){r.cx=p.x;r.cy=p.y;}r.lastSp=r.sp;}
+function updateRemotes(dt){if(!REMOTES.size)return;const here=mySpace(),now=performance.now();
+  for(const r of REMOTES.values()){if(!r.mesh)continue;const vis=r.sp===here&&now-r.t<25000&&!!MP.online[r.id];
+    if(r.dr&&vis){if(!r.car){r.car=buildCar('black');REMOTE_G.add(r.car);}}
+    if(r.car)r.car.visible=vis&&r.dr;r.mesh.visible=vis&&!r.dr;if(!vis)continue;
+    const dx=r.x-r.cx,dy=r.y-r.cy,d=Math.hypot(dx,dy);if(d>TILE*8){r.cx=r.x;r.cy=r.y;}else{const k=Math.min(1,dt*6);r.cx+=dx*k;r.cy+=dy*k;}
+    const spd=d>1?Math.min(6.2,M(d*Math.min(1,dt*6))/Math.max(dt,0.001)):0;const y=here===r.sp&&r.hy?r.hy:0;
+    if(r.dr){r.car.position.set(M(r.cx),0,M(r.cy));r.car.rotation.y=turnToward(r.car.rotation.y,r.h,dt);}
+    else{r.mesh.position.set(M(r.cx),y,M(r.cy));r.mesh.rotation.y=turnToward(r.mesh.rotation.y,r.h,dt);animPerson(r.mesh,spd<0.15?0:spd,dt);}
+    if(r.emo){r.emoT-=dt;r.emo.position.y=2.75+Math.sin(now/200)*0.05;if(r.emoT<=0){r.mesh.remove(r.emo);r.emo.material.dispose();r.emo=null;}}}}
+function remoteEmote(id,e){const r=REMOTES.get(id);if(!r||!r.mesh)return;if(r.emo){r.mesh.remove(r.emo);r.emo.material.dispose();}
+  r.emo=new THREE.Sprite(new THREE.SpriteMaterial({map:emojiTex(e),transparent:true,depthWrite:false}));r.emo.scale.set(0.7,0.7,1);r.emo.position.y=2.75;r.mesh.add(r.emo);r.emoT=3.2;
+  if(r.mesh.visible&&hero&&Math.hypot(hero.x-r.cx,hero.y-r.cy)<TILE*6)toast(e+' '+r.name);}
+function remoteNear(){let best=null,bd=TILE*1.1;for(const r of REMOTES.values()){if(!r.mesh||!r.mesh.visible)continue;const d=Math.hypot(hero.x-r.cx,hero.y-r.cy);if(d<bd){bd=d;best=r;}}return best?{r:best,d:bd}:null;}
+/* ---- contatos (jogadores) ---- */
+function isFriend(id){return (S.friends||[]).some(f=>f.id===id);}
+function addFriend(id,name){S.friends=S.friends||[];if(!isFriend(id)){S.friends.push({id,name});log('📇 '+name+' agora está nos seus contatos.');saveLocal();toast('📇 '+name+' adicionado(a) aos contatos');}}
+function playerPlace(){const a=INT.active;if(!a)return 'na rua';return 'em '+(a.title||'um prédio');}
+function openPlayer(r){const p=MP.online[r.id]||{},fr=isFriend(r.id);INT.talkP=null;
+  modal('🙂',esc(r.name),'<div class="kpis">'+kpi('Fase',p.phase||1)+kpi('Patrimônio',money(p.net||0),'var(--gold)')+'</div><p class="small">Jogador(a) online agora, '+playerPlace()+'.</p>',[
+    {t:'💬 Mandar mensagem',d:'Abre a conversa no seu celular',fn:()=>openDM(r.id,r.name)},
+    {t:fr?'✔ Está nos seus contatos':'📇 Adicionar aos contatos',dis:fr,fn:()=>{addFriend(r.id,r.name);openPlayer(r);}},
+    {t:'👋 Acenar',fn:()=>{closeModal();MP.emote('👋');}},
+    {t:'☕ Pagar um café · $5',d:'Ele(a) ganha ⚡+3',fn:()=>giveTreat(r,'coffee',5)},
+    {t:'🍸 Pagar um drink · $18',d:'Ele(a) ganha ⚡+6',fn:()=>giveTreat(r,'drink',18)},
+    {t:'💵 Dar dinheiro',d:'Até $10 mil por vez · $25 mil por dia',fn:()=>giveCash(r)},
+    {t:'🎁 Dar uma peça de roupa',d:'Algo do seu guarda-roupa',fn:()=>giveItem(r)},
+    {t:'↩ Fechar',fn:closeModal}]);}
+const GIFT_ERR={daily_limit:'Limite de $25 mil em presentes por dia.',bad_amount:'Valor inválido.',unknown_player:'Jogador(a) não encontrado(a).',self_gift:'Não dá para presentear a si mesmo.'};
+async function sendGift(r,kind,amount,item){if(!MP.on){toast('Sem conexão com o servidor');return false;}
+  const {error}=await MP.sb.rpc('send_gift',{p_to:r.id,p_kind:kind,p_amount:amount||0,p_item:item||null});
+  if(error){const k=Object.keys(GIFT_ERR).find(x=>String(error.message).includes(x));toast('⚠️ '+(GIFT_ERR[k]||'Não foi possível enviar agora.'));return false;}
+  MP.ch&&MP.ch.send({type:'broadcast',event:'gift',payload:{to:r.id}});return true;}
+async function giveTreat(r,kind,price){if(S.cash<price)return toast('Caixa insuficiente');S.cash-=price;refreshHUD();closeModal();
+  if(await sendGift(r,kind)){MP.emote(kind==='drink'?'🍸':'☕');log((kind==='drink'?'🍸 Você pagou um drink para ':'☕ Você pagou um café para ')+r.name+'.');toast((kind==='drink'?'🍸 Drink':'☕ Café')+' pago para '+r.name);}
+  else{S.cash+=price;refreshHUD();}}
+function giveCash(r){const opts=[100,500,1000,5000,10000].filter(v=>v<=S.cash);
+  modal('💵','Dar dinheiro para '+esc(r.name),'<p class="small">Sai do seu caixa ('+money(S.cash)+'). Limite de $10 mil por envio e $25 mil por dia.</p>',
+    (opts.length?opts.map(v=>({t:'💵 '+money(v),fn:async()=>{if(S.cash<v)return toast('Caixa insuficiente');S.cash-=v;refreshHUD();closeModal();if(await sendGift(r,'cash',v)){log('💵 Você deu '+money(v)+' para '+r.name+'.');toast('💵 '+money(v)+' enviados para '+r.name);MP.emote('💵');}else{S.cash+=v;refreshHUD();}}})):[{t:'Caixa insuficiente',dis:true}]).concat([{t:'↩ Voltar',fn:()=>openPlayer(r)}]));}
+function giveItem(r){const worn=new Set(['topStyle','shoeStyle','acc','jewel'].map(k=>wkey(k,AVATAR[k])));const own=(S.wardrobe||[]).filter(k=>!worn.has(k)).map(k=>[k,witem(...k.split(':'))]).filter(([k,w])=>w);
+  modal('🎁','Dar uma peça para '+esc(r.name),own.length?'<p class="small">Só peças que você não está vestindo. A peça sai do seu guarda-roupa.</p>':'<p class="small">Você não tem peças sobrando (a que está vestindo não conta).</p>',
+    own.slice(0,10).map(([k,w])=>({t:'🎁 '+itemName(w[0],w[1]),d:'Vale '+money(w[2]),fn:async()=>{const i=S.wardrobe.indexOf(k);if(i<0)return;S.wardrobe.splice(i,1);closeModal();if(await sendGift(r,'item',0,k)){log('🎁 Você deu '+itemName(w[0],w[1])+' para '+r.name+'.');toast('🎁 Presente entregue');MP.emote('🎁');saveLocal();}else S.wardrobe.push(k);}})).concat([{t:'↩ Voltar',fn:()=>openPlayer(r)}]));}
+async function claimGifts(){if(!MP.on||!started)return;const {data,error}=await MP.sb.rpc('claim_gifts');if(error||!data||!data.length)return;
+  for(const g of data){const n=g.from_name;let txt;
+    if(g.kind==='cash'){S.cash+=Number(g.amount);txt=n+' te deu '+money(Number(g.amount))+'.';}
+    else if(g.kind==='drink'){S.energy=Math.min(S.energy+6,120);txt=n+' pagou um drink para você. ⚡+6';}
+    else if(g.kind==='coffee'){S.energy=Math.min(S.energy+3,120);txt=n+' pagou um café para você. ⚡+3';}
+    else if(g.kind==='item'){const [k,v]=String(g.item).split(':');const w=witem(k,v);if(w&&!owned(k,v)){S.wardrobe=S.wardrobe||[];S.wardrobe.push(g.item);}txt=n+' te deu '+(w?itemName(k,v):'um presente')+'.';}
+    else continue;inbox(n,txt,'🎁');log('🎁 '+txt);toast('🎁 '+txt);}
+  refreshHUD();saveLocal();}
+/* ---- celular: contatos e conversas ---- */
+const DM={open:null,unread:{},names:{},recent:[],contactsOpen:false};
+async function loadRecentDMs(){if(!MP.on)return;const {data}=await MP.sb.from('dms').select('from_id,to_id,created_at').or('from_id.eq.'+MP.uid+',to_id.eq.'+MP.uid).order('created_at',{ascending:false}).limit(120);
+  const ids=[];for(const d of data||[]){const o=d.from_id===MP.uid?d.to_id:d.from_id;if(!ids.includes(o))ids.push(o);}const miss=ids.filter(i=>!DM.names[i]);
+  if(miss.length){const {data:pl}=await MP.sb.from('players').select('id,name').in('id',miss);for(const p of pl||[])DM.names[p.id]=p.name;}DM.recent=ids.slice(0,12);}
+function openContacts(fresh){if(!fresh)loadRecentDMs().then(()=>{if(DM.contactsOpen)openContacts(true);});const on=Object.values(MP.online).filter(p=>p.id!==MP.uid),fr=S.friends||[];const ids=new Set(fr.map(f=>f.id));
+  const extra=[...new Set(Object.keys(DM.unread).filter(id=>DM.unread[id]).concat(DM.recent))].filter(id=>!ids.has(id)).map(id=>({id,name:DM.names[id]||'Jogador'}));
+  const row=(f,online)=>'<div class="lrow" data-dm="'+f.id+'" data-nm="'+esc(f.name)+'"><span>'+(online?'🟢':'⚪')+' <b>'+esc(f.name)+'</b>'+(DM.unread[f.id]?' <span class="badge">'+DM.unread[f.id]+'</span>':'')+'<br><span class="small">'+(online?'online agora':'offline')+'</span></span><span class="small">conversar ›</span></div>';
+  const body=!MP.on?'<p class="small">Sem conexão com o servidor. Faça login para conversar com outros jogadores.</p>':
+    (fr.length||!extra.length?'<div class="sec">📇 SEUS CONTATOS</div>':'')+(fr.map(f=>row(f,!!MP.online[f.id])).join('')||(extra.length?'':'<p class="small">Ninguém ainda. Chegue perto de um jogador no mapa e toque em <b>Falar</b>, ou adicione alguém online abaixo.</p>'))+(extra.length?'<div class="sec">💬 CONVERSAS</div>'+extra.map(f=>row(f,!!MP.online[f.id])).join(''):'')+
+    '<div class="sec">🟢 ONLINE AGORA</div>'+(on.map(p=>'<div class="lrow"><span><b>'+esc(p.name)+'</b><br><span class="small">Fase '+(p.phase|0)+' · '+money(p.net||0)+'</span></span><span>'+(ids.has(p.id)?'<span class="small">contato ✔</span>':'<button class="sbtn" data-addf="'+p.id+'" data-nm="'+esc(p.name)+'">Adicionar</button>')+' <button class="sbtn" data-dm="'+p.id+'" data-nm="'+esc(p.name)+'">💬</button></span></div>').join('')||'<p class="small">Só você está online agora.</p>');
+  const m=modal('👥','Contatos',body,[{t:'↩ Celular',fn:()=>{DM.contactsOpen=false;openOS('agenda');}},{t:'Fechar',fn:()=>{DM.contactsOpen=false;closeModal();}}]);DM.contactsOpen=true;
+  m.querySelectorAll('[data-dm]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();DM.contactsOpen=false;openDM(b.dataset.dm,b.dataset.nm);});
+  m.querySelectorAll('[data-addf]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();addFriend(b.dataset.addf,b.dataset.nm);openContacts();});}
+function dmHtml(m){const mine=m.from_id===MP.uid;return '<div class="dm'+(mine?' me':'')+'">'+esc(m.text)+'<i>'+new Date(m.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</i></div>';}
+async function openDM(id,name){if(!MP.on)return toast('Sem conexão com o servidor');DM.open=id;DM.names[id]=name;DM.unread[id]=0;
+  const m=modal('💬',esc(name),'<div class="chat dmbox" id="dmBox"><p class="small">Carregando…</p></div><div class="chatin"><input id="dmIn" maxlength="500" placeholder="Mensagem para '+esc(name)+'…"><button class="sbtn" id="dmSend">Enviar</button></div>',
+    [{t:isFriend(id)?'↩ Contatos':'📇 Adicionar aos contatos',fn:()=>{if(!isFriend(id))addFriend(id,name);openContacts();}},{t:'Fechar',fn:()=>{DM.open=null;closeModal();}}]);
+  const send=async()=>{const i=document.getElementById('dmIn');const t=i&&i.value.trim();if(!t)return;i.value='';const row={from_id:MP.uid,to_id:id,text:t,created_at:new Date().toISOString()};
+    const b=document.getElementById('dmBox');if(b){b.insertAdjacentHTML('beforeend',dmHtml(row));b.scrollTop=b.scrollHeight;}
+    const {error}=await MP.sb.from('dms').insert({to_id:id,text:t});if(error){toast('⚠️ Mensagem não enviada');return;}
+    MP.ch&&MP.ch.send({type:'broadcast',event:'dm',payload:{to:id,from:MP.uid,name:S.name,text:t,t:Date.now()}});};
+  document.getElementById('dmSend').onclick=send;const di=document.getElementById('dmIn');di.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter')send();};
+  const {data}=await MP.sb.from('dms').select('from_id,to_id,text,created_at').or('and(from_id.eq.'+MP.uid+',to_id.eq.'+id+'),and(from_id.eq.'+id+',to_id.eq.'+MP.uid+')').order('created_at',{ascending:false}).limit(60);
+  const b=document.getElementById('dmBox');if(b&&DM.open===id){b.innerHTML=(data||[]).reverse().map(dmHtml).join('')||'<p class="small">Comece a conversa. As mensagens ficam guardadas mesmo se '+esc(name)+' estiver offline.</p>';b.scrollTop=b.scrollHeight;}
+  MP.sb.from('dms').update({read_at:new Date().toISOString()}).eq('from_id',id).eq('to_id',MP.uid).is('read_at',null).then(()=>{});buildToolbar();}
+function onDM(p){if(!p||p.to!==MP.uid)return;DM.names[p.from]=p.name;const b=document.getElementById('dmBox');
+  if(DM.open===p.from&&b){b.insertAdjacentHTML('beforeend',dmHtml({from_id:p.from,text:p.text,created_at:new Date(p.t||Date.now()).toISOString()}));b.scrollTop=b.scrollHeight;MP.sb.from('dms').update({read_at:new Date().toISOString()}).eq('from_id',p.from).eq('to_id',MP.uid).is('read_at',null).then(()=>{});}
+  else{DM.unread[p.from]=(DM.unread[p.from]||0)+1;toast('💬 '+p.name+': '+String(p.text).slice(0,60));buildToolbar();if(DM.contactsOpen&&modalOpen())openContacts(true);}}
+async function loadUnreadDMs(){if(!MP.on)return;const {data}=await MP.sb.from('dms').select('from_id').eq('to_id',MP.uid).is('read_at',null).limit(200);if(!data||!data.length)return;
+  for(const d of data)DM.unread[d.from_id]=(DM.unread[d.from_id]||0)+1;const ids=Object.keys(DM.unread);const {data:pl}=await MP.sb.from('players').select('id,name').in('id',ids);for(const p of pl||[])DM.names[p.id]=p.name;
+  const n=Object.values(DM.unread).reduce((a,b)=>a+b,0);if(n)toast('💬 '+n+' mensagem(ns) nova(s) no celular');buildToolbar();}
+function dmUnreadTotal(){return Object.values(DM.unread).reduce((a,b)=>a+(b||0),0);}
+
 /* ============================ MULTIPLAYER (Supabase: save na nuvem, ranking, M&A entre amigos, presença e chat) ============================ */
 /* Preencha com a URL e a publishable/anon key do seu projeto Supabase (são públicas por design — a segurança vem do RLS em supabase/schema.sql). */
 const MP_CONFIG={url:'https://pfjzbfnmarywacznmxqx.supabase.co',key:'sb_publishable_ABdjfCyWQlBBxKp0pwp7Ow_uD8FydqS'};
@@ -4369,7 +4482,7 @@ const MP={sb:null,uid:null,on:false,status:'offline (servidor não configurado)'
       data:{baseRev:c.baseRev,scale:c.scale,ops:c.ops,overhead:c.overhead,expandN:c.expandN||0,managed:!!c.managed,emp:c.employees.slice(0,40).map(e=>({n:e.name,r:e.role,f:e.fam,c:e.competence,s:e.salary}))},updated_at:new Date().toISOString()}));
     if(rows.length)await this.sb.from('listings').upsert(rows);
     const ids=companies.map(c=>c.id);let q=this.sb.from('listings').delete().eq('owner',this.uid);if(ids.length)q=q.not('id','in','('+ids.map(i=>'"'+i+'"').join(',')+')');await q;
-    if(this.ch)this.ch.track({id:this.uid,name:S.name,phase:S.phase,net:Math.round(netWorth())});
+    this.trackMe();claimGifts();
   }catch(e){console.warn('sync',e);}},
   async fetchListings(){if(!this.on)return;const {data}=await this.sb.from('listings').select('*').neq('owner',this.uid).order('value',{ascending:false}).limit(40);this.listings=data||[];},
   async fetchBoard(){if(!this.on)return;const {data}=await this.sb.from('players').select('id,name,net_worth,phase,day').order('net_worth',{ascending:false}).limit(20);this.board=data||[];},
@@ -4403,17 +4516,27 @@ const MP={sb:null,uid:null,on:false,status:'offline (servidor não configurado)'
     checkPhase();refreshHUD();refreshObj();saveLocal();this.saveCloud();this.sync();await this.fetchDeals();openFriends();},
   async cancel(id){const {error}=await this.sb.rpc('cancel_offer',{p_deal:id});if(error)return toast('Erro: '+error.message);await this.processDeals();openFriends();},
   joinRealtime(){const ch=this.sb.channel('meridian',{config:{presence:{key:this.uid}}});this.ch=ch;
-    ch.on('presence',{event:'sync'},()=>{const st=ch.presenceState();this.online={};for(const k in st){const p=st[k][0];if(p)this.online[k]=p;}refreshHUD();})
+    ch.on('presence',{event:'sync'},()=>{const st=ch.presenceState();this.online={};for(const k in st){const p=st[k][0];if(p)this.online[k]=p;}for(const k in this.online)if(k!==this.uid)remoteFor(k,this.online[k]);for(const id of [...REMOTES.keys()])if(!this.online[id])dropRemote(id);this.sendPos(true);refreshHUD();})
+      .on('broadcast',{event:'pos'},({payload})=>remotePos(payload))
+      .on('broadcast',{event:'emo'},({payload})=>payload&&remoteEmote(payload.id,payload.e))
+      .on('broadcast',{event:'dm'},({payload})=>onDM(payload))
+      .on('broadcast',{event:'gift'},({payload})=>{if(payload&&payload.to===this.uid)claimGifts();})
       .on('broadcast',{event:'chat'},({payload})=>{this.chat.push(payload);if(this.chat.length>60)this.chat.shift();const cb=document.getElementById('chatBox');if(cb){cb.insertAdjacentHTML('beforeend','<div><b>'+esc(payload.name)+':</b> '+esc(payload.text)+'</div>');cb.scrollTop=cb.scrollHeight;}else{this.unread++;buildToolbar();toast('💬 '+payload.name+': '+String(payload.text).slice(0,60));}})
       .on('broadcast',{event:'news'},({payload})=>{log('🌐 '+payload.text);toast('📰 '+payload.text);})
       .on('postgres_changes',{event:'*',schema:'public',table:'deals',filter:'seller=eq.'+this.uid},()=>{this.processDeals();})
       .on('postgres_changes',{event:'UPDATE',schema:'public',table:'deals',filter:'buyer=eq.'+this.uid},()=>{this.processDeals();})
-      .subscribe(st=>{if(st==='SUBSCRIBED')ch.track({id:this.uid,name:S.name,phase:S.phase,net:Math.round(netWorth())});});},
+      .subscribe(st=>{if(st==='SUBSCRIBED'){this.trackMe();this.sendPos(true);}});},
   say(text){if(!this.ch)return;const m={name:S.name,text:text.slice(0,200),t:Date.now()};this.ch.send({type:'broadcast',event:'chat',payload:m});this.chat.push(m);const cb=document.getElementById('chatBox');if(cb){cb.insertAdjacentHTML('beforeend','<div><b>'+esc(m.name)+':</b> '+esc(m.text)+'</div>');cb.scrollTop=cb.scrollHeight;}},
   news(text){if(this.ch)this.ch.send({type:'broadcast',event:'news',payload:{text}});},
   onDay(){if(!this.on)return;this.sync();this.saveCloud();this.processDeals();},
   async start(){if(!(await this.init()))return;await this.begin();},
-  async begin(){if(!this.on)return;this.joinRealtime();await this.sync();this.processDeals();this.fetchBoard();}};
+  async begin(){if(!this.on)return;this.joinRealtime();await this.sync();this.processDeals();this.fetchBoard();claimGifts();loadUnreadDMs();},
+  trackMe(){if(this.ch)this.ch.track({id:this.uid,name:S.name,phase:S.phase,net:Math.round(netWorth()),av:AVATAR});},
+  posT:0,hbT:0,last:null,
+  sendPos(force){if(!this.ch||!started||!hero)return;const sp=mySpace(),dr=!!(PCAR&&PCAR.driving),p={id:this.uid,name:S.name,x:Math.round(hero.x),y:Math.round(hero.y),h:+(dr?PCAR.yaw:(hero.heading||0)).toFixed(2),sp,hy:+HEROY.toFixed(1),dr:dr?1:0};
+    const l=this.last;if(!force&&l&&l.sp===sp&&Math.abs(l.x-p.x)<2&&Math.abs(l.y-p.y)<2&&Math.abs(l.h-p.h)<0.05&&this.hbT<4)return;this.last=p;this.hbT=0;this.ch.send({type:'broadcast',event:'pos',payload:p});},
+  posTick(dt){this.posT-=dt;this.hbT+=dt;this.gT=(this.gT||0)+dt;if(this.gT>20){this.gT=0;claimGifts();}if(this.posT>0)return;this.posT=0.25;this.sendPos(false);}, // ~4 msgs/s no máximo (o Realtime limita ~10/s por cliente)
+  emote(e){if(this.ch)this.ch.send({type:'broadcast',event:'emo',payload:{id:this.uid,e}});toast(e);}};
 
 
 /* ============================ MENU PRINCIPAL ============================ */

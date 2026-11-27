@@ -2,6 +2,13 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.7.0 — 2026-11-27
+- **feat(town): jogadores se encontram no mapa.** Antes o jogo só sabia quem estava online, sem posição nem avatar.
+  - **Encontro:** posição por broadcast (até 4/s e só quando há movimento, mais um sinal de vida a cada 4 s). Visual pela presença. Os outros jogadores são desenhados com interpolação, animação, placa de nome e "espaço" (a rua ou o mesmo interior e andar). Quem está dirigindo aparece como carro.
+  - **Interações:** acenar, pagar café/drink, dar dinheiro ou roupa e adicionar aos contatos.
+  - **Celular:** aba Contatos e chat privado persistente, com não lidas e aviso na hora.
+  - **Backend:** tabelas `dms` e `gifts` com RLS, RPCs `send_gift` (limite de $10 mil por envio e $25 mil por dia, sem autopresente) e `claim_gifts` (resgate atômico). Testado com PGlite e com dois navegadores simultâneos.
+
 ## 2.6.0 — 2026-11-27
 - **feat(town): Distrito Financeiro ampliado (etapa 1).** O mapa passa de 72×48 para 104×98. O núcleo original foi deslocado (OX=30, OY=36) sem mudar nenhum quarteirão.
   - **Ruas reais:** West St, Greenwich, Church St/Trinity Pl, Fulton (calçadão do Seaport), Maiden Ln, Liberty, Cedar, Rector e State St. Rio Hudson, Upper Bay e Battery Park.
