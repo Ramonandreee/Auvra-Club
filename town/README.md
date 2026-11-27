@@ -53,6 +53,22 @@ menu ou painel aberto.
 
 ## Vida em Wall Street (estilo mundo aberto)
 
+- **Interiores vivos (todos os lugares):**
+  - **Acabamento:** rodapé, sanca, quadros e um relógio de parede com a hora do jogo.
+  - **Janelas:** mostram o skyline de dia e, à noite, com as janelas acesas.
+  - **Sentar (🪑):** sofás, cadeiras, bancos de igreja e banquetas. Sentado, você recupera energia devagar; mexa o analógico para levantar.
+  - **Telas vivas:** cotações reais do jogo na corretora, no banco, no saguão das torres e no pregão do emprego, e manchetes do seu feed na TV.
+  - **Horário de funcionamento:** lojas, banco, museu, Bolsa, lounge etc. Fechado, a porta avisa quando abre.
+  - **Movimento por hora:** restaurante cheio no almoço e no jantar, lounge à noite, escritórios vazios fora do expediente.
+  - **Em casa:** TV (jornal e descanso), cozinha (mais barato que comer fora), banho (+5 de estilo no dia) e janela.
+  - **Nos lugares:**
+    - Empresa: painel de KPIs ao vivo na sala de reunião.
+    - Restaurante: almoço com um contato de network (relação +8).
+    - Banco: caixa eletrônico.
+    - Museu do Federal Hall: 4 exposições com fatos históricos.
+    - Igreja: acender uma vela.
+    - Loja de roupas: espelho.
+    - Comércio: prateleiras.
 - **Moradia de verdade:** não existe mais "sede".
   - **Home office:** você começa numa quitinete e faz freelas no notebook de casa. A estante de cursos e o quadro de metas também ficam em casa.
   - **Um prédio por nível:** quitinetes, residencial, lofts, coberturas e as penthouses do 70 Pine.
