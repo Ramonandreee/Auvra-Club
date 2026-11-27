@@ -18,7 +18,30 @@
   "eyebrows": "eyebrow010",
   "clothes": [
    "toigo_male_suit_3",
-   "toigo_ankle_boots_male"
+   "shoes04"
+  ]
+ },
+ {
+  "id": "m1c",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.42,
+   "muscle": 0.62,
+   "weight": 0.5,
+   "height": 0.62,
+   "race": {
+    "caucasian": 0.85,
+    "african": 0.0,
+    "asian": 0.15
+   }
+  },
+  "skin": "young_caucasian_male",
+  "hair": "short02",
+  "eyebrows": "eyebrow010",
+  "clothes": [
+   "elvs_crude_t-shirt_male",
+   "toigo_wool_pants",
+   "shoes05"
   ]
  },
  {
@@ -40,7 +63,30 @@
   "eyebrows": "eyebrow010",
   "clothes": [
    "male_elegantsuit01",
-   "toigo_ankle_boots_male"
+   "shoes04"
+  ]
+ },
+ {
+  "id": "m2c",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.55,
+   "muscle": 0.6,
+   "weight": 0.55,
+   "height": 0.6,
+   "race": {
+    "caucasian": 0.0,
+    "african": 1.0,
+    "asian": 0.0
+   }
+  },
+  "skin": "middleage_african_male",
+  "hair": "short04",
+  "eyebrows": "eyebrow010",
+  "clothes": [
+   "elvs_crude_t-shirt_male",
+   "toigo_wool_pants",
+   "shoes05"
   ]
  },
  {
@@ -62,7 +108,30 @@
   "eyebrows": "eyebrow010",
   "clothes": [
    "toigo_male_suit_tie_and_jacket",
-   "toigo_ankle_boots_male"
+   "shoes04"
+  ]
+ },
+ {
+  "id": "m3c",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.4,
+   "muscle": 0.55,
+   "weight": 0.45,
+   "height": 0.5,
+   "race": {
+    "caucasian": 0.0,
+    "african": 0.0,
+    "asian": 1.0
+   }
+  },
+  "skin": "young_asian_male",
+  "hair": "short01",
+  "eyebrows": "eyebrow010",
+  "clothes": [
+   "elvs_crude_t-shirt_male",
+   "toigo_wool_pants",
+   "shoes05"
   ]
  },
  {
@@ -84,7 +153,30 @@
   "eyebrows": "eyebrow010",
   "clothes": [
    "toigo_male_double-breasted_suit",
-   "toigo_ankle_boots_male"
+   "shoes04"
+  ]
+ },
+ {
+  "id": "m4c",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.68,
+   "muscle": 0.5,
+   "weight": 0.6,
+   "height": 0.58,
+   "race": {
+    "caucasian": 1.0,
+    "african": 0.0,
+    "asian": 0.0
+   }
+  },
+  "skin": "middleage_caucasian_male",
+  "hair": "short03",
+  "eyebrows": "eyebrow010",
+  "clothes": [
+   "elvs_crude_t-shirt_male",
+   "toigo_wool_pants",
+   "shoes05"
   ]
  },
  {
@@ -105,9 +197,31 @@
   "hair": "short04",
   "eyebrows": "eyebrow010",
   "clothes": [
-   "namuhekam_male_polo_shirt",
+   "toigo_male_suit_tie_and_jacket",
+   "shoes04"
+  ]
+ },
+ {
+  "id": "m5c",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.36,
+   "muscle": 0.6,
+   "weight": 0.5,
+   "height": 0.6,
+   "race": {
+    "caucasian": 0.6,
+    "african": 0.2,
+    "asian": 0.2
+   }
+  },
+  "skin": "young_caucasian_male2",
+  "hair": "short04",
+  "eyebrows": "eyebrow010",
+  "clothes": [
+   "elvs_crude_t-shirt_male",
    "toigo_wool_pants",
-   "toigo_ankle_boots_male"
+   "shoes05"
   ]
  },
  {
@@ -134,6 +248,30 @@
   ]
  },
  {
+  "id": "f1c",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.4,
+   "muscle": 0.5,
+   "weight": 0.45,
+   "height": 0.55,
+   "cupsize": 0.5,
+   "race": {
+    "caucasian": 0.9,
+    "african": 0.0,
+    "asian": 0.1
+   }
+  },
+  "skin": "young_caucasian_female",
+  "hair": "long01",
+  "eyebrows": "eyebrow007",
+  "clothes": [
+   "toigo_basic_tucked_t-shirt",
+   "toigo_wool_pants",
+   "shoes06"
+  ]
+ },
+ {
   "id": "f2",
   "macro": {
    "gender": 0.0,
@@ -153,6 +291,29 @@
   "clothes": [
    "toigo_female_double-breasted_suit",
    "toigo_flats"
+  ]
+ },
+ {
+  "id": "f2c",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.42,
+   "muscle": 0.5,
+   "weight": 0.5,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.0,
+    "african": 1.0,
+    "asian": 0.0
+   }
+  },
+  "skin": "young_african_female",
+  "hair": "ponytail01",
+  "eyebrows": "eyebrow007",
+  "clothes": [
+   "toigo_basic_tucked_t-shirt",
+   "toigo_wool_pants",
+   "shoes06"
   ]
  },
  {
@@ -178,6 +339,29 @@
   ]
  },
  {
+  "id": "f3c",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.38,
+   "muscle": 0.5,
+   "weight": 0.42,
+   "height": 0.48,
+   "race": {
+    "caucasian": 0.0,
+    "african": 0.0,
+    "asian": 1.0
+   }
+  },
+  "skin": "young_asian_female",
+  "hair": "toigo_blunt_bob_with_bangs",
+  "eyebrows": "eyebrow007",
+  "clothes": [
+   "toigo_basic_tucked_t-shirt",
+   "toigo_wool_pants",
+   "shoes06"
+  ]
+ },
+ {
   "id": "f4",
   "macro": {
    "gender": 0.0,
@@ -200,7 +384,52 @@
   ]
  },
  {
+  "id": "f4c",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.62,
+   "muscle": 0.5,
+   "weight": 0.55,
+   "height": 0.52,
+   "race": {
+    "caucasian": 1.0,
+    "african": 0.0,
+    "asian": 0.0
+   }
+  },
+  "skin": "middleage_caucasian_female",
+  "hair": "bob02",
+  "eyebrows": "eyebrow007",
+  "clothes": [
+   "toigo_basic_tucked_t-shirt",
+   "toigo_wool_pants",
+   "shoes06"
+  ]
+ },
+ {
   "id": "f5",
+  "macro": {
+   "gender": 0.0,
+   "age": 0.34,
+   "muscle": 0.5,
+   "weight": 0.45,
+   "height": 0.55,
+   "race": {
+    "caucasian": 0.5,
+    "african": 0.3,
+    "asian": 0.2
+   }
+  },
+  "skin": "young_caucasian_female2",
+  "hair": "toigo_inverted_bob",
+  "eyebrows": "eyebrow007",
+  "clothes": [
+   "toigo_female_double-breasted_suit",
+   "toigo_ballet_flats"
+  ]
+ },
+ {
+  "id": "f5c",
   "macro": {
    "gender": 0.0,
    "age": 0.34,
@@ -219,7 +448,7 @@
   "clothes": [
    "toigo_basic_tucked_t-shirt",
    "toigo_wool_pants",
-   "toigo_ballet_flats"
+   "shoes06"
   ]
  }
 ]
