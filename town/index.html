@@ -49,6 +49,8 @@
   .obj{display:none}
   /* joystick */
   #joy{position:fixed;left:calc(18px + var(--sl));bottom:calc(18px + var(--sb));width:132px;height:132px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.06),rgba(255,255,255,.14));border:2px solid rgba(232,192,96,.35);touch-action:none;z-index:5}
+  #joyLock{position:absolute;left:50%;top:-46px;width:36px;height:36px;margin-left:-18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;background:rgba(16,20,26,.8);border:1px solid rgba(255,255,255,.18);opacity:0;transition:opacity .15s,transform .15s;pointer-events:none}
+  #joyLock.show{opacity:.85}#joyLock.arm{transform:scale(1.25);border-color:#e8c060;opacity:1}#joyLock.on{opacity:1;background:#c89a3a;border-color:#f1cf7a}
   #joyKnob{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#f6dc94,#c89a3a);box-shadow:0 3px 10px rgba(0,0,0,.5);pointer-events:none}
   @media (pointer:fine){#joy{display:none}}
   /* barra de ferramentas (centro-baixo) */
@@ -2560,7 +2562,7 @@ function updateCamera(dt){let tx,ty,tz,dist,pitch;
 
 /* ============================ MOVIMENTO / INTERAÇÃO ============================ */
 let hero=null; // posição em px lógicos (x, y=z) — mesma unidade do save
-let joy={x:0,y:0,id:null}, keys={}, dragCam=false;
+let joy={x:0,y:0,id:null,lock:false,arm:false}, keys={}, dragCam=false;
 function makeHero(x,y){hero={x,y,tx:x,ty:y,moving:false,heading:Math.PI,onArrive:null,auto:false,stuck:0};if(heroMesh){heroMesh.position.set(M(x),0,M(y));}}
 function goTo(x,y,cb){if(!hero)return cb&&cb();if(Math.hypot(hero.x-x,hero.y-y)<30){hero.auto=false;return cb&&cb();}hero.tx=x;hero.ty=y;hero.onArrive=cb||null;hero.auto=true;hero.stuck=0;
   hero.path=INT.active?null:(planRoute(M(hero.x),M(hero.y),M(x),M(y),'walk')||null);if(hero.path)hero.path.shift();}
@@ -2573,19 +2575,22 @@ function updateHero(dt){if(SLEEPFX)return;if(RUN&&!(joy.x||joy.y)&&!(hero&&hero.
   const mag=Math.min(1,Math.hypot(ix,iy));
   if(canMove&&mag>0.08){hero.auto=false;hero.onArrive=null;const fx=-Math.sin(CAM.yaw),fz=-Math.cos(CAM.yaw),rx=-fz,rz=fx;
     vx=(rx*ix-fx*iy);vz=(rz*ix-fz*iy);const l=Math.hypot(vx,vz)||1;vx/=l;vz/=l;
-    const run=RUN||keys.shift;spd=keyX||keyY?(run?5.6:1.55):(run?lerp(3.4,5.6,sstep(.3,1,mag)):lerp(0.75,1.55,sstep(.12,.9,mag)));runIdle=0;
+    const run=RUN||keys.shift;spd=keyX||keyY?(run?5.6:1.85):(run?lerp(3.4,5.6,sstep(.3,1,mag)):lerp(0.95,1.85,sstep(.12,.9,mag)));runIdle=0;
     if(S.energy<15&&!INT.active){spd=Math.min(spd,2.6);if(!updateHero._tired){updateHero._tired=1;showHint('😮‍💨 Você está exausto — anda devagar. Coma algo ou durma em casa.',4200);}}else updateHero._tired=0;
     if(placing)placeManual=null;
     if(!dragCam){const want=Math.atan2(-vx,-vz);let dy=((want-CAM.yaw+Math.PI*3)%(Math.PI*2))-Math.PI;if(Math.abs(dy)<2.6)CAM.yaw+=dy*Math.min(1,dt*0.9*mag);}}
   else if(canMove&&hero.auto){if(hero.path&&hero.path.length>1&&Math.hypot(hero.path[0][0]-M(hero.x),hero.path[0][1]-M(hero.y))<0.7)hero.path.shift();
     const wp=hero.path&&hero.path.length>1?hero.path[0]:null;const dx=wp?wp[0]-M(hero.x):M(hero.tx-hero.x),dz=wp?wp[1]-M(hero.y):M(hero.ty-hero.y),d=Math.hypot(dx,dz);
-    if(!wp&&d<0.35){hero.auto=false;const cb=hero.onArrive;hero.onArrive=null;if(cb)cb();}else{vx=dx/d;vz=dz/d;spd=RUN?5.2:1.55;}}
+    if(!wp&&d<0.35){hero.auto=false;const cb=hero.onArrive;hero.onArrive=null;if(cb)cb();}else{vx=dx/d;vz=dz/d;spd=RUN?5.2:1.85;}}
   let travelled=0;
   if(spd>0){
     const x=hero.x,y=hero.y,step=PX(spd*dt),nx=x+vx*step,ny=y+vz*step;
+    let moved=true;
     if(heroFree(nx,ny)){hero.x=nx;hero.y=ny;}
-    else if(nx!==x&&heroFree(nx,y))hero.x=nx;
-    else if(ny!==y&&heroFree(x,ny))hero.y=ny;
+    else{moved=false;for(const a of [0.5,-0.5,0.95,-0.95]){const c=Math.cos(a),s_=Math.sin(a),tx_=x+(vx*c-vz*s_)*step,ty_=y+(vx*s_+vz*c)*step;if(heroFree(tx_,ty_)){hero.x=tx_;hero.y=ty_;moved=true;break;}} // contorna o obstáculo
+      if(!moved&&nx!==x&&heroFree(nx,y)){hero.x=nx;moved=true;}else if(!moved&&ny!==y&&heroFree(x,ny)){hero.y=ny;moved=true;}
+      if(!moved){hero.pblock=(hero.pblock||0)+dt;if(hero.pblock>0.3)for(const a of [0,0.5,-0.5,0.95,-0.95]){const c=Math.cos(a),s_=Math.sin(a),tx_=x+(vx*c-vz*s_)*step,ty_=y+(vx*s_+vz*c)*step;if(heroFree(tx_,ty_,true)){hero.x=tx_;hero.y=ty_;moved=true;break;}}}} // bloqueado só por gente: passa devagar, as pessoas abrem espaço
+    if(moved&&hero.pblock&&heroFree(hero.x,hero.y))hero.pblock=0;
     if(!INT.active){hero.x=cl(hero.x,0,MAPW*TILE-1);hero.y=cl(hero.y,0,MAPH*TILE-1);}
     const dx=hero.x-x,dz=hero.y-y;
     travelled=M(Math.hypot(dx,dz));
@@ -2647,7 +2652,7 @@ function updateInteract(){const act=document.getElementById('actBtn'),lbl=docume
   act.classList.add('on');lbl.classList.add('on');}
 function doInteract(t){t=t||interactTarget;if(!t)return;if(t.kind==='gb'){gbEnter(t.g);return;}if(t.kind==='mp'){openPlayer(t.r);return;}
   if(t.kind==='b'){const b=t.b,ex=bFront(b);if(b.sede)enterInterior({kind:'sede',title:'Sua sede',exit:ex});else if(b.co&&b.co.build>0)openSite(b.co);else if(b.co)enterInterior({kind:'office',co:b.co,title:b.co.name,exit:ex});else if(b.rv)enterInterior({kind:'rival',rv:b.rv,title:b.rv.name,exit:ex});}
-  else if(t.kind==='sp'){const sp=SPECIAL[t.k];if(t.k==='home')enterInterior({kind:'home',title:HOME_DEF[S.assets.home].n,exit:sp.front});else if(t.k==='dealer')enterInterior({kind:'dealer',title:'Manhattan Motors',exit:sp.front});else if(t.k==='rest')enterInterior({kind:'restaurant',title:'The Exchange Grill',exit:sp.front,key:'rest'});else if(t.k==='shop:ravelle'&&netWorth()<1e6&&S.phase<4)modal('👑','Atelier Ravelle','<p class="quote">"Boa tarde. Trabalhamos apenas com hora marcada."</p><p class="small">O ateliê atende clientes com patrimônio a partir de '+money(1e6)+' (o seu: '+money(netWorth())+'). Volte quando o seu nome chegar antes de você.</p>',[{t:'Ok',fn:closeModal}]);else if(t.k.startsWith('shop:'))enterInterior({kind:'shop',shop:t.k.slice(5),title:sp.name,exit:sp.front,key:t.k});else if(t.k.startsWith('broker:'))enterInterior({kind:'broker',broker:t.k.slice(7),title:sp.name,exit:sp.front,key:t.k});else{const j=JOBS.find(x=>'job:'+x.id===t.k);enterInterior({kind:'job',job:j,title:j.co,exit:sp.front,key:t.k});}}
+  else if(t.kind==='sp'){const sp=SPECIAL[t.k];if(t.k==='home')gbEnter(sp.gb);else if(t.k==='dealer')enterInterior({kind:'dealer',title:'Manhattan Motors',exit:sp.front});else if(t.k==='rest')enterInterior({kind:'restaurant',title:'The Exchange Grill',exit:sp.front,key:'rest'});else if(t.k==='shop:ravelle'&&netWorth()<1e6&&S.phase<4)modal('👑','Atelier Ravelle','<p class="quote">"Boa tarde. Trabalhamos apenas com hora marcada."</p><p class="small">O ateliê atende clientes com patrimônio a partir de '+money(1e6)+' (o seu: '+money(netWorth())+'). Volte quando o seu nome chegar antes de você.</p>',[{t:'Ok',fn:closeModal}]);else if(t.k.startsWith('shop:'))enterInterior({kind:'shop',shop:t.k.slice(5),title:sp.name,exit:sp.front,key:t.k});else if(t.k.startsWith('broker:'))enterInterior({kind:'broker',broker:t.k.slice(7),title:sp.name,exit:sp.front,key:t.k});else{const j=JOBS.find(x=>'job:'+x.id===t.k);enterInterior({kind:'job',job:j,title:j.co,exit:sp.front,key:t.k});}}
   else if(t.kind==='meet')startMeeting(t.a);
   else if(t.kind==='car')enterCar();else if(t.kind==='taxi')rideTaxi();else if(t.kind==='exitcar')exitCar();else if(t.kind==='ped')talkToPedestrian(t.c);
   else if(t.kind==='prop')t.p.fn();else if(t.kind==='iperson'){const p=t.p;if(p.staff)openStaff(p);else if(p.cand)interview(p.co,p.cand,p);else if(p.e)openEmployee(p);else{INT.talkP=p;modal('💬','Conversa rápida','<p class="quote">"'+ambientLine().replace(/^"|"$/g,'')+'"</p>',[{t:'↩ Ok',fn:closeModal}]);}}
@@ -2701,10 +2706,14 @@ function setupInput(){document.querySelectorAll('#speed button[data-s]').forEach
   document.getElementById('placeOk').innerHTML=icon('check')+' Construir aqui';
   document.getElementById('placeNo').innerHTML=icon('close')+' Cancelar';
   const jb=document.getElementById('joy'),kn=document.getElementById('joyKnob');
-  const jmove=(e)=>{const r=jb.getBoundingClientRect();let dx=(e.clientX-(r.left+r.width/2))/(r.width/2),dy=(e.clientY-(r.top+r.height/2))/(r.height/2);if(ROT){const t_=dx;dx=dy;dy=-t_;}const l=Math.hypot(dx,dy);if(l>1){dx/=l;dy/=l;}joy.x=dx;joy.y=dy;kn.style.transform='translate('+dx*38+'px,'+dy*38+'px)';};
-  jb.addEventListener('pointerdown',e=>{joy.id=e.pointerId;jb.setPointerCapture(e.pointerId);jmove(e);e.preventDefault();});
+  let lk=document.getElementById('joyLock');if(!lk){lk=document.createElement('div');lk.id='joyLock';lk.textContent='🔒';jb.appendChild(lk);}
+  const jmove=(e)=>{const r=jb.getBoundingClientRect();let dx=(e.clientX-(r.left+r.width/2))/(r.width/2),dy=(e.clientY-(r.top+r.height/2))/(r.height/2);if(ROT){const t_=dx;dx=dy;dy=-t_;}const l=Math.hypot(dx,dy);
+    joy.arm=dy<-1.3&&Math.abs(dx)<0.9;lk.classList.toggle('arm',joy.arm);lk.classList.add('show'); // arrastou para cima, além da borda: trava
+    if(l>1){dx/=l;dy/=l;}joy.x=dx;joy.y=dy;kn.style.transform='translate('+dx*38+'px,'+dy*38+'px)';};
+  window.joyUnlock=()=>{if(!joy.lock)return;joy.lock=false;joy.x=joy.y=0;kn.style.transform='';lk.classList.remove('on','show','arm');};
+  jb.addEventListener('pointerdown',e=>{if(joy.lock){joyUnlock();e.preventDefault();return;}joy.id=e.pointerId;jb.setPointerCapture(e.pointerId);jmove(e);e.preventDefault();});
   jb.addEventListener('pointermove',e=>{if(e.pointerId===joy.id)jmove(e);});
-  const jend=e=>{if(e.pointerId!==joy.id)return;joy.id=null;joy.x=joy.y=0;kn.style.transform='';};jb.addEventListener('pointerup',jend);jb.addEventListener('pointercancel',jend);
+  const jend=e=>{if(e.pointerId!==joy.id)return;joy.id=null;if(joy.arm){joy.arm=false;joy.lock=true;joy.x=0;joy.y=-1;kn.style.transform='translate(0px,-38px)';lk.classList.remove('arm');lk.classList.add('on','show');return;}joy.x=joy.y=0;kn.style.transform='';lk.classList.remove('show','arm');};jb.addEventListener('pointerup',jend);jb.addEventListener('pointercancel',jend);
   const ptrs=new Map();let pinch=0,downT=0,moved=0;
   cv.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,{x:lp(e.clientX,e.clientY).x,y:lp(e.clientX,e.clientY).y});cv.setPointerCapture(e.pointerId);if(ptrs.size===1){downT=performance.now();moved=0;}if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch=Math.hypot(a.x-b.x,a.y-b.y);moved=99;}});
   cv.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p)return;const dx=lp(e.clientX,e.clientY).x-p.x,dy=lp(e.clientX,e.clientY).y-p.y;p.x=lp(e.clientX,e.clientY).x;p.y=lp(e.clientX,e.clientY).y;
@@ -2758,11 +2767,11 @@ function personNear(x,z,r,skip){const r2=r*r;
 // o seu carro quando você dirige (o carHit ignora o carro em que você está)
 function pcarHit(x,z,pad){if(!PCAR||!PCAR.driving)return false;const h=carHalf(PCAR),dx=x-PCAR.x,dz=z-PCAR.z,c=Math.cos(PCAR.yaw),s=Math.sin(PCAR.yaw);
   const lx=dx*c-dz*s,lz=dx*s+dz*c;return Math.abs(lx)<h[0]+(pad||0.3)&&Math.abs(lz)<h[1]+(pad||0.3);}
-function heroFree(px,py){if(INT.active){if(walkable(px,py))return true;if(walkable(hero.x,hero.y))return false;const x=M(px)-IORIG.x,z=M(py)-IORIG.z;return Math.abs(x)<INT.W/2-0.3&&Math.abs(z)<INT.D/2-0.3; /* preso dentro de algo? deixa sair */}
+function heroFree(px,py,noPeople){if(INT.active){if(noPeople?intWalkable(px,py,true):walkable(px,py))return true;if(walkable(hero.x,hero.y))return false;const x=M(px)-IORIG.x,z=M(py)-IORIG.z;return Math.abs(x)<INT.W/2-0.3&&Math.abs(z)<INT.D/2-0.3; /* preso dentro de algo? deixa sair */}
   const x=M(px),z=M(py),hx=M(hero.x),hz=M(hero.y);
   if(!bodyFree(x,z,0.32)){if(solidAt(x,z)||bodyFree(hx,hz,0.32))return false;} // preso rente a uma parede? deixa sair
   if(carHit(x,z))return false;
-  const p=personNear(x,z,0.62);if(p&&Math.hypot(p.x-x,p.z-z)<Math.hypot(p.x-hx,p.z-hz))return false; // não atravessa gente (mas pode se afastar)
+  if(!noPeople){const p=personNear(x,z,0.62);if(p&&Math.hypot(p.x-x,p.z-z)<Math.hypot(p.x-hx,p.z-hz))return false;} // gente: desvia primeiro; se não der, passa devagar
   return true;}
 // multidão: anda pela calçada, desvia de postes/árvores/gente/carros e espera quando não dá
 function crowdMove(c,dt){const L=c.L,V=L.axis==='v',pos=(s,lat)=>V?[L.c+lat,s]:[s,L.c+lat];
@@ -2770,6 +2779,7 @@ function crowdMove(c,dt){const L=c.L,V=L.axis==='v',pos=(s,lat)=>V?[L.c+lat,s]:[
   const inside=solidAt(...pos(c.s,c.lat)),sol=(x,z)=>!inside&&solidAt(x,z); // nasceu dentro de algo? sai andando
   const blocked=(s,lat)=>{const [x,z]=pos(s,lat);return sol(x,z)||!!personNear(x,z,0.6,c)||Math.hypot(hx-x,hz-z)<0.75||!!carHit(x,z)||pcarHit(x,z);};
   const look=c.s+c.dir*1.15;let spd=c.v;
+  {const qx=c.mesh.position.x,qz=c.mesh.position.z;if(Math.hypot(hx-qx,hz-qz)<1.5){const hl=V?hx-L.c:hz-L.c;c.tlat=cl(c.lat+(hl>c.lat?-1.1:1.1),-1.75,1.75);}} // você vem vindo: dá um passo para o lado
   { const road=s_=>{const [x,z]=pos(s_,c.lat);return tileAt(Math.floor(x/TS),Math.floor(z/TS))===T.ROAD;};
     if(!road(c.s)&&road(look)&&!walkSignal(L.axis)){c.mesh.rotation.y=turnToward(c.mesh.rotation.y,V?(c.dir>0?0:Math.PI):(c.dir>0?Math.PI/2:-Math.PI/2),dt);animPerson(c.mesh,0,dt);c.wait=0;return;} }
   if(blocked(look,c.lat)){let alt=null;for(const dl of [0.8,-0.8,1.5,-1.5]){const nl=cl(c.lat+dl,-1.75,1.75);if(Math.abs(nl-c.lat)<0.3)continue;const [x,z]=pos(c.s,nl);if(!sol(x,z)&&!blocked(look,nl)){alt=nl;break;}}
@@ -2864,7 +2874,6 @@ function paintMiniBase(){const P=MAPPX,{c,g}=makeCanvas(MAPW*P,MAPH*P);
   for(const b of buildings){const s=BSPRITES[b.type];box(b.gx,b.gy,s.wt,s.ht,b.sede?'#b8923a':b.co?'#9a6a2c':'#7a3a30',b.sede?'#ffe27a':b.co?'#e8a040':'#e06a50',3);}
   MAPART=c;miniBase=c;}
 function mapPOIs(){const L=[];const add=(cat,x,y,ico,name,col)=>L.push({cat,x,y,ico,name,col});
-  if(sede)add('emp',bFront(sede)[0],bFront(sede)[1],'⭐','Sua sede','#ffe27a');
   for(const co of companies)if(co.b){const f=bFront(co.b);add('emp',f[0],f[1],NICHE[co.niche].ico,co.name,'#e8a040');}
   for(const r of rivals)if(r.b){const f=bFront(r.b);add('rv',f[0],f[1],'🚩',r.name,'#d0503a');}
   for(const Lm of LANDMARKS){const f=landmarkFront(Lm);add('lm',f[0],f[1],Lm.info.ico,Lm.info.name,'#e8d9b0');}
@@ -2922,7 +2931,7 @@ function drawBigMap(){const el=document.getElementById('bigmap'),cvm=el.querySel
   // painel lateral: destino, atalhos, filtros
   const cats=[['me','➤','Você','#2f8fff'],['emp','⭐','Suas empresas','#ffe27a'],['job','💼','Trabalho e vagas','#8fd07a'],['place','🛍️','Lojas e serviços','#8fc8ff'],['meet','📅','Compromissos','#c79cff'],['ct','👤','Contatos','#ffd34a'],['lm','🏛️','Pontos turísticos','#e8d9b0'],['com','🛒','Comércios e helipontos','#f0b860'],['rv','🚩','Concorrentes','#d0503a']];
   const cnt={};for(const p of P)cnt[p.cat]=(cnt[p.cat]||0)+1;cnt.me=1;
-  const quick=[];if(SPECIAL.home)quick.push(['home','🏠','Casa']);if(sede)quick.push(['sede','⭐','Sede']);if(S.job&&SPECIAL['job:'+S.job.id])quick.push(['job:'+S.job.id,'💼','Trabalho']);if(SPECIAL.dealer)quick.push(['dealer','🚗','Carros']);if(SPECIAL.rest)quick.push(['rest','🍽️','Restaurante']);if(S.inv&&S.inv.b&&SPECIAL['broker:'+S.inv.b])quick.push(['broker:'+S.inv.b,SPECIAL['broker:'+S.inv.b].ico,'Sua corretora']);{const ny=LANDMARKS.find(l=>l.kind==='nyse');if(ny)quick.push(['lm:nyse','🏛️','Bolsa de Nova York']);}
+  const quick=[];if(SPECIAL.home)quick.push(['home','🏠','Casa']);if(S.job&&SPECIAL['job:'+S.job.id])quick.push(['job:'+S.job.id,'💼','Trabalho']);if(SPECIAL.dealer)quick.push(['dealer','🚗','Carros']);if(SPECIAL.rest)quick.push(['rest','🍽️','Restaurante']);if(S.inv&&S.inv.b&&SPECIAL['broker:'+S.inv.b])quick.push(['broker:'+S.inv.b,SPECIAL['broker:'+S.inv.b].ico,'Sua corretora']);{const ny=LANDMARKS.find(l=>l.kind==='nyse');if(ny)quick.push(['lm:nyse','🏛️','Bolsa de Nova York']);}
   const nx=(S.agenda||[]).filter(a=>a.day>=S.day&&a.status==='pending'&&a.place).sort((a,b)=>a.day-b.day||a.hour-b.hour)[0];if(nx)quick.push(['agenda','📅','Compromisso']);
   if(BM.mode==='ride'&&BM.ride){const R=BM.ride;leg.innerHTML='<div class="bmh"><b>🚕 Corrida</b></div><div class="bmtip">Tarifa paga: '+money(R.price)+'</div><div class="bmdest"><div class="bmd1">📍 '+esc(R.d.name)+'</div><div class="bmd2">'+fmtDist(R.len*(1-R.t/R.dur))+' restantes · agora '+fmtHour(nowHour())+'</div><div class="tbar"><i style="width:'+Math.round(R.t/R.dur*100)+'%"></i></div></div><div class="bmtip">O motorista conhece os atalhos. Relaxe.</div>';return;}
   if(BM.mode==='taxi'){const d=BM.tdest,q=d?taxiQuote(d):null;
@@ -2959,7 +2968,7 @@ function taxiDests(){const L=[];const add=(id,ico,name,x,y)=>{if(x!=null)L.push(
   const nx=(S.agenda||[]).filter(a=>a.day===S.day&&a.status==='pending'&&a.place).sort((a,b)=>a.hour-b.hour)[0];if(nx)add('ag','📅',nx.title+' · '+fmtHour(nx.hour),nx.place.x,nx.place.y);
   if(S.job&&SPECIAL['job:'+S.job.id]){const s_=SPECIAL['job:'+S.job.id];add('job','💼','Trabalho · '+s_.name,s_.front[0],s_.front[1]);}
   if(SPECIAL.home)add('home','🏠','Casa · '+SPECIAL.home.name,SPECIAL.home.front[0],SPECIAL.home.front[1]);
-  if(sede){const f=bFront(sede);add('sede','⭐','Sua sede',f[0],f[1]);}
+
   for(const k of ['dealer','rest'])if(SPECIAL[k])add(k,SPECIAL[k].ico,SPECIAL[k].name,SPECIAL[k].front[0],SPECIAL[k].front[1]);
   for(const Lm of LANDMARKS){const f=landmarkFront(Lm);add('lm:'+Lm.kind,Lm.info.ico,Lm.info.name,f[0],f[1]);}
   return L;}
@@ -3133,7 +3142,7 @@ const ARCH={
     ch:[['🌭 Um completo · $4',()=>{if(S.cash<4)return '"Fica pra próxima."';S.cash-=4;S.energy=Math.min(S.energy+6,120);return '"Mostarda e cebola, o clássico." · ⚡ +6';}],['📜 Ouvir uma história',()=>'"'+pick(LANDMARKS).info.txt+'"'],['👋 Só cumprimentar',()=>'"Boa sorte aí em cima, campeão."']]},
   desempregado:{ico:'🧳',t:'Recém-demitido',w:()=>S.market.cycle==='recessão'?3:1,open:p=>'"Fui demitido hoje de manhã, depois de '+ri(3,12)+' anos. Não sei nem o que dizer em casa…"',
     ch:[['💼 Oferecer uma vaga',()=>{const co=companies.find(c=>c.employees.length<maxStaff(c)&&!(c.build>0));if(!co)return '"Obrigado pela intenção. De verdade."';const e=genPerson(true);if(actHire(co,e)){repUp('public',1);return '🧳 '+e.name+' entrou na '+co.name+' — e nunca vai esquecer. · ⭐ +1';}return '"Não deu, mas obrigado."';}],['💵 Ajudar com $20',()=>{if(S.cash<20)return 'Você não tem nem isso no bolso.';S.cash-=20;repUp('public',0.5);return '"Você não precisava…" · ⭐ +0,5';}],['🗣️ Dar uma força',()=>{gainSkill('leadership',0.25);return '"Valeu. Amanhã eu recomeço."';}]]},
-  fofoqueira:{ico:'🤫',t:'Assistente de concorrente',w:()=>rivals.length?2:0,open:p=>{p.rv=pick(rivals);return '"Você é da '+(sede?'sede nova':'turma nova')+', né? Eu trabalho na '+p.rv.name+'… e tenho cada história."';},
+  fofoqueira:{ico:'🤫',t:'Assistente de concorrente',w:()=>rivals.length?2:0,open:p=>{p.rv=pick(rivals);return '"Você é da '+('turma nova')+', né? Eu trabalho na '+p.rv.name+'… e tenho cada história."';},
     ch:[['👂 Ouvir tudo',p=>{repUp('market',0.5);return '"'+(p.rv.drift<1?'Estão perdendo cliente atrás de cliente. O chefe está desesperado.':'O chefe quer comprar uma empresa até o fim do mês. Toma cuidado.')+' Eles têm '+p.rv.staff+' pessoas." · 🔎 informação valiosa';}],['🙅 Mudar de assunto',()=>'"Tá bom, tá bom. Mas que é verdade, é."']]},
   rival:{ico:'😏',t:'Executivo rival',w:()=>S.phase>=2?2:0.6,open:p=>{p.rv=rivals.length?pick(rivals):null;return '"Então você é o novato'+(p.rv?' que a '+p.rv.name+' anda comentando':'')+'. Aproveita enquanto dura."';},
     ch:[['🔥 Responder à altura',()=>{if(S.rep.market>8){repUp('market',2);return 'Ele fica sem resposta. Quem estava perto riu. · 🤝 +2';}repUp('public',-1);return 'Ele ri da sua cara. Não foi o seu melhor momento. · ⭐ −1';}],['🧊 Ignorar com classe',()=>{repUp('public',1);return 'Você só sorri e segue. Elegância conta. · ⭐ +1';}],['🤝 Propor uma parceria',p=>{if(chance(0.25+S.skills.negotiation/200)){repUp('market',1.5);gainSkill('negotiation',0.3);const ct=genContact(CONTACT_DEFS.find(d=>d.kind==='client'));ct.rel=20;ct.mem=['parceria proposta na rua'];contacts.push(ct);return '"…Interessante. Vou pensar." · 🤝 +1,5 · 📇 virou contato (cliente)';}return '"Parceria? Com você? Boa piada."';}]]},
@@ -3356,8 +3365,8 @@ function updateInterior(dt){if(!INT.active)return;for(const p of INT.people){con
     else{if(talking)p.g.rotation.y=turnToward(p.g.rotation.y,Math.atan2(M(hero.x)-IORIG.x-p.x,M(hero.y)-IORIG.z-p.z),dt);animPerson(p.g,0,dt,talking);}}
   if(INT.talkP&&!modalOpen())INT.talkP=null;
   for(const c of INT.spin||[])c.rotation.y+=dt*0.35;for(const c of INT.spinFast||[])c.rotation.y+=dt*9;}
-function intWalkable(px,py){const x=M(px)-IORIG.x,z=M(py)-IORIG.z,m=0.3;if(x<-INT.W/2+m||x>INT.W/2-m||z<-INT.D/2+m+0.3||z>INT.D/2-m)return false;
-  for(const o of INT.obst)if(x>o.x0-m&&x<o.x1+m&&z>o.z0-m&&z<o.z1+m)return false;for(const p of INT.people)if(Math.hypot(x-p.x,z-p.z)<0.42&&p.mode!=='sit')return false;return true;}
+function intWalkable(px,py,noPeople){const x=M(px)-IORIG.x,z=M(py)-IORIG.z,m=0.3;if(x<-INT.W/2+m||x>INT.W/2-m||z<-INT.D/2+m+0.3||z>INT.D/2-m)return false;
+  for(const o of INT.obst)if(x>o.x0-m&&x<o.x1+m&&z>o.z0-m&&z<o.z1+m)return false;if(!noPeople)for(const p of INT.people)if(Math.hypot(x-p.x,z-p.z)<0.42&&p.mode!=='sit')return false;return true;}
 /* ============================ TODOS OS PRÉDIOS TÊM PORTA ============================
    Comércios de bairro (deli, farmácia, banca, café, floricultura, mercadinho), torres comerciais
    (saguão, elevador, andares com empresas fictícias, sky lounge na cobertura e, em algumas, heliponto)
@@ -3371,6 +3380,7 @@ const GB_SHOP={deli:{ico:'🥪',n:'Deli',bg:'#1f3a24',fg:'#f4e9c8',items:[['☕'
   mercado:{ico:'🛒',n:'Mercadinho 24h',bg:'#7a1c1c',fg:'#fff3d6',items:[['💧','Água',2,2],['🍫','Barra de cereal',3,4],['🍎','Fruta',2,3],['🍕','Fatia de pizza',4,8]]}};
 const GB_FIRMS=[['Hartwell','Capital'],['Ashford','Partners'],['Calder','Advisors'],['Merrow','Holdings'],['Bramley','& Co.'],['Kestrel','Asset Management'],['Linden','Seguros'],['Whitcombe','Advocacia'],['Northgate','Group'],['Sable','Research'],['Corvin','Auditoria'],['Elmstead','Ventures'],['Halloran','Trust'],['Pembry','Consultoria'],['Vantley','Securities'],['Orwell','Analytics']];
 function gbRand(F,k){let h=(F.seed^Math.imul(k+1,2654435761))>>>0;h=Math.imul(h^(h>>>15),2246822507)>>>0;h=Math.imul(h^(h>>>13),3266489909)>>>0;return ((h^(h>>>16))>>>0)/4294967296;}
+let HOME_F=null;const RESID=[];
 function setupBuildingsInside(){GB.length=0;const used=new Set(Object.values(SPECIAL).map(s=>s.F));
   for(const F of FILLERS){if(used.has(F))continue;const face=faceOf(F.gx,F.gy,F.w,F.h);const cx=(F.gx+F.w/2)*TILE,cy=(F.gy+F.h/2)*TILE;
     const front=face==='s'?[cx,(F.gy+F.h+0.7)*TILE]:face==='n'?[cx,(F.gy-0.7)*TILE]:face==='e'?[(F.gx+F.w+0.7)*TILE,cy]:[(F.gx-0.7)*TILE,cy];
@@ -3416,7 +3426,7 @@ function setupBuildingsInside(){GB.length=0;const used=new Set(Object.values(SPE
       const sg=new THREE.Mesh(new THREE.PlaneGeometry(3.4,0.64),sm);sg.position.set(px+Math.sin(yaw)*0.04,3.6,pz+Math.cos(yaw)*0.04);sg.rotation.y=yaw;cityGroup.add(sg);}}
   B.build(cityGroup);}
 function gbNear(){let best=null,bd=TILE*1.45;for(const g of GB){if(g.L&&g.face===g.L.face)continue;const d=Math.hypot(hero.x-g.front[0],hero.y-g.front[1]);if(d<bd){bd=d;best=g;}}return best?{g:best,d:bd}:null;}
-function gbLabel(g){if(g.type==='porto')return ['🚁','Entrar',g.name+' · voos panorâmicos e particulares'];return g.type==='loja'?[g.ico,'Entrar',g.name+' · '+GB_SHOP[g.shop].n.toLowerCase()]:g.type==='torre'?['🏢','Entrar',g.addr+' · torre comercial · '+g.floors+' andares'+(g.heli?' · heliponto':'')]:['🏠','Entrar',g.addr+' · residencial · '+g.floors+' andares'];}
+function gbLabel(g){if(g.homeTier!=null&&g===homeBldg())return ['🏠','Entrar','Seu prédio · '+g.homeName];if(g.homeTier!=null)return ['🏠','Entrar',g.homeName+' · residencial'];if(g.type==='porto')return ['🚁','Entrar',g.name+' · voos panorâmicos e particulares'];return g.type==='loja'?[g.ico,'Entrar',g.name+' · '+GB_SHOP[g.shop].n.toLowerCase()]:g.type==='torre'?['🏢','Entrar',g.addr+' · torre comercial · '+g.floors+' andares'+(g.heli?' · heliponto':'')]:['🏠','Entrar',g.addr+' · residencial · '+g.floors+' andares'];}
 function gbMeta(g){if(g.ground)return {x:(71.4+OX)*TS,z:(44.5+OY)*TS,H:-3.2,y:0.9};const F=g.F,x=F.gx*TS+F.w*TS/2,z=F.gy*TS+F.h*TS/2,H=g.roofY||4.8+F.floors*3.6+(F.style==='deco'?3:0);return {x,z,H,y:H+4.2};}
 function gbEnter(g,floor){const ex=g.front,base={gb:g,exit:ex,key:'gb'+g.F.seed+(floor?'-'+floor:'')};
   if(g.type==='loja')return enterInterior(Object.assign(base,{kind:'store',title:g.name}));
@@ -3430,16 +3440,46 @@ function gbEnter(g,floor){const ex=g.front,base={gb:g,exit:ex,key:'gb'+g.F.seed+
 // painel do elevador: andares com destino e restrições (código de vestimenta, hora marcada)
 function gbFloors(g){const top=g.F.floors,L=[{f:0,n:'T',t:'Térreo',d:g.type==='torre'?'Saguão e saída para a rua':'Portaria e saída para a rua'}];
   if(g.type==='torre'){for(const l of g.list)L.push({f:l.n,n:l.n,t:l.firm||'Andar disponível',d:l.firm?'Escritórios':'Laje corporativa para alugar'});L.push({f:top,n:'C',t:'Sky Lounge',d:'Bar na cobertura · traje elegante'});if(g.heli)L.push({f:'heli',n:'H',t:'Heliponto',d:'Voos panorâmicos e particulares'});}
-  else{L.push({f:g.apt,n:g.apt,t:'Apartamento '+g.apt+'B',d:'Apartamento modelo · à venda'});L.push({f:top,n:'C',t:'Cobertura',d:'Somente com hora marcada'});}
+  else{if(g.homeTier!=null){const t=g.homeTier,mine=(S.assets&&S.assets.home||0)===t;if(mine)L.push({f:'h'+myHomeFloor(),n:myHomeFloor(),t:'Seu apartamento',d:HOME_DEF[t].n,home:1});
+      for(const nb of (NEIGH[t]||[]))if(isFriend(nb.id))L.push({f:'v'+nb.floor+':'+nb.id,n:nb.floor,t:'Apto de '+nb.name,d:MP.online[nb.id]?'🟢 online · visitar':'visitar'});
+      const others=(NEIGH[t]||[]).filter(nb=>!isFriend(nb.id)).length;if(others)L.push({f:'x',n:'·',t:others+' outro(s) morador(es)',d:'Andares particulares'});}
+    L.push({f:g.apt,n:g.apt,t:'Apartamento '+g.apt+'B',d:'Apartamento modelo · à venda'});L.push({f:top,n:'C',t:'Cobertura',d:'Somente com hora marcada'});}
   return L;}
 function gbAccess(g,f){const top=g.F.floors;if(f===top&&g.type==='torre'&&lookScore()<30)return 'O segurança do lounge olha sua roupa de cima a baixo: "Traje elegante, por favor." (estilo '+lookScore()+'/100; precisa de 30)';
   if(f===top&&g.type==='resid'&&netWorth()<1e6&&S.phase<4)return 'O porteiro confere a lista: "Visitas à cobertura só com hora marcada." (patrimônio a partir de '+money(1e6)+')';return null;}
-function openElevator(){const sp=INT.active,g=sp&&sp.gb;if(!g)return;const cur=sp.floor===undefined?0:sp.floor,stairs=g.F.floors<=6;
+function openElevator(){const sp=INT.active,g=sp&&sp.gb;if(!g)return;if(g.homeTier!=null&&!openElevator.busy&&MP.on){openElevator.busy=true;loadNeighbors(g.homeTier).then(()=>{openElevator.busy=false;if(INT.active&&INT.active.gb===g&&document.querySelector('.elev'))openElevator();});}const cur=sp.floor===undefined?0:sp.floor,stairs=g.F.floors<=6;
   const m=modal(stairs?'🪜':'🛗',(stairs?'Escada · ':'Elevador · ')+g.addr,'<div class="elev">'+gbFloors(g).map(o=>'<button class="ebtn'+(o.f===cur?' cur':'')+'" data-f="'+o.f+'"><b>'+o.n+'</b><span>'+esc(o.t)+'</span><i>'+esc(o.d)+'</i></button>').join('')+'</div>',[{t:'↩ Ficar aqui',fn:closeModal}]);
-  m.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{const f=b.dataset.f==='heli'?'heli':+b.dataset.f;if(f===cur)return;const no=gbAccess(g,f);if(no)return modal('🛑','Acesso restrito','<p class="quote">'+no+'</p>',[{t:'↩ Voltar',fn:openElevator}]);rideElevator(g,cur,f);});}
-function rideElevator(g,from,to){closeModal();const fd=document.getElementById('fade'),a=from==='heli'?g.F.floors+1:from,b=to==='heli'?g.F.floors+1:to,lab=to==='heli'?'Heliponto':to===0?'Térreo':to>=g.F.floors?'Cobertura':to+'º andar';
+  m.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{const raw=b.dataset.f;if(raw==='x')return toast('🔒 Andares de moradores são particulares');if(raw[0]==='h'||raw[0]==='v'){const fl=parseInt(raw.slice(1)),own=raw[0]==='h',oid=own?null:raw.split(':')[1],nb=own?null:(NEIGH[g.homeTier]||[]).find(x=>x.id===oid);rideElevator(g,cur,fl,{home:own,guest:!own,ownerName:nb&&nb.name});return;}const f=raw==='heli'?'heli':+raw;if(f===cur)return;const no=gbAccess(g,f);if(no)return modal('🛑','Acesso restrito','<p class="quote">'+no+'</p>',[{t:'↩ Voltar',fn:openElevator}]);rideElevator(g,cur,f);});}
+function rideElevator(g,from,to,hm){closeModal();const fd=document.getElementById('fade'),a=from==='heli'?g.F.floors+1:from,b=to==='heli'?g.F.floors+1:to,lab=to==='heli'?'Heliponto':to===0?'Térreo':to>=g.F.floors?'Cobertura':to+'º andar';
   const t0=performance.now(),dur=Math.min(1600,500+Math.abs(b-a)*25);fd.classList.add('on');
-  const tick=()=>{const k=Math.min(1,(performance.now()-t0)/dur),n=Math.round(a+(b-a)*k);fd.innerHTML='<div>'+(b>a?'▲':'▼')+'</div><b>'+(n===0?'T':n>g.F.floors?'H':n)+'</b><span>'+lab+'</span>';if(k<1)requestAnimationFrame(tick);else setTimeout(()=>{gbEnter(g,to);fd.classList.remove('on');},180);};tick();}
+  const tick=()=>{const k=Math.min(1,(performance.now()-t0)/dur),n=Math.round(a+(b-a)*k);fd.innerHTML='<div>'+(b>a?'▲':'▼')+'</div><b>'+(n===0?'T':n>g.F.floors?'H':n)+'</b><span>'+lab+'</span>';if(k<1)requestAnimationFrame(tick);else setTimeout(()=>{if(hm)enterInterior({kind:'home',title:hm.home?HOME_DEF[g.homeTier].n+' · '+to+'º andar':'Apto de '+hm.ownerName+' · '+to+'º andar',exit:g.front,gb:g,floor:to,key:'home'+g.F.seed,guest:!!hm.guest,ownerName:hm.ownerName});else gbEnter(g,to);fd.classList.remove('on');},180);};tick();}
+/* ---- MORADIA: cada nível de casa tem um prédio; cada jogador mora num andar só dele ---- */
+function setupResidences(){RESID.length=0;const c=[WORLD.cxA,WORLD.cyA],dist=g=>Math.hypot(g.F.gx+g.F.w/2-c[0],g.F.gy+g.F.h/2-c[1]);
+  const pool=GB.filter(g=>!g.L&&(g.type==='resid'||g.type==='torre')).sort((a,b)=>dist(a)-dist(b)),used=new Set(),take=f=>{const g=pool.find(x=>!used.has(x)&&f(x));if(g)used.add(g);return g;};
+  RESID[1]=GB.find(g=>g.F===HOME_F)||take(g=>g.type==='resid');if(RESID[1])used.add(RESID[1]);
+  RESID[0]=take(g=>g.F.style==='walkup')||take(g=>g.F.floors<=12)||take(()=>true);
+  RESID[2]=take(g=>g.F.style==='seaport'||g.F.style==='walkup'||g.F.style==='prewar')||take(()=>true);
+  RESID[3]=pool.filter(g=>!used.has(g)&&g.F.floors>=18).sort((a,b)=>b.F.floors-a.F.floors)[0]||take(()=>true);if(RESID[3])used.add(RESID[3]);
+  RESID[4]=GB.find(g=>g.L&&g.L.kind==='70pine')||take(()=>true);
+  const NAMES=['Quitinetes','Residencial','Lofts','Coberturas','Penthouses'];
+  RESID.forEach((g,t)=>{if(!g)return;g.type='resid';g.homeTier=t;g.homeName=NAMES[t]+' · '+g.addr;g.ico='🏠';if(!g.apt)g.apt=Math.max(2,Math.min(g.F.floors-1,Math.round(g.F.floors*0.4)));});}
+function homeRange(t){const g=RESID[t],n=g.F.floors;return t>=3?[Math.max(2,n-(t===4?6:9)),n-1]:[2,Math.max(3,n-1)];}
+function homeBldg(){return RESID[(S.assets&&S.assets.home)||0];}
+async function claimHomeFloor(){const t=(S.assets&&S.assets.home)||0,g=RESID[t];if(!g)return;const [lo,hi]=homeRange(t);
+  if(S.homeFloor&&S.homeFloor.t===t&&S.homeFloor.f>=lo&&S.homeFloor.f<=hi&&!MP.on)return;
+  let f=null;if(MP.on){const {data,error}=await MP.sb.rpc('claim_residence',{p_tier:t,p_min:lo,p_max:hi});if(!error&&data)f=data;}
+  if(!f){let h=7;for(const ch of String(MP.uid||S.name))h=(Math.imul(h,31)+ch.charCodeAt(0))|0;f=lo+(Math.abs(h)%(hi-lo+1));} // offline: andar fixo pelo nome
+  if(f===g.apt)f=f<hi?f+1:f-1;S.homeFloor={t,f};updateHomeSpecial();}
+let homeIcon=null;
+function updateHomeSpecial(){const g=homeBldg();if(!g)return;SPECIAL.home={F:g.F,face:g.face,front:g.front,name:'Sua casa · '+g.addr,ico:'🏠',gb:g};
+  if(!homeIcon&&cityGroup){homeIcon=new THREE.Sprite(new THREE.SpriteMaterial({map:emojiTex('🏠'),transparent:true}));homeIcon.scale.set(1.3,1.3,1);cityGroup.add(homeIcon);}
+  if(homeIcon)homeIcon.position.set(M(g.front[0]),3.4,M(g.front[1]));if(typeof paintMiniBase==='function'&&started)paintMiniBase();}
+function myHomeFloor(){const g=homeBldg();if(!S.homeFloor||S.homeFloor.t!==((S.assets&&S.assets.home)||0)){const [lo]=homeRange((S.assets&&S.assets.home)||0);return lo;}return S.homeFloor.f;}
+function enterHome(){const g=homeBldg();if(!g)return;const t=(S.assets&&S.assets.home)||0,f=myHomeFloor();enterInterior({kind:'home',title:HOME_DEF[t].n+' · '+f+'º andar',exit:g.front,gb:g,floor:f,key:'home'+g.F.seed});}
+const NEIGH={};// tier -> [{id,name,floor}]
+async function loadNeighbors(t){if(!MP.on)return [];const {data}=await MP.sb.from('residences').select('user_id,floor').eq('tier',t).limit(200);const rows=(data||[]).filter(r=>r.user_id!==MP.uid);
+  const ids=rows.map(r=>r.user_id);let names={};if(ids.length){const {data:pl}=await MP.sb.from('players').select('id,name').in('id',ids);for(const p of pl||[])names[p.id]=p.name;}
+  return NEIGH[t]=rows.map(r=>({id:r.user_id,name:names[r.user_id]||'Morador(a)',floor:r.floor}));}
 /* ---- atendentes dos prédios ---- */
 function gbStaff(spec,x,z,heading,role,roleName,kind,mode){const mem=staffMem(spec),p=addIntPerson(seededLook(staffKey(spec)+role,kind||'worker'),x,z,heading,mode||'stand',{staff:role,roleName,mem,spec});INT.staffP=p;return p;}
 function buyOnce(p,k,price,fn){if(S.cash<price)return staffReply(p,'"O cartão não passou… fica pra próxima."');const mem=p.mem;if(mem[k]===S.day)return staffReply(p,'"Você já levou um desses hoje!"');S.cash-=price;mem[k]=S.day;mem.rel=Math.min(100,mem.rel+1);refreshHUD();fn();}
@@ -3474,7 +3514,7 @@ function gbStaffActions(p){const s=p.staff,spec=p.spec,g=spec&&spec.gb,mem=p.mem
   return null;}
 function flyFx(t,s,done){const fd=document.getElementById('fade');fd.innerHTML='<div>🚁</div><b>'+esc(t)+'</b><span>'+esc(s)+'</span>';fd.classList.add('on');setTimeout(()=>{done();fd.classList.remove('on');refreshHUD();},1900);}
 function buyHomeTier(i,p){const a=S.assets,cur=HOME_DEF[a.home],h=HOME_DEF[i],cost=h.p-Math.round(cur.p*0.9);if(S.cash<cost)return staffReply(p,'"Para fechar, faltam '+money(cost-S.cash)+'. Volte quando quiser — o imóvel vale a espera."');
-  S.cash-=cost;a.home=i;a.decor=0;S.rep.public+=h.rep;log('🏠 Você comprou: '+h.n+' ('+money(h.p)+').');MP.news(S.name+' comprou '+h.n);refreshHUD();saveLocal();staffReply(p,'"Parabéns! As chaves são suas. Sua casa passa a ser '+h.n+'." <span class="small">⚡+'+h.e+'/dia · ⭐+'+h.rep+'</span>');}
+  S.cash-=cost;a.home=i;a.decor=0;S.rep.public+=h.rep;log('🏠 Você comprou: '+h.n+' ('+money(h.p)+').');claimHomeFloor();MP.news(S.name+' comprou '+h.n);refreshHUD();saveLocal();staffReply(p,'"Parabéns! As chaves são suas. Sua casa passa a ser '+h.n+'." <span class="small">⚡+'+h.e+'/dia · ⭐+'+h.rep+'</span>');}
 /* ---- interiores ---- */
 function fCounter(B,x,z,w,mat){const I=imat();B.add(mat||I.deskDark,xf(new THREE.BoxGeometry(w,1.05,0.7),x,0.525,z));B.add(I.counter,xf(new THREE.BoxGeometry(w+0.1,0.05,0.8),x,1.07,z));obst(x,z,w,0.7);}
 function fGoods(B,x,z,rot,w,cols){const I=imat(),parts=[];B.add(I.metal,xf(new THREE.BoxGeometry(w,1.9,0.42),x,0.95,z,rot));
@@ -3551,7 +3591,7 @@ function buildHeli(B,spec){const I=imat(),g=spec.gb,m=gbMeta(g),Fw=g.ground?16:g
   if(g.ground)prop(-W/2+1.4,0,'🚪','Sair','Voltar para a esplanada',exitInterior,1.8);else prop(W*0.3,D/2-1.4,'🛗','Elevador','Descer para o prédio',openElevator,1.8);}
 
 /* ---- entrar / sair ---- */
-function enterInterior(spec){if(INT.active)exitInterior();if(PCAR&&PCAR.driving)return;closeModal();cancelPlacing&&placing&&cancelPlacing();document.getElementById('tray').classList.remove('on');
+function enterInterior(spec){if(window.joyUnlock)joyUnlock();if(INT.active)exitInterior();if(PCAR&&PCAR.driving)return;closeModal();cancelPlacing&&placing&&cancelPlacing();document.getElementById('tray').classList.remove('on');
   INT.active=spec;INT.back={x:hero.x,y:hero.y,yaw:CAM.yaw,dist:CAM.dist,pitch:CAM.pitch};INT.obst=[];INT.props=[];INT.people=[];INT.spin=[];INT.spinFast=[];INT.seats=[];INT.talkP=null;
   if(spec.roof){IORIG.x=spec.ox;IORIG.z=spec.oz;HEROY=spec.y;} // heliponto: no topo real do prédio, com a cidade à vista
   const keep=new Set([sun,sun.target,hemi,camera,heroMesh,REMOTE_G]);INT.hidden=[];if(!spec.roof)for(const o of scene.children)if(!keep.has(o)&&o.visible){INT.hidden.push(o);o.visible=false;}
@@ -3618,7 +3658,8 @@ function buildRivalLobby(B,spec){const I=imat(),r=spec.rv;const W=12,D=9;buildRo
   for(let i=0;i<2;i++){const p=addIntPerson(randomLook(Math.random,'worker'),-4,2,0,'walk',{path:[[-4,2],[4,2],[4,-3],[-4,-3]],i:i*2});p.x=i?4:-4;p.z=i?-3:2;}fSofa(B,-W/2+1.2,1,Math.PI/2);fPlant(B,W/2-0.7,-D/2+0.8,1.4);}
 /* ---- casa: muda com o nível do imóvel ---- */
 const HOME_SIZE=[[7,6],[10,8],[14,10],[18,13],[24,16]];
-function buildHome(B){const I=imat(),a=S.assets||{},t=a.home||0,lv=a.decor||0;const [W,D]=HOME_SIZE[t];buildRoom(B,W,D,t>=2?I.wood:I.carpet,{wall:t===2?I.brick:I.wall,H:t>=3?4.2:3.1});
+function buildHome(B,spec){if(spec&&spec.guest){buildHome0(B,spec);INT.props=INT.props.filter(p=>p.txt==='Elevador');prop(0,0,'🏠','Apartamento de '+spec.ownerName,'Você está de visita',()=>toast('🏠 Casa de '+spec.ownerName),1.6);return;}buildHome0(B,spec);}
+function buildHome0(B,spec){const I=imat(),a=S.assets||{},guest=!!(spec&&spec.guest),t=spec&&spec.gb&&spec.gb.homeTier!=null?spec.gb.homeTier:a.home||0,lv=guest?1:a.decor||0;const [W,D]=HOME_SIZE[t];buildRoom(B,W,D,t>=2?I.wood:I.carpet,{wall:t===2?I.brick:I.wall,H:t>=3?4.2:3.1,elev:!!(spec&&spec.gb)});
   // cama
   const bx=-W/2+1.4,bz=-D/2+1.6;B.add(I.deskDark,xf(new THREE.BoxGeometry(1.7,0.45,2.1),bx,0.225,bz));B.add(I.bed,xf(new THREE.BoxGeometry(1.6,0.2,2.0),bx,0.55,bz));B.add(I.blanket,xf(new THREE.BoxGeometry(1.62,0.06,1.2),bx,0.66,bz+0.35));
   B.add(I.bed,xf(new THREE.BoxGeometry(1.4,0.14,0.35),bx,0.7,bz-0.75));B.add(I.deskDark,xf(new THREE.BoxGeometry(1.8,1.0,0.12),bx,0.7,bz-1.08));obst(bx,bz,1.7,2.1);
@@ -3631,6 +3672,9 @@ function buildHome(B){const I=imat(),a=S.assets||{},t=a.home||0,lv=a.decor||0;co
   {const tx=W/2-1.2,tz=-D/2+(t>=2?2.6:3.0);B.add(I.black,xf(new THREE.BoxGeometry(0.3,0.02,0.2),tx,0.79,tz));B.add(I.deskDark,xf(new THREE.BoxGeometry(0.7,0.04,1.0),tx,0.76,tz));B.add(I.metal,xf(new THREE.CylinderGeometry(0.05,0.05,0.74,6),tx,0.37,tz));obst(tx,tz,0.7,1.0);
   prop(tx-0.9,tz,'🏠','Tablet de imóveis','Mudar de casa · reformar e decorar',openHomeShop,1.4);}
   INT.bed={x:bx,z:bz};
+  // home office: estante de cursos e quadro de metas (o que antes ficava na sede)
+  B.add(I.deskDark,xf(new THREE.BoxGeometry(0.4,1.5,1.1),-W/2+0.25,0.75,0.4));prop(-W/2+1.1,0.4,'📚','Estante','Cursos, treinamentos e seu painel',openSede,1.2);
+  B.add(I.wall,xf(new THREE.BoxGeometry(1.4,0.9,0.05),0.6,1.7,-D/2+0.04));prop(0.6,-D/2+0.9,'📋','Quadro de metas','Objetivos da fase',openObjectives,1.1);
   prop(-W/2+0.9,D/2-1.2,'🚗','Garagem',GARAGE[t]+' vaga(s) · '+(S.assets.cars||[]).length+' carro(s)',()=>{const ex=INT.active.exit;exitInterior();enterInterior({kind:'garage',title:'Garagem',exit:ex});},1.3);
   if(t>=1)fSofa(B,-W/2+1.3,D/2-2.6,Math.PI/2,2.4);if(t>=1){B.add(I.black,xf(new THREE.BoxGeometry(1.6,0.9,0.06),-W/2+0.05+2.8,1.3,D/2-0.06));}
   if(t>=2){fShelf(B,0,-D/2+0.35,0,2.6);B.add(I.kitchen,xf(new THREE.BoxGeometry(3,0.95,0.7),W/2-2,0.475,-D/2+0.4));B.add(I.counter,xf(new THREE.BoxGeometry(3.05,0.05,0.75),W/2-2,0.97,-D/2+0.4));obst(W/2-2,-D/2+0.4,3,0.7);}
@@ -3671,8 +3715,8 @@ function buildShowroom(B){const I=imat();const W=26,D=15;buildRoom(B,W,D,I.marbl
 function homeEnergy(){const a=S.assets||{};return (HOME_DEF[a.home||0].e||0)+(a.decor||0)*5;}
 function openHomeShop(){const a=S.assets;const cur=HOME_DEF[a.home];const acts=[];
   HOME_DEF.forEach((h,i)=>{if(i===0||i===a.home)return;const cost=h.p-Math.round(cur.p*0.9);acts.push({t:(i>a.home?'🏠 ':'↘ ')+h.n+' — '+money(h.p),d:(cost>0?'Você paga '+money(cost)+' (vende a atual por 90%)':'Você recebe '+money(-cost))+' · ⚡+'+h.e+'/dia · ⭐+'+h.rep,dis:S.cash<cost,
-    fn:()=>{if(S.cash<cost)return toast('Caixa insuficiente');S.cash-=cost;a.home=i;a.decor=0;S.rep.public+=h.rep;log('🏠 Você se mudou para: '+h.n+'.');MP.news(S.name+' comprou '+h.n);closeModal();refreshHUD();saveLocal();toast('🏠 Bem-vindo(a) ao novo lar!');const ex=INT.active.exit;exitInterior();enterInterior({kind:'home',title:h.n,exit:ex});}});});
-  if(a.home>0&&a.decor<3){const dc=decorCost(a.home,a.decor+1);acts.unshift({t:'🛋️ Reformar e decorar (nível '+(a.decor+1)+'/3) — '+money(dc),d:'⚡+5/dia · ⭐+1 · deixa a casa mais bonita',dis:S.cash<dc,fn:()=>{if(S.cash<dc)return toast('Caixa insuficiente');S.cash-=dc;a.decor++;S.rep.public+=1;closeModal();refreshHUD();saveLocal();const ex=INT.active.exit;exitInterior();enterInterior({kind:'home',title:cur.n,exit:ex});toast('🛋️ Reforma concluída');}});}
+    fn:()=>{if(S.cash<cost)return toast('Caixa insuficiente');S.cash-=cost;a.home=i;a.decor=0;S.rep.public+=h.rep;log('🏠 Você se mudou para: '+h.n+'.');MP.news(S.name+' comprou '+h.n);closeModal();refreshHUD();saveLocal();toast('🏠 Bem-vindo(a) ao novo lar!');claimHomeFloor().then(()=>{exitInterior();enterHome();});}});});
+  if(a.home>0&&a.decor<3){const dc=decorCost(a.home,a.decor+1);acts.unshift({t:'🛋️ Reformar e decorar (nível '+(a.decor+1)+'/3) — '+money(dc),d:'⚡+5/dia · ⭐+1 · deixa a casa mais bonita',dis:S.cash<dc,fn:()=>{if(S.cash<dc)return toast('Caixa insuficiente');S.cash-=dc;a.decor++;S.rep.public+=1;closeModal();refreshHUD();saveLocal();exitInterior();enterHome();toast('🛋️ Reforma concluída');}});}
   acts.push({t:'↩ Voltar',fn:closeModal});
   modal('🏠','Imóveis — '+cur.n,'<div class="kpis">'+kpi('Sua casa',cur.n)+kpi('Energia extra/dia','⚡+'+homeEnergy())+kpi('Valor (patrimônio)',money(Math.round(cur.p*0.9+decorSpent(a)*0.5)),'var(--gold)')+'</div><p class="small">Casas melhores dão mais energia por dia e reputação. O valor entra no seu patrimônio.</p>',acts);}
 function buildPlayerCar(tier,color){const st={1:['sedan',0xb8a888],2:['sedan',0x111317],3:['suv',0x2c3a30],4:['coupe',0xa3121a],5:['super',0xf07a12],6:['limo',0x0c0d10]}[tier]||['sedan',0x888888];
@@ -3707,7 +3751,7 @@ function updateDriving(dt){if(!PCAR)return;const c=PCAR;if(!c.driving){return;}c
 const SPECIAL={};
 function setupSpecialPlaces(){const pickF=(tx,ty,not)=>{tx+=OX;ty+=OY;let best=null,bd=1e9;for(const F of FILLERS){if(F===not)continue;const d=Math.hypot(F.gx+F.w/2-tx,F.gy+F.h/2-ty);if(d<bd&&F.w>=3){bd=d;best=F;}}return best;};
   const home=pickF(47,6),dealer=pickF(55,24,home);
-  for(const [k,F,name,ico,bg,fg] of [['home',home,'Residências Pearl St','🏠','#1d2a3a','#e9f0f7'],['dealer',dealer,'Manhattan Motors','🚗','#14171c','#e8c060']]){if(!F)continue;
+  HOME_F=home;for(const [k,F,name,ico,bg,fg] of [['dealer',dealer,'Manhattan Motors','🚗','#14171c','#e8c060']]){if(!F)continue;
     const face=faceOf(F.gx,F.gy,F.w,F.h);const cx=(F.gx+F.w/2)*TILE,cy=(F.gy+F.h/2)*TILE;const front=face==='s'?[cx,(F.gy+F.h+0.7)*TILE]:face==='n'?[cx,(F.gy-0.7)*TILE]:face==='e'?[(F.gx+F.w+0.7)*TILE,cy]:[(F.gx-0.7)*TILE,cy];
     SPECIAL[k]={F,face,front,name,ico};const yaw=YAW[face];const W=F.w*TS-0.3,D=F.h*TS-0.3;const dist=((face==='e'||face==='w')?W:D)/2+0.18;
     const sm=std({map:signTex(name,bg,fg),roughness:.4,emissive:new THREE.Color(0xffffff),emissiveIntensity:0});sm.emissiveMap=sm.map;NIGHT_MATS.push({mat:sm,k:0.7});
@@ -3724,7 +3768,7 @@ function pendingToday(){return (S.agenda||[]).filter(a=>a.day===S.day&&a.status=
 function timeScale(){const h=nowHour();return 1;} // dias longos: não precisa mais desacelerar
 function inbox(from,txt,ico){S.inbox.unshift({d:S.day,h:fmtHour(nowHour()),from,txt,ico:ico||'✉️',read:false});if(S.inbox.length>40)S.inbox.length=40;buildToolbar();}
 function addAgenda(it){it.id='ag'+Date.now()+ri(0,9999);it.status='pending';S.agenda.push(it);S.agenda=S.agenda.filter(a=>a.day>=S.day-3);return it;}
-function placeOf(key){if(key==='sede')return {x:bFront(sede)[0],y:bFront(sede)[1],name:'Sua sede'};if(key==='fed'){const L=LANDMARKS.find(l=>l.kind==='federal');const f=landmarkFront(L);return {x:f[0],y:f[1],name:'Escadaria do Federal Hall'};}
+function placeOf(key){if(key==='sede'){const h=SPECIAL.home;return h?{x:h.front[0],y:h.front[1],name:'Sua casa'}:null;}if(key==='fed'){const L=LANDMARKS.find(l=>l.kind==='federal');const f=landmarkFront(L);return {x:f[0],y:f[1],name:'Escadaria do Federal Hall'};}
   const sp=SPECIAL[key];return sp?{x:sp.front[0],y:sp.front[1],name:sp.name}:null;}
 /* ---- AuvraOS: o celular do jogador ---- */
 let osTab='agenda';
@@ -3838,7 +3882,7 @@ function placeCandidates(B,co){const W=INT.W,D=INT.D;const cs=candidatesFor(co);
 function headhuntDaily(){for(const co of companies)for(const e of co.employees){if(e.offer&&S.day>e.offer.until){const i=co.employees.indexOf(e);if(i>=0){co.employees.splice(i,1);removeWorker(co);inbox(co.name,e.name+' aceitou a proposta da '+e.offer.rv+' e saiu.','🚪');}continue;}
     if(!e.offer&&(e.happy||60)<42&&Math.random()<0.07&&rivals.length){e.offer={rv:pick(rivals).name,until:S.day+2};inbox('Corredor da '+co.name,'Ouvi dizer que '+e.name+' recebeu proposta da '+e.offer.rv+'. Converse antes do dia '+e.offer.until+'.','👂');}}}
 /* ---- REUNIÕES com contatos ---- */
-const MEET_PLACES=['rest','sede','fed'];
+const MEET_PLACES=['rest','fed'];
 function meetingDaily(){if(!contacts.length||S.day%3!==0||Math.random()<0.35)return;const c=pick(contacts.filter(x=>!(x.cool>S.day)));if(!c)return;if(S.agenda.some(a=>a.kind==='meet'&&a.cid===c.id&&a.status==='pending'))return;
   const key=pick(MEET_PLACES),pl=placeOf(key);if(!pl)return;const h=ri(10,18)+(Math.random()<.5?0.5:0);addAgenda({day:S.day+1,hour:h,kind:'meet',key,cid:c.id,title:'Reunião · '+c.name,who:c.role,place:pl});
   inbox(c.name,'Podemos conversar amanhã às '+fmtHour(h)+' em '+pl.name+'? Tenho uma proposta.',c.ico);}
@@ -3981,7 +4025,7 @@ async function enterAccount(){let uname=null;try{const {data}=await MP.sb.from('
 async function logout(){try{saveLocal();await MP.saveCloud();await MP.sb.auth.signOut();}catch(e){}location.reload();}
 
 /* ============================ LAÇO ============================ */
-const DAY_SEC=600; /* 1 dia de jogo (07:00–23:00) = 10 min reais; 1 hora ≈ 37,5 s */let lastShadow=0,last=performance.now(),dayAcc=0,menuOpen=true,lastPhase=0;const HIST=[];
+const DAY_SEC=900; /* 1 dia de jogo (07:00–23:00) = 15 min reais; 1 hora ≈ 56 s */let lastShadow=0,last=performance.now(),dayAcc=0,menuOpen=true,lastPhase=0;const HIST=[];
 function modalOpen(){return !!document.getElementById('scrim');}
 function afterDay3d(){careerDaily();if(started&&lookScore()>=72){repUp('public',lookScore()>=90?.5:.25);}stocksDaily();contactsLife();if(SLEPT)S.energy+=homeEnergy();else if(started)toast('😴 Você virou a noite fora de casa — energia baixa. Durma em casa para recuperar tudo.');SLEPT=false;HIST.push({d:S.day,n:Math.round(netWorth()),c:Math.round(S.cash)});if(HIST.length>400)HIST.splice(0,HIST.length-400);
   if(S.phase!==lastPhase){lastPhase=S.phase;paintGround();paintMiniBase();if(placing){paintOverlay();}}}
@@ -4068,7 +4112,7 @@ function netWorth(){return Math.round(S.cash+S.escrow+equity()-S.debt+assetValue
 /* bens pessoais: carro (revende a 70%) e casa (90%) + reformas (50%) — ver CASA & CARRO */
 const CAR_DEF=[{n:'A pé',p:0,v:0,rep:0},{n:'Sedã usado',p:9000,v:14,rep:1,d:'Confiável, discreto, cheiro de carro de aplicativo.'},{n:'Sedã executivo',p:38000,v:17,rep:2,d:'Preto, silencioso, perfeito para reuniões no centro.'},
   {n:'SUV de luxo',p:120000,v:18,rep:4,d:'Alto, imponente e com bancos de couro.'},{n:'Esportivo',p:420000,v:24,rep:6,d:'Vermelho, baixo e barulhento — todo mundo olha.'},{n:'Supercarro',p:1500000,v:30,rep:9,d:'Para quando o primeiro IPO dá certo.'},{n:'Limusine com motorista',p:4000000,v:16,rep:12,d:'O carro de quem não dirige mais.'}];
-const HOME_DEF=[{n:'Quitinete alugada',p:0,e:0,rep:0},{n:'Apartamento de 1 quarto',p:60000,e:8,rep:1},{n:'Loft em Tribeca',p:450000,e:15,rep:3},{n:'Cobertura em Wall Street',p:3500000,e:25,rep:6},{n:'Penthouse no topo de Manhattan',p:15000000,e:35,rep:10}];
+const HOME_DEF=[{n:'Quitinete alugada',p:0,e:0,rep:0},{n:'Apartamento de 1 quarto',p:60000,e:8,rep:1},{n:'Loft de tijolinho',p:450000,e:15,rep:3},{n:'Cobertura em Wall Street',p:3500000,e:25,rep:6},{n:'Penthouse no topo de Manhattan',p:15000000,e:35,rep:10}];
 function decorCost(home,lvl){return Math.max(3000,Math.round(HOME_DEF[home].p*[0,0.08,0.15,0.3][lvl]));}
 function decorSpent(a){let t=0;for(let l=1;l<=(a.decor||0);l++)t+=decorCost(a.home,l);return t;}
 function assetValue(){const a=S.assets;if(!a)return 0;return Math.round((a.cars&&a.cars.length?a.cars.reduce((t,c)=>t+CAR_DEF[c.tier].p,0):CAR_DEF[a.car||0].p)*0.7+HOME_DEF[a.home||0].p*0.9+decorSpent(a)*0.5);}
@@ -4083,7 +4127,7 @@ function makeCompany(nicheId,b){const n=NICHE[nicheId];const base=rnd(n.base[0],
   const co={id:'co'+Date.now()+ri(0,99999),niche:nicheId,name:coName(n),baseRev:base,ops:42,scale:1,employees:[],overhead:Math.round(base*0.3),age:0,stake:1,expandN:0,b};if(b)b.co=co;return co;}
 function buildDays(cost){return Math.max(2,Math.min(9,Math.round(1.5+cost/3500)));} // prazo da obra, em dias
 function foundCompany(nicheId,gx,gy){const n=NICHE[nicheId];const b=placeBuilding(n.spr,gx,gy);const co=makeCompany(nicheId,b);co.build=co.buildTot=buildDays(n.cost);companies.push(co);S.cash-=n.cost;S.founded++;log('🏗️ Obra iniciada: '+co.name+' fica pronta em '+co.build+' dias.');return co;}
-function placeSede(gx,gy){const b=placeBuilding('hq',gx,gy);b.sede=true;sede=b;return b;}
+function placeSede(gx,gy){sede={type:'hq',gx,gy,face:faceOf(gx,gy,2,2),virtual:true};return sede;} // não existe mais prédio de sede: o home office fica em casa
 function addEmployee(co,e){e=e||genPerson();co.employees.push(e);if(co.b)spawnWorker(co.b,co);S.hires++;return e;}
 function removeCompany(co){companies=companies.filter(c=>c!==co);const bi=buildings.indexOf(co.b);if(bi>=0)buildings.splice(bi,1);removeWorkersOf('co',co);}
 /* ajusta a escala p/ o valuation bater com um alvo (aquisições: preço justo, não dinheiro grátis) */
@@ -4212,7 +4256,7 @@ function hireInto(co){const cands=[genPerson(),genPerson(),genPerson()];
 function openRival(r){if(!rivals.includes(r))return closeModal();const n=NICHE[r.niche];const price=rivalPrice(r);
   modal(n.ico,esc(r.name)+' · concorrente','<div class="kpis">'+kpi('Valuation',money(r.value),'var(--red)')+kpi('Setor',n.name)+kpi('Equipe',r.staff)+kpi('Preço (M&A)',money(price),'var(--gold)')+'</div><p class="small">Concorrentes no mesmo setor reduzem sua receita. Comprar elimina a concorrência e o prédio vira seu.</p>',
   [{t:'🦈 Adquirir por '+money(price),d:S.phase<2?'Liberado na fase Crescimento':(S.cash<price?'Caixa insuficiente':'O prédio e a equipe viram seus'),dis:S.phase<2||S.cash<price,fn:after(()=>{const co=doAcquire(r);if(co){toast('🦈 Adquiriu '+co.name);MP.news(S.name+' adquiriu a '+co.name);openCompany(co);}})},{t:'↩ Fechar',fn:closeModal}]);}
-function openSede(){modal('⭐','Sua Sede — '+esc(S.name),'<div class="kpis">'+kpi('Patrimônio',money(netWorth()),'var(--gold)')+kpi('Energia','⚡'+Math.round(S.energy))+kpi('Negociação / Carisma',Math.round(S.skills.negotiation)+' / '+Math.round(S.skills.charisma))+kpi('Finanças / Liderança',Math.round(S.skills.finance)+' / '+Math.round(S.skills.leadership))+'</div>',
+function openSede(){modal('📚','Seu painel — '+esc(S.name),'<div class="kpis">'+kpi('Patrimônio',money(netWorth()),'var(--gold)')+kpi('Energia','⚡'+Math.round(S.energy))+kpi('Negociação / Carisma',Math.round(S.skills.negotiation)+' / '+Math.round(S.skills.charisma))+kpi('Finanças / Liderança',Math.round(S.skills.finance)+' / '+Math.round(S.skills.leadership))+'</div>',
   [{t:'💻 Fazer freela (⚡30)',d:S.phase===1?'Dinheiro rápido para começar':'Rende menos agora que você é empresário',fn:after(()=>{const p=actFreelance();if(p)toast('💵 Freela: +'+money(p));openSede();})},
    {t:'📚 Curso de finanças ('+money(150*S.phase)+' · ⚡25)',d:'Finanças melhora seus negócios',fn:after(()=>{if(actStudy('finance'))toast('📚 Finanças +');openSede();})},
    {t:'🎖️ Curso de liderança ('+money(150*S.phase)+' · ⚡25)',d:'Equipes mais felizes e operação melhor',fn:after(()=>{if(actStudy('leadership'))toast('🎖️ Liderança +');openSede();})},
@@ -4310,7 +4354,7 @@ function onTool(k,el){
   if(k==='car'){if(!S.assets.car){toast('🚗 Você ainda não tem carro — a Manhattan Motors fica na Water St (ícone 🚗 no mapa).');return;}if(INT.active)return toast('Saia do prédio primeiro');if(PCAR&&PCAR.driving)return;
     const d=PCAR?Math.hypot(M(hero.x)-PCAR.x,M(hero.y)-PCAR.z):1e9;if(d>14){spawnPlayerCar(false);toast('🅿️ O manobrista trouxe seu '+CAR_DEF[S.assets.car].n);}else toast('🚗 Seu carro está aqui perto');return;}
   if(k==='home'){const a=S.assets,h=HOME_DEF[a.home];modal('🏠','Sua casa — '+h.n,'<div class="kpis">'+kpi('Energia extra/dia','⚡+'+homeEnergy())+kpi('Decoração',a.decor+'/3')+kpi('Carro',CAR_DEF[a.car].n)+kpi('Bens no patrimônio',money(assetValue()),'var(--gold)')+'</div><p class="small">Sua casa fica nas <b>Residências Pearl St</b> (ícone 🏠). Lá dentro: dormir, closet, notebook e o tablet de imóveis para mudar de casa.</p>',
-    [{t:'🚶 Ir para casa',d:'Anda até a portaria',fn:()=>{closeModal();if(INT.active)exitInterior();const f=SPECIAL.home.front;goTo(f[0],f[1],()=>enterInterior({kind:'home',title:HOME_DEF[S.assets.home].n,exit:f}));}},{t:'↩ Fechar',fn:closeModal}]);return;}
+    [{t:'🚶 Ir para casa',d:'Anda até a portaria',fn:()=>{closeModal();if(INT.active)exitInterior();const f=SPECIAL.home.front;goTo(f[0],f[1],()=>enterHome());}},{t:'↩ Fechar',fn:closeModal}]);return;}
   if(k==='build'&&INT.active){toast('Saia do prédio para construir');return;}
   if(k==='phone'){openOS();return;}if(!started)return;const tray=document.getElementById('tray');document.querySelectorAll('.tool').forEach(t=>t.classList.remove('on'));
   if(k==='build'){if(placing){cancelPlacing();return;}const open=!tray.classList.contains('on');if(open){if(el)el.classList.add('on');openBuildTray();}else tray.classList.remove('on');return;}
@@ -4319,7 +4363,7 @@ function onTool(k,el){
   else if(k==='bank')openBank();else if(k==='net'){openFriends();MP.refreshAll().then(()=>{if(document.getElementById('chatBox'))openFriends();});}else if(k==='set')openSettings();}
 function openBuildTray(){const tray=document.getElementById('tray');tray.classList.add('on');
   tray.innerHTML=BUILD.map(d=>'<button type="button" class="card'+(S.cash<d.cost?' no':'')+'" data-t="'+d.id+'"><div class="ce">'+icon({office:'emp',startup:'energy',factory:'build',cafe:'market'}[d.spr]||'emp')+'</div><div class="cn">'+d.name+'</div><div class="cc">'+money(d.cost)+'</div></button>').join('');
-  tray.querySelectorAll('.card').forEach(cd=>{cd.onclick=()=>{if(cd.classList.contains('no'))return toast('Caixa insuficiente — faça freelas na sua sede ⭐');startPlacing(BUILD.find(d=>d.id===cd.dataset.t));};});}
+  tray.querySelectorAll('.card').forEach(cd=>{cd.onclick=()=>{if(cd.classList.contains('no'))return toast('Caixa insuficiente — faça freelas no notebook de casa 🏠');startPlacing(BUILD.find(d=>d.id===cd.dataset.t));};});}
 function startPlacing(def){placing=def;placeManual=null;document.getElementById('tray').classList.remove('on');paintOverlay();overlayMesh.visible=true;
   const confirm=document.getElementById('placeOk');confirm.disabled=true;delete confirm.dataset.label;
   document.getElementById('placeBar').classList.add('on');
@@ -4367,7 +4411,7 @@ function lookOfAv(av){const g=av.gender||(av.build==='B'?'f':'m');
     shirt:PAL.shirt[av.shirt]??(g==='f'&&['blazer','smart','terno','alfaiataria'].includes(av.topStyle)?0x23262c:PAL.shirt[0])};
   return {...av,gender:g,...colors,tie:0xc9a24a};}
 // "espaço" onde o jogador está: a rua, ou um interior (casa/sede/empresa são privados de cada um)
-function mySpace(){const a=INT.active;if(!a)return 'city';const own=['home','sede','office','rival','garage'].includes(a.kind);
+function mySpace(){const a=INT.active;if(!a)return 'city';const own=['home','sede','office','rival','garage'].includes(a.kind)&&!a.gb;
   const id=a.key||a.shop||a.broker||(a.job&&a.job.id)||(a.co&&a.co.id)||a.title||'';return a.kind+':'+id+(a.floor!=null&&!String(id).includes('-'+a.floor)?':'+a.floor:'')+(own?':'+MP.uid:'');}
 function nameTag(name){const {c,g}=makeCanvas(256,64);g.font='bold 30px system-ui,sans-serif';const w=Math.min(244,g.measureText(name).width+30);
   g.fillStyle='rgba(12,14,18,.78)';g.beginPath();g.roundRect((256-w)/2,10,w,44,22);g.fill();g.fillStyle='#4fe08a';g.beginPath();g.arc((256-w)/2+16,32,6,0,7);g.fill();
@@ -4395,7 +4439,7 @@ function remoteEmote(id,e){const r=REMOTES.get(id);if(!r||!r.mesh)return;if(r.em
   if(r.mesh.visible&&hero&&Math.hypot(hero.x-r.cx,hero.y-r.cy)<TILE*6)toast(e+' '+r.name);}
 function remoteNear(){let best=null,bd=TILE*1.1;for(const r of REMOTES.values()){if(!r.mesh||!r.mesh.visible)continue;const d=Math.hypot(hero.x-r.cx,hero.y-r.cy);if(d<bd){bd=d;best=r;}}return best?{r:best,d:bd}:null;}
 /* ---- onde está cada jogador + aviso quando um contato entra/sai ---- */
-function placeTitle(a){if(a.kind==='home')return 'em casa';if(a.kind==='sede')return 'na sede da empresa';if(a.kind==='office'||a.kind==='garage')return 'numa das empresas';if(a.kind==='heli')return 'no '+(a.title||'heliponto');return 'em '+(a.title||'um prédio');}
+function placeTitle(a){if(a.kind==='home')return a.guest?'visitando um amigo':'em casa';if(a.kind==='sede')return 'na sede da empresa';if(a.kind==='office'||a.kind==='garage')return 'numa das empresas';if(a.kind==='heli')return 'no '+(a.title||'heliponto');return 'em '+(a.title||'um prédio');}
 function whereIs(id){const r=REMOTES.get(id);if(!r||!r.t)return null;if(r.sp==='city'){if(r.dr)return 'dirigindo pela '+(streetAt(M(r.x),M(r.y))||'cidade');const st=streetAt(M(r.x),M(r.y));return st?'na '+st:'andando pelo distrito';}return r.pl||'dentro de um prédio';}
 function goToPlayer(id){const r=REMOTES.get(id);if(!r||!r.t)return toast('Ainda sem localização. Tente em alguns segundos.');const nm=r.name;
   const pt=r.sp==='city'?[r.x,r.y]:r.ex;if(!pt)return toast(nm+' está num lugar privado.');if(INT.active)exitInterior();closeModal();setWaypoint(pt[0],pt[1],nm+(r.sp==='city'?'':' · '+r.pl.replace(/^(em|no|na) /,'')));toast('📍 Rota até '+nm);}
@@ -4560,7 +4604,7 @@ const MP={sb:null,uid:null,on:false,status:'offline (servidor não configurado)'
   news(text){if(this.ch)this.ch.send({type:'broadcast',event:'news',payload:{text}});},
   onDay(){if(!this.on)return;this.sync();this.saveCloud();this.processDeals();},
   async start(){if(!(await this.init()))return;await this.begin();},
-  async begin(){if(!this.on)return;this.joinRealtime();await this.sync();this.processDeals();this.fetchBoard();claimGifts();loadUnreadDMs();this.seen();},
+  async begin(){if(!this.on)return;this.joinRealtime();if(started)claimHomeFloor();await this.sync();this.processDeals();this.fetchBoard();claimGifts();loadUnreadDMs();this.seen();},
   trackMe(){if(this.ch)this.ch.track({id:this.uid,name:S.name,phase:S.phase,net:Math.round(netWorth()),av:AVATAR});},
   posT:0,hbT:0,last:null,
   sendPos(force){if(!this.ch||!started||!hero)return;const sp=mySpace(),dr=!!(PCAR&&PCAR.driving),a=INT.active,p={id:this.uid,name:S.name,x:Math.round(hero.x),y:Math.round(hero.y),h:+(dr?PCAR.yaw:(hero.heading||0)).toFixed(2),sp,hy:+HEROY.toFixed(1),dr:dr?1:0,pl:a?placeTitle(a):'',ex:a&&a.exit?[Math.round(a.exit[0]),Math.round(a.exit[1])]:null};
@@ -4777,7 +4821,7 @@ function pageHTML(page){
       (started?'<button class="mbtn" id="sSave"><b>💾 Salvar agora</b><span>Neste aparelho e na nuvem</span></button>':'')+(ACCOUNT?'<button class="mbtn" id="sOut"><b>🚪 Sair da conta</b><span>'+esc(ACCOUNT.name)+' · '+esc(ACCOUNT.email||'')+'</span></button>':'')+'</div><p class="small" style="margin-top:10px">Multiplayer: '+esc(MP.status)+'</p>';}
   if(page==='help')return '<div class="ph1">❓ Como jogar</div><div class="mb">'+
     '<p><b>Controles:</b> joystick à esquerda anda (empurre até a borda para correr) · arraste a tela para girar a câmera · pinça = zoom · toque num prédio, pessoa ou no chão para ir até lá · o botão dourado à direita entra / conversa. No teclado, ande com WASD ou as setas e segure Shift para correr.</p>'+
-    '<p><b>Começo:</b> você chega com $3k. Vá até sua ⭐ <b>sede</b> (placa dourada) e faça <b>freelas</b> até juntar caixa para fundar a 1ª empresa com <b>🔨 Construir</b> — os terrenos verdes ficam liberados.</p>'+
+    '<p><b>Começo:</b> você chega com $3k e mora numa quitinete. Faça <b>freelas</b> no notebook de casa 🏠 até juntar caixa para fundar a 1ª empresa com <b>🔨 Construir</b> — os terrenos verdes ficam liberados.</p>'+
     '<p><b>Wall Street de verdade:</b> a <b>Bolsa</b> (colunas, bandeira) abre o pregão · o <b>23 Wall</b> é o banco · na praça em frente à Bolsa estão os contatos (anel dourado): investidora, banqueiro, mentor, cliente, headhunter.</p>'+
     '<p><b>Crescer:</b> expanda e contrate dentro de cada empresa — o prédio cresce junto. Compre concorrentes (placa vermelha), abra capital e cuidado com aquisições hostis dos amigos.</p>'+
     '<p><b>Fases:</b> Sobrevivência → Crescimento → Escala → Influência → Legado. A cada fase, mais terrenos de Lower Manhattan se abrem.</p></div>';
@@ -4798,7 +4842,7 @@ async function play(){if(started){closeMenu();return;}if(needName()||joining)ret
 async function startNew(forceFresh){if(needName())return;const nm=AVATAR.name;await mpWait();
   if(!forceFresh&&MP.on){const cloud=await MP.loadCloud();if(cloud&&cloud.S&&!cloud.S.over){loadGame(cloud);S.name=nm;beginPlay();toast('☁️ Save da nuvem carregado');return;}}
   newGame(nm);beginPlay();MP.sync();MP.news(nm+' acabou de chegar em Wall Street.');}
-function beginPlay(){started=true;ensureCareer();ensureWardrobe();rebuildHero();spawnPlayerCar(false);lastPhase=S.phase;paintGround();paintMiniBase();CAM.yaw=0;CAM.pitch=0.28;CAM.dist=7.5;closeMenu();buildToolbar();checkPhase();refreshHUD();refreshObj();saveLocal();LOCAL=readLocal();enterFullscreen();
+function beginPlay(){started=true;updateHomeSpecial();claimHomeFloor();ensureCareer();ensureWardrobe();rebuildHero();spawnPlayerCar(false);lastPhase=S.phase;paintGround();paintMiniBase();CAM.yaw=0;CAM.pitch=0.28;CAM.dist=7.5;closeMenu();buildToolbar();checkPhase();refreshHUD();refreshObj();saveLocal();LOCAL=readLocal();enterFullscreen();
   if(!HIST.length)HIST.push({d:S.day,n:Math.round(netWorth()),c:Math.round(S.cash)});
 }
 function enterFullscreen(){if(!isTouch||!SETTINGS.fullscreen||isStandalone())return;const el=document.documentElement;const p=el.requestFullscreen?el.requestFullscreen({navigationUI:'hide'}):el.webkitRequestFullscreen?el.webkitRequestFullscreen():null;
@@ -4815,7 +4859,7 @@ if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceW
 
 /* ============================ BOOT ============================ */
 async function boot(){
-  normalizeAvatar();genWorld();paintGround();initScene();setupSpecialPlaces();setupCareerPlaces();setupBuildingsInside();setupInput();
+  normalizeAvatar();genWorld();paintGround();initScene();setupSpecialPlaces();setupCareerPlaces();setupBuildingsInside();setupResidences();setupInput();
   newGame('Visitante');rebuildHero();paintMiniBase(); // o distrito aparece vivo atrás das telas
   requestAnimationFrame(t=>{last=t;frame(t);});window.__townReady=true; // 3D pronto: o aviso de falha não dispara durante o login
   const t0=performance.now();await MP.init();await new Promise(r=>setTimeout(r,Math.max(0,1700-(performance.now()-t0))));
@@ -4823,7 +4867,7 @@ async function boot(){
   if(!MP.on)await showAuth('login',MP.sb?'':'Sem conexão com o servidor. Confira a internet e tente de novo.');
   await enterAccount();
   window.__townReady=true;
-  window.__game={AVATAR,rebuildHero,get ROUTE(){return ROUTE;},solidAt,bodyFree,setWaypoint,clearWaypoint,openBigMap,closeBigMap,goTo,get S(){return S;},get hero(){return hero;},get companies(){return companies;},get buildings(){return buildings;},canBuild,foundCompany,tryPlace,startPlacing,BUILD,get placing(){return placing;},renderer:()=>renderer,camera:()=>camera,CAM,openMenu,closeMenu,TILE,TS,M,PX,WORLD:()=>WORLD,STATS:()=>renderer.info.render,setDayAcc:v=>{dayAcc=v;},scheduleShiftX:()=>scheduleShift(),contactsX:()=>contacts,addAgenda,CARSX:()=>CARS,heroFree,WP:()=>WAYPOINT,actHire,genPerson,enterInterior,exitInterior,get SPECIAL(){return SPECIAL;},get PCAR(){return PCAR;},get INT(){return INT;},CROWD,setTod:v=>{tod=v;},sede:()=>sede,bFront,doInteract,get interact(){return interactTarget;},trafficStep:updateTraffic,crowdStep:updateCrowd,GB,gbEnter,openElevator,get HEROY(){return HEROY;},laneRoute,LANES,INTERS,GROUPS,lightState,get lightT(){return lightT;}};}
+  window.__game={AVATAR,rebuildHero,get ROUTE(){return ROUTE;},solidAt,bodyFree,setWaypoint,clearWaypoint,openBigMap,closeBigMap,goTo,get S(){return S;},get hero(){return hero;},get companies(){return companies;},get buildings(){return buildings;},canBuild,foundCompany,tryPlace,startPlacing,BUILD,get placing(){return placing;},renderer:()=>renderer,camera:()=>camera,CAM,openMenu,closeMenu,TILE,TS,M,PX,WORLD:()=>WORLD,STATS:()=>renderer.info.render,setDayAcc:v=>{dayAcc=v;},scheduleShiftX:()=>scheduleShift(),contactsX:()=>contacts,addAgenda,CARSX:()=>CARS,heroFree,WP:()=>WAYPOINT,actHire,genPerson,enterInterior,exitInterior,get SPECIAL(){return SPECIAL;},get PCAR(){return PCAR;},get INT(){return INT;},CROWD,setTod:v=>{tod=v;},sede:()=>sede,bFront,doInteract,get interact(){return interactTarget;},trafficStep:updateTraffic,crowdStep:updateCrowd,RESID,enterHome,mySpace,get REMOTES(){return REMOTES;},get joy(){return joy;},GB,gbEnter,openElevator,get HEROY(){return HEROY;},laneRoute,LANES,INTERS,GROUPS,lightState,get lightT(){return lightT;}};}
 boot().catch(e=>{console.error(e);window.__fail('Erro ao iniciar: '+(e&&e.message||e));});
 </script>
 </body>

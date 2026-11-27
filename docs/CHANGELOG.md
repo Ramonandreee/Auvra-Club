@@ -2,6 +2,19 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.8.0 — 2026-11-27
+- **feat(town): moradia por prédio e andar; fim da "sede".**
+  - **Sede:** o prédio de sede saiu do mapa (vira só um ponto de referência interno). Freelas, cursos e metas foram para o home office da casa.
+  - **Prédios:** cada nível de casa tem um prédio residencial (`RESID`).
+  - **Andares:** cada jogador recebe um andar exclusivo. A tabela `residences` tem `unique(tier,floor)` e a RPC `claim_residence` dá o menor andar livre da faixa do prédio. Testado com PGlite.
+  - **Elevador:** mostra o seu apartamento e o dos amigos (visita, com espaço compartilhado por andar). Os outros moradores ficam como "particulares".
+  - "Loft em Tribeca" passa a se chamar "Loft de tijolinho".
+- **feat(town): caminhada no celular.**
+  - Velocidade de 0,95–1,85 m/s (antes 0,75–1,55).
+  - Trava do analógico 🔒: arrastar para cima além da borda.
+  - Desvio por ângulos laterais. A multidão dá um passo para o lado e, se só houver gente bloqueando, o personagem passa após 0,3 s.
+- **balance:** o dia de jogo passa a durar 15 min reais (antes 10).
+
 ## 2.7.1 — 2026-11-27
 - **feat(town): avisos de amigos e "onde está".** Aviso quando um amigo entra ou sai, com "📍 Ir até lá" (GPS até a rua ou a porta do prédio) e 💬, e resumo ao abrir o jogo. A posição em tempo real passa a levar o nome do lugar e a porta do prédio.
 - **feat(town): Contatos e Amigos separados no celular.** 📇 Contatos é a rede de network (NPCs): relação, último encontro, ligar e onde está. 👥 Amigos são os jogadores: onde estão, "visto por último" (coluna `players.last_seen`, atualizada a cada 60 s e ao sair) e conversas.

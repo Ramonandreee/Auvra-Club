@@ -53,6 +53,14 @@ menu ou painel aberto.
 
 ## Vida em Wall Street (estilo mundo aberto)
 
+- **Moradia de verdade:** não existe mais "sede".
+  - **Home office:** você começa numa quitinete e faz freelas no notebook de casa. A estante de cursos e o quadro de metas também ficam em casa.
+  - **Um prédio por nível:** quitinetes, residencial, lofts, coberturas e as penthouses do 70 Pine.
+  - **Um andar por jogador:** cada um recebe um andar exclusivo (RPC `claim_residence`). Vizinhos se encontram na portaria e no elevador, e um amigo pode visitar o seu apartamento.
+- **Andar no celular:** caminhada levemente mais rápida.
+  - **Trava:** arraste o analógico para cima, além da borda, até o 🔒 acender, e solte. O personagem segue andando até você tocar no analógico de novo.
+  - **Desvio:** o personagem contorna pedestres e objetos. A multidão abre espaço e, se ainda estiver apertado, ele passa devagar.
+- **Tempo:** 1 dia de jogo dura 15 minutos reais.
 - **Jogar junto (multiplayer em tempo real):** quem está online aparece no mapa com o próprio visual e o nome em cima, na rua ou dentro do mesmo prédio e andar. Casa, sede e empresas são privadas de cada um.
   - **De perto, toque em Falar:** dá para mandar mensagem, adicionar aos contatos, acenar, pagar um café ou drink (dá energia a quem recebe), dar dinheiro (até $10 mil por vez e $25 mil por dia) ou dar uma peça de roupa.
   - **No celular, contatos e amigos ficam separados:**
