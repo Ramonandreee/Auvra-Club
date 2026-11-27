@@ -2,6 +2,15 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.18.0 — 2026-11-27
+- **feat(town): personagens realistas.** 10 modelos 3D (5 homens e 5 mulheres de etnias e idades variadas, com ternos e tailleurs e 2 casuais), gerados com MakeHuman/MPFB a partir de **assets CC0**. Pele com textura, olhos, sobrancelhas, cílios, cabelo, roupa e mãos com dedos.
+- **Integração:** modelos em `town/models/`, carregados sob demanda com GLTFLoader e clonados com SkeletonUtils.
+  - **Animação:** o esqueleto procedural continua animado e as rotações são transferidas ao rig do modelo (`realPose`). Os braços saem da pose em T alinhando cada segmento ao braço procedural em repouso.
+  - **Limite de desempenho:** só as N pessoas mais próximas recebem o modelo (3/6/10 conforme a qualidade). As de longe mantêm o procedural. Medição na Wall St: ~190 draw calls e ~510 mil triângulos na cena inteira, igual a antes.
+  - **Variedade de NPCs:** respeita gênero, tom de pele e cabelo grisalho, e prefere terno em Wall Street.
+- **feat(town): opções novas.** "Modelo realista" no editor (Automático ou um dos 5) e **Ajustes → Personagens realistas**.
+- **chore:** `sw.js` v34 guarda os modelos num cache próprio (não é apagado a cada versão). Ferramenta de geração em `tools/mh/` e licenças em `town/models/LICENSE.md`. CLAUDE.md ganhou a exceção de assets CC0.
+
 ## 2.17.0 — 2026-11-27
 - **feat(town): rosto procedural novo.** A cabeça deixa de ser uma malha empacotada esticada e passa a ser gerada por seções (`headForm`/`headRows`/`headTint`), lisa e com mais vértices na frente do rosto.
   - **Relevo:** crânio, testa, arco das sobrancelhas, órbitas, maçãs do rosto, nariz (ponte, ponta e asas), lábios, filtro, queixo, mandíbula, pomo de adão e orelhas.
