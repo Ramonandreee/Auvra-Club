@@ -51,6 +51,21 @@ entrar / conversar / conhecer. No computador: **WASD/setas** andam, **Shift** co
 **E** interage, **Espaço** pausa, **1/2/3** velocidade, **Esc** abre o menu. O tempo **pausa** com
 menu ou painel aberto.
 
+## Vida em Wall Street (estilo mundo aberto)
+
+- **Entrar nos prédios:** sede, suas empresas e concorrentes têm interior 3D. Nas suas empresas, a equipe trabalha
+  sentada nas mesas (digitando) ou circula; fale com cada funcionário (elogiar, aumento de 10%, demitir). Recepção/RH e a
+  mesa do CEO abrem a gestão; a mesa de reunião otimiza a operação; a copa faz um café com a equipe (1×/dia).
+  Na sede: computador = freela, estante = cursos, telefone = banco, quadro = metas.
+- **Casa:** nas *Residências Pearl St* (🏠). 5 níveis (quitinete alugada → penthouse de $15M) + 3 níveis de reforma.
+  Dá ⚡ extra todo dia e reputação; dentro: cama (dormir = próximo dia), closet (visual), notebook (freela), tablet de imóveis.
+- **Carro:** na *Manhattan Motors* (🚗), showroom com 6 modelos girando (sedã usado $9k → limusine $4M). Dirija pelas ruas
+  (joystick: cima acelera, baixo freia/ré, lados viram; táxis param para você). Ferramenta 🚗 *Carro* chama o manobrista.
+- **Bens no patrimônio:** carro conta 70% do preço, casa 90%, reformas 50% (`assetValue()` no bloco @ECON).
+- **Pedestres:** qualquer pessoa na calçada pode ser abordada (1×/dia cada): turista, trader, recrutadora, jornalista,
+  empreendedora, estudante, vendedor de cachorro-quente — cada encontro tem um efeito pequeno.
+- **Mais gente na rua:** multidão 16/34/52 pessoas (qualidade baixa/média/alta).
+
 ## Menu principal
 
 **Jogar / Continuar**, **Novo jogo**, **Personagem**, **Amigos**, **Indicadores**, **Ajustes** e
