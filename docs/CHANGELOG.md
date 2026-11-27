@@ -2,6 +2,14 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## [2.2.0] — 2026-11-28 — *Personagens semi-realistas (1ª etapa)*
+- Materiais físicos separados nos personagens próximos: pele (brilho e luz "por baixo"), lã/algodão (veludo da
+  trama), couro (verniz) e cabelo (brilho de fio); malha mais suave de perto. Distantes seguem leves.
+- Rosto: delineado/cílios, sombras do nariz e sob as maçãs, ponta do nariz, lábios e blush; sobrancelhas mais
+  naturais; traços femininos (mandíbula, nariz, olhos, lábios). Cabelo assentado sem serrilhado na borda.
+- Visual dos exemplos: "Blazer e camisa aberta" (camisa até o cinto, cinto com fivela), botas de couro, jeans na
+  paleta, cor da camisa/blusa escolhível (blusa escura no blazer feminino); cabelos degradê e liso com franja.
+
 ## [2.1.1] — 2026-11-28 — *Lojas por gênero*
 - Gênero do personagem (Masculino/Feminino) na aba Corpo. Lojas mostram só a coleção do seu gênero, com manequins do
   mesmo gênero; o editor esconde as peças do outro. No feminino, ternos viram tailleurs.
