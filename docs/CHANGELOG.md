@@ -2,6 +2,13 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.16.1 — 2026-11-27
+- **fix(town): passeios jogáveis.**
+  - **Barra compacta:** o cartão grande no topo virou uma barra pequena embaixo, com botões de ícone (💬 conversar, 👁️/🎥 dentro/fora, ⏩ pular). As falas aparecem como legenda e somem sozinhas.
+  - **Câmera livre:** dá para arrastar em qualquer direção (inclusive olhar para cima na visão de dentro) e dar zoom com pinça. Ela só volta para a frente depois de 4 s sem mexer.
+  - **Balsa:** você anda pelo deque superior aberto com o joystick, entre os passageiros (antes eles ficavam dentro da cabine). Com 💬 você conversa com o mais perto, e a visão de dentro agora é do deque, não de uma parede.
+  - **Rydr e helicóptero:** 💬 puxa conversa com o motorista ou o piloto. Sentado, o joystick e o botão de correr somem da tela.
+
 ## 2.16.0 — 2026-11-27
 - **feat(town): mapa ampliado (98 → 114 linhas).** O grid gerado é esticado por `stretchWorld()`, que insere linhas (`ROW_INS`) e remapeia ruas, marcos, prédios e decoração.
   - **Norte:** 8 linhas novas para a **Vesey St** e a **Ann St**. O **One World Trade Center** foi para o lugar real, entre a Vesey e a Fulton (antes ficava ao sul da Fulton). Onde ele ficava virou a praça do **Memorial 9/11**, com carvalhos.

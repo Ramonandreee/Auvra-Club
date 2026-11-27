@@ -445,8 +445,14 @@
   #mpNote.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}#mpNote .mpn-t{flex:1;min-width:0;line-height:1.35}#mpNote .mpn-x{background:none;border:0;color:var(--dim);font-size:15px;padding:4px 6px}
   .phgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:8px}.phapp{display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:0;color:var(--cream);font-size:12px;font-weight:700;padding:6px 2px}
   .phi{position:relative;width:54px;height:54px;border-radius:15px;background:linear-gradient(160deg,#2a3040,#171b24);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:27px;box-shadow:0 3px 8px rgba(0,0,0,.35)}.phi em{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;border-radius:9px;background:#e8503a;color:#fff;font-size:11px;font-style:normal;display:flex;align-items:center;justify-content:center;padding:0 4px}
-  #ridePanel{position:fixed;top:calc(52px + var(--st));left:50%;transform:translate(-50%,-12px);z-index:60;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;width:min(520px,calc(100% - 32px));background:rgba(12,14,18,.9);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:8px 12px;color:var(--cream);font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
-  #ridePanel.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}#ridePanel b{flex:1 1 60%}#ridePanel span{flex:1 1 100%;color:var(--dim);font-size:12px}#ridePanel .say{color:#f1cf7a!important;font-size:12.5px!important}#ridePanel .tbar{flex:1 1 100%;height:5px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}#ridePanel .tbar i{display:block;height:100%;background:#e8c060}
+  #ridePanel{position:fixed;bottom:calc(12px + var(--sb));left:50%;transform:translate(-50%,12px);z-index:60;display:flex;align-items:center;gap:6px;width:max-content;min-width:230px;max-width:min(470px,calc(100% - 330px));background:rgba(12,14,18,.7);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:6px 6px 10px 12px;color:var(--cream);font-size:12.5px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+  #ridePanel.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+  #ridePanel .rp-txt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}#ridePanel .rp-txt b{font-size:12.5px}#ridePanel .rp-txt span{display:block;color:var(--dim);font-size:11px;overflow:hidden;text-overflow:ellipsis}
+  #ridePanel .tbar{position:absolute;left:12px;right:12px;bottom:4px;height:3px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden}#ridePanel .tbar i{display:block;height:100%;background:#e8c060}
+  #ridePanel .rbtn{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:var(--cream);font-size:16px;display:grid;place-items:center;padding:0;cursor:pointer}
+  #rideSay{position:fixed;left:50%;bottom:calc(84px + var(--sb));transform:translateX(-50%);z-index:59;max-width:min(560px,calc(100% - 300px));text-align:center;color:#fff;font-size:14px;line-height:1.35;font-weight:600;text-shadow:0 1px 3px #000,0 0 10px rgba(0,0,0,.85);opacity:0;transition:opacity .35s;pointer-events:none}
+  #rideSay.on{opacity:1}
+  body.seated #joy,body.seated #runBtn,body.riding #runBtn{display:none!important}
   #doorFx{position:fixed;inset:0;z-index:140;background:#050608;opacity:0;pointer-events:none;transition:opacity .3s}#doorFx.on{opacity:1}
   .slogo{width:28px;height:28px;border-radius:7px;flex:none;margin-right:2px}
   .elev{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}.ebtn{display:grid;grid-template-columns:38px 1fr;grid-template-rows:auto auto;align-items:center;text-align:left;background:#1d2026;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:6px 8px;color:var(--cream);column-gap:8px}
@@ -2826,7 +2832,7 @@ function setupInput(){document.querySelectorAll('#speed button[data-s]').forEach
   cv.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,{x:lp(e.clientX,e.clientY).x,y:lp(e.clientX,e.clientY).y});cv.setPointerCapture(e.pointerId);if(ptrs.size===1){downT=performance.now();moved=0;}if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch=Math.hypot(a.x-b.x,a.y-b.y);moved=99;}});
   cv.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p)return;const dx=lp(e.clientX,e.clientY).x-p.x,dy=lp(e.clientX,e.clientY).y-p.y;p.x=lp(e.clientX,e.clientY).x;p.y=lp(e.clientX,e.clientY).y;
     if(ptrs.size===2){const [a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);if(pinch>0)CAM.dist=cl(CAM.dist*pinch/d,3,22);pinch=d;return;}
-    moved+=Math.abs(dx)+Math.abs(dy);if(moved>6){dragCam=true;const sens=0.0058*(SETTINGS.sens||1);CAM.yaw-=dx*sens;CAM.pitch=cl(CAM.pitch+dy*sens*0.8*(SETTINGS.invertY?-1:1),-0.05,1.2);}});
+    moved+=Math.abs(dx)+Math.abs(dy);if(moved>6){dragCam=true;CAM.dragT=performance.now();const sens=0.0058*(SETTINGS.sens||1);CAM.yaw-=dx*sens;CAM.pitch=cl(CAM.pitch+dy*sens*0.8*(SETTINGS.invertY?-1:1),RIDE&&CAMFOLLOW&&CAMFOLLOW.inside?-0.75:-0.05,1.2);}});
   const up=e=>{const had=ptrs.delete(e.pointerId);if(!had)return;if(ptrs.size===0){pinch=0;if(moved<8&&performance.now()-downT<450)onTap(lp(e.clientX,e.clientY).x,lp(e.clientX,e.clientY).y);setTimeout(()=>dragCam=false,50);}};
   cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
   cv.addEventListener('wheel',e=>{e.preventDefault();CAM.dist=cl(CAM.dist*(e.deltaY>0?1.1:0.9),3,22);},{passive:false});
@@ -3074,15 +3080,29 @@ function bigMapTap(ev){const el=document.getElementById('bigmap'),t=el._t;if(!t|
    e transição de porta ao entrar/sair. A câmera acompanha o veículo; dá para girar a câmera e pular o trajeto. */
 let RIDE=null,CAMFOLLOW=null;
 function ridePanel(html,skip){let el=document.getElementById('ridePanel');if(!el){el=document.createElement('div');el.id='ridePanel';document.body.appendChild(el);}
-  el.innerHTML=html+(RIDE&&RIDE.say&&RIDE.sayT>0?'<span class="say">'+esc(RIDE.say)+'</span>':'')+(RIDE?'<button class="sbtn" id="rideCam">🎥 '+(CAMFOLLOW&&CAMFOLLOW.inside?'Ver de fora':'Ver de dentro')+'</button>':'')+(skip?'<button class="sbtn" id="rideSkip">⏩ Pular</button>':'');el.classList.add('on');const b=document.getElementById('rideSkip');if(b)b.onclick=()=>{if(RIDE)RIDE.skip=true;};const c=document.getElementById('rideCam');if(c)c.onclick=toggleRideCam;return el;}
-function ridePanelOff(){const el=document.getElementById('ridePanel');if(el)el.classList.remove('on');}
+  let sy=document.getElementById('rideSay');if(!sy){sy=document.createElement('div');sy.id='rideSay';document.body.appendChild(sy);}
+  const talking=RIDE&&RIDE.say&&RIDE.sayT>0;if(talking&&sy.textContent!==RIDE.say)sy.textContent=RIDE.say;sy.classList.toggle('on',!!talking);
+  const ins=CAMFOLLOW&&CAMFOLLOW.inside;
+  el.innerHTML='<div class="rp-txt">'+html.replace(/<div class="tbar">[\s\S]*<\/div>$/,'')+'</div>'+((html.match(/<div class="tbar">[\s\S]*<\/div>$/)||[''])[0])+
+    (RIDE?'<button class="rbtn" id="rideTalk" title="Conversar" aria-label="Conversar">💬</button><button class="rbtn" id="rideCam" title="'+(ins?'Ver de fora':'Ver de dentro')+'" aria-label="'+(ins?'Ver de fora':'Ver de dentro')+'">'+(ins?'🎥':'👁️')+'</button>':'')+(skip?'<button class="rbtn" id="rideSkip" title="Pular" aria-label="Pular">⏩</button>':'');
+  el.classList.add('on');const b=document.getElementById('rideSkip');if(b)b.onclick=()=>{if(RIDE)RIDE.skip=true;};const c=document.getElementById('rideCam');if(c)c.onclick=toggleRideCam;const t=document.getElementById('rideTalk');if(t)t.onclick=rideChat;return el;}
+function ridePanelOff(){const el=document.getElementById('ridePanel');if(el)el.classList.remove('on');const sy=document.getElementById('rideSay');if(sy)sy.classList.remove('on');document.body.classList.remove('seated','riding');}
+// conversar durante o passeio: motorista, piloto ou o passageiro mais perto (na balsa)
+function rideChat(){const o=RIDE;if(!o)return;
+  if(o.kind==='rydr'){o.tt=0;return;}
+  if(o.kind==='heli'){sayRide(o,'👨‍✈️ Piloto: '+pick(['Daqui de cima dá para ver como as ruas de Lower Manhattan são tortas: é o traçado holandês do século XVII.','Vento de sudoeste hoje, por isso a gente balança um pouco sobre a baía.','Está vendo os píeres? Antigamente o porto inteiro funcionava aqui, no East River.','Quem trabalha nessas torres quase nunca olha para cima. Daqui a cidade parece outra.','Se quiser uma foto, eu inclino um pouco para o seu lado.','Faço esse voo há doze anos e ainda acho bonito.']),7);return;}
+  if(o.kind==='ferry'){const h=heroMesh.position;let best=null,bd=1e9;for(const c of o.obj.children){if(!(c.userData&&c.userData.rig))continue;const w=new THREE.Vector3();c.getWorldPosition(w);const d=Math.hypot(w.x-h.x,w.z-h.z);if(d<bd){bd=d;best=c;}}
+    if(!best||bd>3.2){toast('🚶 Chegue perto de um passageiro para conversar');return;}
+    const lx=heroMesh.position.x-best.getWorldPosition(new THREE.Vector3()).x,lz=heroMesh.position.z-best.getWorldPosition(new THREE.Vector3()).z;best.rotation.y=Math.atan2(lx,lz)-o.obj.rotation.y;
+    sayRide(o,'💬 '+pick(['Passageira: Você trabalha em Wall Street? Tem cara de quem está começando um negócio.','Turista: Pode tirar uma foto nossa? Com a Estátua atrás, por favor!','Passageiro: Moro em Staten Island há trinta anos. Essa travessia é meu momento de paz.','Estudante: Dizem que a balsa leva umas 70 mil pessoas por dia. De graça!','Passageiro: Tô indo para uma entrevista na Water St. Me deseja sorte?','Turista: É a primeira vez que vejo Manhattan assim, do mar. Parece cenário de filme.']),7);}}
 function polyPrep(P){const cum=[0];for(let i=1;i<P.length;i++)cum.push(cum[i-1]+Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1],P[i][2]-P[i-1][2]));return cum;}
 function polyAt(P,cum,s){s=cl(s,0,cum[cum.length-1]);let i=1;while(i<cum.length-1&&cum[i]<s)i++;const a=P[i-1],b=P[i],l=(cum[i]-cum[i-1])||1,k=(s-cum[i-1])/l;
   return {x:a[0]+(b[0]-a[0])*k,y:a[1]+(b[1]-a[1])*k,z:a[2]+(b[2]-a[2])*k,yaw:Math.atan2(b[0]-a[0],b[2]-a[2]),climb:(b[1]-a[1])/l};}
 function smoothPts(ctrl,n){const c=new THREE.CatmullRomCurve3(ctrl.map(p=>new THREE.Vector3(p[0],p[1],p[2])),false,'centripetal');return c.getPoints(n).map(v=>[v.x,v.y,v.z]);}
 function startRide(o){o.cum=polyPrep(o.P);o.len=o.cum[o.cum.length-1]||1;o.s=0;o.v=o.v0||0;o.t=0;RIDE=o;if(hero){hero.ride=true;hero.auto=false;}if(window.joyUnlock)joyUnlock();
-  CAMFOLLOW={obj:o.obj,d:o.camD||9,h:o.camH||1.6,p:o.camP||0.28};CAM.init=false;closeModal();}
-function endRide(){const o=RIDE;RIDE=null;CAMFOLLOW=null;if(hero)hero.ride=false;ridePanelOff();CAM.init=false;if(o&&o.onEnd)o.onEnd(o);}
+  CAMFOLLOW={obj:o.follow||o.obj,d:o.camD||9,h:o.camH||1.6,p:o.camP||0.28,free:!!o.follow,base:CAM.dist,pitch0:CAM.pitch};CAM.pitch=CAMFOLLOW.p;CAM.dragT=0;CAM.init=false;closeModal();
+  document.body.classList.add(o.walk?'riding':'seated');}
+function endRide(){const o=RIDE,f=CAMFOLLOW;RIDE=null;CAMFOLLOW=null;if(hero)hero.ride=false;ridePanelOff();if(f){CAM.pitch=f.pitch0;CAM.dist=f.base;}CAM.init=false;if(o&&o.onEnd)o.onEnd(o);}
 function updateRide(dt){const o=RIDE;if(!o)return;o.t+=dt;
   if(o.skip){const rest=o.len-o.s;if(rest>0)dayAcc+=o.sec*(rest/o.len);o.s=o.len;o.v=0;}
   const rem=o.len-o.s;let tgt=o.vmax;
@@ -3096,7 +3116,8 @@ function updateRide(dt){const o=RIDE;if(!o)return;o.t+=dt;
   if(o.tick)o.tick(o,dt);
   if(rem<=0.05&&o.v<0.3)endRide();}
 // câmera que acompanha o veículo (chamada pelo updateCamera)
-function followCam(dt){const f=CAMFOLLOW;if(!f)return null;const o=f.obj.position;if(!dragCam){CAM.yaw=turnToward(CAM.yaw,f.obj.rotation.y+Math.PI,dt*0.25);}return {tx:o.x,ty:o.y+f.h,tz:o.z,dist:f.d,pitch:f.p};}
+function followCam(dt){const f=CAMFOLLOW;if(!f)return null;const o=f.obj.position;if(!dragCam&&!f.free&&performance.now()-(CAM.dragT||0)>4000){CAM.yaw=turnToward(CAM.yaw,f.obj.rotation.y+Math.PI,dt*0.25);CAM.pitch+=(f.p-CAM.pitch)*Math.min(1,dt*0.5);}
+  return {tx:o.x,ty:o.y+f.h,tz:o.z,dist:f.d*cl(CAM.dist/(f.base||CAM.dist),0.35,3),pitch:CAM.pitch};}
 /* ---- câmera de dentro (pela janela do carro, cabine do helicóptero, convés da balsa) ---- */
 function rideDash(o){const ud=o.obj.userData;if(ud.dash)return ud.dash;const g=new THREE.Group(),mk=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);return m;},dk=std({color:0x15171b,roughness:.6}),tr=std({color:0x2a2d33,roughness:.5});
   if(o.kind==='rydr'){g.add(mk(new THREE.BoxGeometry(1.7,0.3,0.55),dk,0,0.98,0.98));
@@ -3106,9 +3127,9 @@ function rideDash(o){const ud=o.obj.userData;if(ud.dash)return ud.dash;const g=n
     const scr=new THREE.Mesh(new THREE.PlaneGeometry(0.28,0.16),std({color:0x0b1220,emissive:new THREE.Color(0x3a7ad8),emissiveIntensity:1}));scr.position.set(0,1.16,0.82);scr.rotation.x=-0.5;g.add(scr);}
   else if(o.kind==='heli'){g.add(mk(new THREE.BoxGeometry(1.1,0.16,0.28),dk,0,1.0,1.78));const st=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.55,6),tr);st.position.set(-0.32,1.05,1.3);st.rotation.x=0.4;g.add(st);}
   g.visible=false;o.obj.add(g);ud.dash=g;return g;}
-function toggleRideCam(){if(!RIDE||!CAMFOLLOW)return;CAMFOLLOW.inside=!CAMFOLLOW.inside;if(CAMFOLLOW.inside)CAM.yaw=RIDE.obj.rotation.y+Math.PI;const d=rideDash(RIDE);d.visible=CAMFOLLOW.inside;RIDE.lastP=-1;CAM.init=false;}
+function toggleRideCam(){if(!RIDE||!CAMFOLLOW)return;CAMFOLLOW.inside=!CAMFOLLOW.inside;if(CAMFOLLOW.inside){CAM.yaw=(RIDE.kind==='ferry'?heroMesh.rotation.y:RIDE.obj.rotation.y)+Math.PI;CAM.pitch=RIDE.kind==='heli'?0.12:0.04;}else CAM.pitch=CAMFOLLOW.p;CAM.dragT=0;const d=rideDash(RIDE);d.visible=CAMFOLLOW.inside;RIDE.lastP=-1;CAM.init=false;}
 function insideCam(dt){const o=RIDE,v=new THREE.Vector3();if(o.kind==='ferry'){v.copy(heroMesh.position);v.y+=1.62;}else{const s=o.kind==='heli'?[0.3,1.86,0.85]:[-0.38,1.12,0.18];v.set(s[0],s[1],s[2]);o.obj.localToWorld(v);}
-  if(!dragCam)CAM.yaw=turnToward(CAM.yaw,o.obj.rotation.y+Math.PI,dt*0.6);const vy=CAM.yaw+Math.PI,p=o.kind==='heli'?0.12:0.04;
+  if(!dragCam&&o.kind!=='ferry'&&performance.now()-(CAM.dragT||0)>4000)CAM.yaw=turnToward(CAM.yaw,o.obj.rotation.y+Math.PI,dt*0.6);const vy=CAM.yaw+Math.PI,p=CAM.pitch;
   camera.position.copy(v);camera.lookAt(v.x+Math.sin(vy)*Math.cos(p)*10,v.y-Math.sin(p)*10,v.z+Math.cos(vy)*Math.cos(p)*10);if(camera.near!==0.05){camera.near=0.05;camera.updateProjectionMatrix();}if(sky)sky.position.copy(camera.position);CAM.ox=v.x;CAM.oy=v.y;CAM.oz=v.z;}
 /* ---- vida nos trajetos: motorista, piloto e passageiros ---- */
 function sayRide(o,txt,t){o.say=txt;o.sayT=t||7;o.lastP=-1;}
@@ -3124,10 +3145,15 @@ function heliTalk(o,dt){if(!LM_POS)LM_POS=LANDMARKS.map(L=>({n:L.info.name,txt:L
   o.seen=o.seen||new Set();if(o.sayT>2)return;const p=o.obj.position,fx=Math.sin(o.obj.rotation.y),fz=Math.cos(o.obj.rotation.y);let best=null,bd=1e9;
   for(const L of LM_POS){if(o.seen.has(L.n))continue;const d=Math.hypot(L.x-p.x,L.z-p.z);if(d<(L.r||150)&&d<bd){bd=d;best=L;}}if(!best)return;o.seen.add(best.n);
   const side=fx*(best.z-p.z)-fz*(best.x-p.x)>0?'esquerda':'direita',first=String(best.txt).split('. ')[0].replace(/\.?$/,'.');sayRide(o,'👨‍✈️ Piloto: À sua '+side+', '+best.n+'. '+first,8);}
-function ferryCrowd(boat){const r=Math.random;for(let i=0;i<9;i++){const p=buildPerson(randomLook(r,i%3?'tourist':'street'));personLOD(p,1);const side=i%2?1:-1;p.position.set(side*(3.8+r()*0.8),5.6,-14+i*3.2);p.rotation.y=side>0?Math.PI/2:-Math.PI/2;boat.add(p);}}
+function ferryCrowd(boat){const r=Math.random;for(let i=0;i<9;i++){const p=buildPerson(randomLook(r,i%3?'tourist':'street'));personLOD(p,1);const side=i%2?1:-1;p.position.set(side*(3.3+r()*0.8),7.72,-9.5+i*2.3);p.rotation.y=side>0?Math.PI/2:-Math.PI/2;boat.add(p);}}
 function ferryTalk(o,dt){for(const c of o.obj.children)if(c.userData&&c.userData.rig)animPerson(c,0,dt);o.tt=(o.tt??6)-dt;const d=Math.hypot(o.obj.position.x-STATUE.x,o.obj.position.z-STATUE.z);
   if(d<380&&!o.saidStatue){o.saidStatue=1;sayRide(o,'📸 Turista: Olha ela ali! Tira uma foto minha com a Estátua!',7);return;}if(o.tt>0)return;o.tt=13;
   sayRide(o,pick(['💬 Passageiro: Faço essa travessia todo dia para trabalhar. E ainda é de graça.','💬 Turista: Dá para ver a cidade inteira daqui!','💬 Passageira: No fim da tarde o skyline fica dourado.','💬 Criança: Mãe, aquilo é um helicóptero?','💬 Passageiro: Wall Street vista daqui parece maquete.']),7);}
+function ferryWalk(o,boat,dt){heroMesh.visible=!(CAMFOLLOW&&CAMFOLLOW.inside);const y=boat.rotation.y,c=Math.cos(y),sn=Math.sin(y);
+  const kx=((keys.d||keys.arrowright)?1:0)-((keys.a||keys.arrowleft)?1:0),ky=((keys.s||keys.arrowdown)?1:0)-((keys.w||keys.arrowup)?1:0),ix=joy.x+kx,iy=joy.y+ky,mag=Math.min(1,Math.hypot(ix,iy));let spd=0;
+  if(mag>0.08){const fx=-Math.sin(CAM.yaw),fz=-Math.cos(CAM.yaw),rx=-fz,rz=fx;let vx=rx*ix-fx*iy,vz=rz*ix-fz*iy;const l=Math.hypot(vx,vz)||1;vx/=l;vz/=l;spd=1.6*mag;
+    const lx=c*vx-sn*vz,lz=sn*vx+c*vz;let nx=cl(o.hx+lx*spd*dt,-4.1,4.1),nz=cl(o.hz+lz*spd*dt,-10.4,10.4);const r=Math.hypot(nx,nz);if(r<1.15){nx*=1.15/(r||1);nz*=1.15/(r||1);}o.hx=nx;o.hz=nz;o.hh=Math.atan2(vx,vz);}
+  heroMesh.position.set(boat.position.x+c*o.hx+sn*o.hz,boat.position.y+7.72,boat.position.z-sn*o.hx+c*o.hz);heroMesh.rotation.y=o.hh??y;animPerson(heroMesh,spd,dt);}
 function sunsetNow(){const h=nowHour();return h>=17.3&&h<19.8;}
 /* ---- portas que abrem de verdade ---- */
 let DOORMAT=null;
@@ -3182,8 +3208,8 @@ function makeFerry(){const parts=[];const hull=0xe8742a,white=0xf2f0ea,dark=0x2a
 function startFerry(L){if(!L)return;const MHm=MAPH*TS,sx=(L.gx+L.w/2)*TS,s0=[sx,0,MHm-10];const boat=makeFerry();boat.position.set(s0[0],0,s0[2]);scene.add(boat);ferryCrowd(boat);const dusk=sunsetNow();
   const ctrl=[s0,[sx-10,0,MHm+120],[sx-120,0,MHm+300],[STATUE.x+260,0,STATUE.z-60],[STATUE.x+150,0,STATUE.z+140],[STATUE.x+320,0,STATUE.z+260],[sx-40,0,MHm+380],[sx-20,0,MHm+140],[sx,0,MHm-10]];
   const P=smoothPts(ctrl,160);const fr=L;S.ferry=S.day;
-  startRide({kind:'ferry',talk:ferryTalk,obj:boat,P,vmax:26,acc:1.6,sec:DAY_SEC/16,turnK:0.35,camD:46,camH:8,camP:0.18,
-    tick:(o)=>{if(heroMesh){heroMesh.visible=!(CAMFOLLOW&&CAMFOLLOW.inside);const y=boat.rotation.y,lx=2.2,lz=-15.5;heroMesh.position.set(boat.position.x+Math.cos(y)*lx+Math.sin(y)*lz,5.35+0.25,boat.position.z-Math.sin(y)*lx+Math.cos(y)*lz);heroMesh.rotation.y=y+Math.PI*0.5;animPerson(heroMesh,0,1/30);}
+  startRide({kind:'ferry',talk:ferryTalk,obj:boat,follow:heroMesh,walk:true,hx:1.2,hz:8,P,vmax:26,acc:1.6,sec:DAY_SEC/16,turnK:0.35,camD:9,camH:1.5,camP:0.22,
+    tick:(o,dt)=>{if(heroMesh)ferryWalk(o,boat,dt||1/30);
       boat.position.y=Math.sin(o.t*0.9)*0.15;boat.rotation.z=Math.sin(o.t*0.7)*0.015;
       if(((o.t*4)|0)!==o.lastP){o.lastP=(o.t*4)|0;const d=Math.hypot(boat.position.x-STATUE.x,boat.position.z-STATUE.z);ridePanel('<b>⛴️ Balsa de Staten Island'+(sunsetNow()?' · 🌅 pôr do sol':'')+'</b><span>'+(d<380?'🗽 A Estátua da Liberdade está bem ali':'Ida e volta pela baía · grátis')+'</span><div class="tbar"><i style="width:'+Math.round(o.s/o.len*100)+'%"></i></div>',true);}},
     onEnd:()=>{for(const c of [...boat.children])if(c.userData&&c.userData.rig){boat.remove(c);disposePerson(c);}scene.remove(boat);boat.geometry.dispose();const f=landmarkFront(fr);hero.x=f[0];hero.y=f[1];if(heroMesh){heroMesh.position.set(M(hero.x),0,M(hero.y));heroMesh.rotation.set(0,0,0);}S.energy=Math.min(S.energy+(dusk?6:4),120);if(dusk)repUp('public',0.3);refreshHUD();toast(dusk?'🌅 Pôr do sol na baía. ⚡+6 · ⭐+0,3':'⛴️ Que passeio. ⚡+4');}});}
