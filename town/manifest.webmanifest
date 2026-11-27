@@ -12,8 +12,8 @@
     "standalone"
   ],
   "orientation": "landscape",
-  "background_color": "#0e0b08",
-  "theme_color": "#0e0b08",
+  "background_color": "#0d0e0c",
+  "theme_color": "#0d0e0c",
   "categories": [
     "games",
     "simulation"

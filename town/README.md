@@ -68,8 +68,10 @@ menu ou painel aberto.
 
 ## Carreira e agenda (a jogabilidade que é só nossa)
 
-- **Relógio e agenda viva:** o HUD mostra a hora (07:00–23:00). Com compromisso marcado o tempo desacelera (⏱ modo
-  agenda) para dar tempo de chegar; pontualidade muda o resultado. A economia continua por dia (simulação intacta).
+- **Relógio e dias longos:** o HUD mostra a hora (07:00–23:00). Um dia de jogo dura **~4,8 min reais** em 1×
+  (18 s por hora; no máximo 2×) e o sol acompanha o relógio. Pontualidade muda o resultado. A economia continua por dia.
+- **Dormir é parte do jogo:** a energia só volta inteira se você **dormir em casa** (🏠 → Dormir). Virou a noite na
+  rua? A energia recupera só um pouco (+35) e o bônus da casa não entra. Crescer exige trabalhar, voltar e descansar.
 - **📱 AuvraOS (ferramenta Celular):** Agenda (toque para marcar o destino), Mensagens, Vagas e Notícias.
 - **Empregos pela cidade (💼 no mapa):** barista, entregador de bike, assistente jurídico, analista júnior (fase 1),
   corretor e operador de pregão (fase 2), consultor (fase 3). Entrevista com a chefia, turnos diários na agenda e
@@ -142,13 +144,21 @@ blender -b -t 2 -P tools/bake-character-head.py -- /caminho/base.obj town/index.
 
 ## No celular (app instalável)
 
+**Abertura → login → jogo.** Tocar no ícone abre a logo do Auvra Club (já deitada) e, em seguida, a tela de
+**Entrar / Criar conta** (e-mail + senha + nome de usuário). **Uma conta por e-mail** (Supabase Auth) e **nome de
+usuário único** (sem diferenciar maiúsculas; checado ao vivo no cadastro e garantido no banco). O nome não muda
+depois. Há "Esqueci minha senha" e **⚙️ Ajustes → 🚪 Sair da conta**. O save fica por conta (local + nuvem).
+
+**Sempre na horizontal:** com o celular em pé o jogo **não bloqueia** — a tela inteira é girada 90° e os toques são
+convertidos (joystick, câmera, mapa, prévia do personagem). Deitar o celular só troca para o modo nativo.
+
 O `town/` é um **PWA**: `manifest.webmanifest` + `sw.js` + ícones. No jogo, **⚙️ Ajustes → 📲 Instalar app**
 (Android/Chrome abre o instalador; no iPhone mostra o passo *Compartilhar → Adicionar à Tela de Início*).
 Instalado, abre em tela cheia **na horizontal**, respeita notch/barra de gestos e abre mesmo sem internet (save local).
 O service worker busca o HTML na rede primeiro (atualizações chegam na hora) e **nunca** faz cache das
 chamadas ao Supabase. Mudou o shell ou uma lib de CDN? Suba a versão de `CACHE` em `sw.js`.
 
-> No iPhone, o app instalado tem armazenamento separado do Safari: é outro jogador (identidade é por navegador).
+> No iPhone, o app instalado tem armazenamento separado do Safari: basta entrar com a mesma conta.
 
 ## Multiplayer (opção 3: mundo compartilhado assíncrono + tempo real)
 
@@ -163,14 +173,16 @@ Sem servidor configurado (ou sem internet), o jogo roda **offline** com save loc
 
 1. Crie um projeto em [supabase.com](https://supabase.com) (plano grátis serve).
 2. **SQL Editor** → cole [`supabase/schema.sql`](../supabase/schema.sql) → **Run**.
-3. **Authentication → Sign In / Providers → Anonymous sign-ins → Enable** (cada navegador vira um
-   jogador, sem cadastro).
+3. **Authentication → Sign In / Providers → Email**: ligado. Sem SMTP próprio, **desligue "Confirm email"**
+   (o SMTP padrão do Supabase só entrega para membros da organização e tem limite baixo); com SMTP, pode manter.
+   **Authentication → URL Configuration → Site URL**: `https://auvraclub.vercel.app/town/` (links de e-mail).
+   Login anônimo não é mais usado (pode desligar).
 4. **Project Settings → API**: copie a **Project URL** e a **publishable key** (ou a `anon` key) e
    cole em `MP_CONFIG` no topo do bloco *MULTIPLAYER* de `town/index.html`. Essas chaves são
    públicas por design: quem protege os dados é o RLS do schema.
 5. Commit + push → a Vercel publica sozinha.
 
-Limitações honestas: a identidade é **por navegador** (trocar de aparelho cria outro jogador); o
+Limitações honestas: o
 caixa vive no cliente (é um jogo entre amigos — o servidor impede mexer nos dados dos **outros**,
 mas não impede alguém de editar o próprio save); o chat não fica guardado (só quem está online vê);
 o plano grátis do Supabase **pausa o projeto após 1 semana sem uso** (reative no painel).
@@ -183,7 +195,8 @@ o plano grátis do Supabase **pausa o projeto após 1 semana sem uso** (reative 
   dia 500 · alavancado ~45% falência.
 - O bloco de economia fica entre os marcadores `/*@ECON-BEGIN*/` e `/*@ECON-END*/` — mantenha-os.
 - 3D/UI: smoke test com Playwright em celular emulado na horizontal (carrega, menu, personagem,
-  freela, construir, painéis, 4×, recarregar/continuar, aviso de girar o celular) — no scratchpad.
+  freela, construir, painéis, 2×, recarregar/continuar) e também **em pé** (tela girada) + fluxo de login com uma
+  conta de teste criada e apagada no banco — no scratchpad.
 - Para medir o passe principal, consulte `window.__game.STATS()` depois de entrar no distrito.
   Os campos `calls` e `triangles` vêm de `renderer.info.render`. O Three.js reinicia esses
   contadores após o passe de sombras. Em média, o orçamento é 250 chamadas e 400 mil triângulos,

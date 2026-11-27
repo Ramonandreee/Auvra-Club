@@ -2,6 +2,14 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## [1.5.0] — 2026-11-27 — *Contas, abertura e dias que pesam*
+- Jogo (`town/`): abertura com a nova logo (a mesma do Instagram) → **login/cadastro obrigatório** (uma conta por
+  e-mail, nome de usuário único garantido no banco, sem login anônimo); save por conta.
+- Celular em pé não bloqueia mais: o jogo abre **sempre deitado** (tela girada + toques convertidos).
+- **Dias longos:** 1 dia ≈ 4,8 min reais (antes 5,5 s), velocidade máx. 2×, sol segue o relógio. Energia cheia só
+  dormindo em casa (+35 se virar a noite fora). `supabase/schema.sql`: trigger de novo usuário, `username_available`,
+  nome imutável.
+
 ## [1.4.0] — 2026-11-27 — *Vida em Wall Street: carreira, agenda e mundo aberto*
 - Jogo (`town/`): interiores 3D, casa, carro e garagem, pedestres abordáveis, relógio + agenda + AuvraOS, empregos com
   turnos e mini-jogos, entrevistas no RH, assédio de concorrentes, reuniões com contatos, fama visível, mapa com destinos,
