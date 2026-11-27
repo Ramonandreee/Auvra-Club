@@ -2,6 +2,15 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.16.0 — 2026-11-27
+- **feat(town): mapa ampliado (98 → 114 linhas).** O grid gerado é esticado por `stretchWorld()`, que insere linhas (`ROW_INS`) e remapeia ruas, marcos, prédios e decoração.
+  - **Norte:** 8 linhas novas para a **Vesey St** e a **Ann St**. O **One World Trade Center** foi para o lugar real, entre a Vesey e a Fulton (antes ficava ao sul da Fulton). Onde ele ficava virou a praça do **Memorial 9/11**, com carvalhos.
+  - **Entre a Fulton e a Maiden Ln:** 8 linhas novas para a **John St**, que vai da Broadway ao East River.
+  - A proporção do trecho norte ficou mais próxima da real: Fulton → Maiden passou de 9 para 17 linhas.
+- **Dados reais recalibrados:** thin-plate spline com 70 cruzamentos (incluindo Vesey, Ann e John), 484 prédios do NYC Open Data no grid novo.
+- **Saves:** o formato do mapa passa a ser `fidi2`. Saves `fidi` (e os antigos `wallstreet`) são migrados ao carregar: empresas, concorrentes, posição do herói e locais da agenda descem junto com as linhas inseridas.
+- **Coordenadas fixas ajustadas:** heliporto, faixas da FDR, Estátua da Liberdade, caminhos do cemitério da Trinity e do Bowling Green. Esses caminhos também estavam desenhados no lugar errado desde a ampliação anterior.
+
 ## 2.15.0 — 2026-11-27
 - **feat(town): Wall Street com volumetria real.**
   - **Altura e época de cada prédio** vêm do NYC Open Data (581 pegadas, com altura do telhado e ano de construção).
