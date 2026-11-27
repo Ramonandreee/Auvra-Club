@@ -386,6 +386,8 @@
   #runBtn svg{width:28px;height:28px;fill:rgba(255,255,255,.62)}#runBtn.on{background:rgba(232,192,96,.28)!important;border-color:rgba(232,192,96,.55)!important}#runBtn.on svg{fill:#f1cf7a}
   #bigmap.ride .bmzoom{display:none}#bigmap .tbar{height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:8px}#bigmap .tbar i{display:block;height:100%;background:#f2b705}
   #bigmap .bmgo{background:linear-gradient(#f6d24a,#e2a90a)!important;color:#1a1408!important;border:0!important}#bigmap .bmgo:disabled{opacity:.45}
+  .lrow.stk{display:grid;grid-template-columns:1fr 74px 86px;gap:8px;align-items:center}.lrow.stk .sp{opacity:.9}
+  .chartbox{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:6px;margin:6px 0;display:flex;justify-content:center}.chartbox svg{width:100%!important;max-width:520px}
 </style>
 </head>
 <body>
@@ -2119,7 +2121,7 @@ function updateNPCs(dt){poolT-=dt;const tx=hero?hero.x:WORLD.cxA*TILE,ty=hero?he
     for(const p of NPC_POOL)if(p.w&&!ws.has(p.w)){p.w=null;}const used=new Set(NPC_POOL.filter(p=>p.w).map(p=>p.w));
     for(const w of want){if(used.has(w))continue;const p=NPC_POOL.find(pp=>!pp.w);if(!p)break;p.w=w;setPersonLook(p.mesh,workerLook(w));}
     for(const p of NPC_POOL){p.mesh.visible=!!p.w;if(p.icon){p.icon.visible=!!(p.w&&p.w.contact);if(p.icon.visible)p.icon.material.map=emojiTex(p.w.contact.ico);}
-      if(p.w&&p.w.contact&&!p.icon){p.icon=new THREE.Sprite(new THREE.SpriteMaterial({map:emojiTex(p.w.contact.ico),depthTest:true,transparent:true}));p.icon.scale.set(0.7,0.7,1);dynGroup.add(p.icon);}}}
+}}
   for(const p of NPC_POOL){const w=p.w;if(!w)continue;const x=M(w.x),z=M(w.y);p.mesh.position.set(x,0,z);
     const chatting=hero&&w===talkingTo;
     if(chatting||w.moving){
@@ -2248,13 +2250,14 @@ const CAM={yaw:0,pitch:0.3,dist:7.5,mode:'menu',ox:0,oy:0,oz:0,init:false};
 const _cp=new THREE.Vector3(),_ct=new THREE.Vector3();
 function camBlocked(x,z,y){if(INT.active){return y>(INT.H||3.2)-0.25||!intWalkable(PX(x),PX(z));}const gx=Math.floor(x/TS),gy=Math.floor(z/TS);const t=tileAt(gx,gy);if(t===T.BLD)return true;const b=buildingAt(gx,gy);if(b){const g=BMESH.get(b);return !g||y<g.userData.H+2;}return false;}
 function updateCamera(dt){let tx,ty,tz,dist,pitch;
-  if(CAM.mode==='menu'){CAM.yaw+=dt*0.03;tx=(WORLD.cxA+6)*TS;ty=30;tz=(WORLD.cyA+0.5)*TS;dist=175;pitch=0.42;}
+  if(CAM.mode==='menu'){CAM.yaw+=dt*0.008;tx=(WORLD.cxA+6)*TS;ty=30;tz=(WORLD.cyA+0.5)*TS;dist=175;pitch=0.42;}
   else{tx=heroMesh.position.x;ty=1.55;tz=heroMesh.position.z;dist=CAM.dist;pitch=CAM.pitch;}
   const cp=Math.cos(pitch);let ox=Math.sin(CAM.yaw)*cp,oz=Math.cos(CAM.yaw)*cp,oy=Math.sin(pitch);
   let d=dist;if(CAM.mode==='play'){for(let k=0.6;k<=dist;k+=0.5){if(camBlocked(tx+ox*k,tz+oz*k,ty+oy*k)){d=Math.max(1.6,k-0.6);break;}}}
   const k=CAM.init?Math.min(1,dt*(CAM.mode==='play'?9:3)):1;CAM.init=true;
   CAM.ox+=(tx-CAM.ox)*k;CAM.oy+=(ty-CAM.oy)*k;CAM.oz+=(tz-CAM.oz)*k;CAM.d=(CAM.d||d)+(d-(CAM.d||d))*Math.min(1,dt*(d<(CAM.d||d)?14:3));
   camera.position.set(CAM.ox+ox*CAM.d,Math.max(0.5,CAM.oy+oy*CAM.d),CAM.oz+oz*CAM.d);camera.lookAt(CAM.ox,CAM.oy,CAM.oz);
+  const nearW=CAM.mode==='menu'?4:0.2;if(camera.near!==nearW){camera.near=nearW;camera.updateProjectionMatrix();} // plano próximo maior no voo do menu = sem cintilação de profundidade
   if(sky)sky.position.copy(camera.position);}
 
 /* ============================ MOVIMENTO / INTERAÇÃO ============================ */
@@ -2327,8 +2330,8 @@ function updateInteract(){const act=document.getElementById('actBtn'),lbl=docume
   interactTarget=best;if(!best){act.classList.remove('on');lbl.classList.remove('on');return;}
   if(best.kind==='b'){const b=best.b;if(b.sede){ico='⭐';txt='Entrar';sub='Sua sede — computador, estante, telefone';}else if(b.co&&b.co.build>0){ico='🏗️';txt='Obra';sub=b.co.name+' · pronta em '+b.co.build+' dia(s)';}else if(b.co){ico=NICHE[b.co.niche].ico;txt='Entrar';sub=b.co.name+' · ver a equipe trabalhando';}else{ico='🚩';txt='Visitar';sub=b.rv.name+' (concorrente)';}}
   else if(best.kind==='c'){ico='💬';txt='Conversar';sub=best.w.contact.name+' · '+best.w.contact.role;}
-  else if(best.kind==='l'){const I=best.L.info;ico=I.ico;txt=I.act==='market'?'Pregão':I.act==='bank'?'Banco':'Conhecer';sub=I.name;}
-  else if(best.kind==='sp'){const S_=SPECIAL[best.k];ico=S_.ico;txt='Entrar';sub=best.k==='home'?'Sua casa — '+HOME_DEF[S.assets.home].n:best.k==='dealer'?S_.name+' · carros à venda':best.k==='rest'?S_.name+' · restaurante':(()=>{const j=JOBS.find(x=>'job:'+x.id===best.k);return S_.name+' · '+(S.job&&S.job.id===j.id?'seu emprego':'vaga: '+j.t);})();}
+  else if(best.kind==='l'){const I=best.L.info;ico=I.ico;txt=I.act==='market'?'Entrar':I.act==='bank'?'Banco':'Conhecer';sub=I.name;}
+  else if(best.kind==='sp'){const S_=SPECIAL[best.k];ico=S_.ico;txt='Entrar';sub=best.k==='home'?'Sua casa — '+HOME_DEF[S.assets.home].n:best.k==='dealer'?S_.name+' · carros à venda':best.k==='rest'?S_.name+' · restaurante':best.k.startsWith('broker:')?S_.name+' · corretora':(()=>{const j=JOBS.find(x=>'job:'+x.id===best.k);return S_.name+' · '+(S.job&&S.job.id===j.id?'seu emprego':'vaga: '+j.t);})();}
   else if(best.kind==='meet'){ico='🤝';txt='Reunião';sub='Reunião marcada · '+fmtHour(best.a.hour);}
   else if(best.kind==='car'){ico='🚗';txt='Dirigir';sub='Seu '+CAR_DEF[PCAR.tier].n;}
   else if(best.kind==='taxi'){ico='🚕';txt='Entrar';sub='Táxi para '+TAXI.d.name;}
@@ -2341,12 +2344,12 @@ function updateInteract(){const act=document.getElementById('actBtn'),lbl=docume
   act.classList.add('on');lbl.classList.add('on');}
 function doInteract(t){t=t||interactTarget;if(!t)return;
   if(t.kind==='b'){const b=t.b,ex=bFront(b);if(b.sede)enterInterior({kind:'sede',title:'Sua sede',exit:ex});else if(b.co&&b.co.build>0)openSite(b.co);else if(b.co)enterInterior({kind:'office',co:b.co,title:b.co.name,exit:ex});else if(b.rv)enterInterior({kind:'rival',rv:b.rv,title:b.rv.name,exit:ex});}
-  else if(t.kind==='sp'){const sp=SPECIAL[t.k];if(t.k==='home')enterInterior({kind:'home',title:HOME_DEF[S.assets.home].n,exit:sp.front});else if(t.k==='dealer')enterInterior({kind:'dealer',title:'Manhattan Motors',exit:sp.front});else if(t.k==='rest')enterInterior({kind:'restaurant',title:'The Exchange Grill',exit:sp.front,key:'rest'});else{const j=JOBS.find(x=>'job:'+x.id===t.k);enterInterior({kind:'job',job:j,title:j.co,exit:sp.front,key:t.k});}}
+  else if(t.kind==='sp'){const sp=SPECIAL[t.k];if(t.k==='home')enterInterior({kind:'home',title:HOME_DEF[S.assets.home].n,exit:sp.front});else if(t.k==='dealer')enterInterior({kind:'dealer',title:'Manhattan Motors',exit:sp.front});else if(t.k==='rest')enterInterior({kind:'restaurant',title:'The Exchange Grill',exit:sp.front,key:'rest'});else if(t.k.startsWith('broker:'))enterInterior({kind:'broker',broker:t.k.slice(7),title:sp.name,exit:sp.front,key:t.k});else{const j=JOBS.find(x=>'job:'+x.id===t.k);enterInterior({kind:'job',job:j,title:j.co,exit:sp.front,key:t.k});}}
   else if(t.kind==='meet')startMeeting(t.a);
   else if(t.kind==='car')enterCar();else if(t.kind==='taxi')rideTaxi();else if(t.kind==='exitcar')exitCar();else if(t.kind==='ped')talkToPedestrian(t.c);
   else if(t.kind==='prop')t.p.fn();else if(t.kind==='iperson'){const p=t.p;if(p.staff)openStaff(p);else if(p.cand)interview(p.co,p.cand,p);else if(p.e)openEmployee(p);else{INT.talkP=p;modal('💬','Conversa rápida','<p class="quote">"'+ambientLine().replace(/^"|"$/g,'')+'"</p>',[{t:'↩ Ok',fn:closeModal}]);}}
   else if(t.kind==='c')openContact(t.w.contact);else openLandmark(t.L);}
-function openLandmark(L){const I=L.info;const acts=[];if(I.act==='market')acts.push({t:'📈 Entrar no pregão',d:'Mercado, concorrentes e empresas de amigos',fn:()=>{closeModal();onTool('market');}});
+function openLandmark(L){if(L.kind==='nyse'){enterInterior({kind:'nyse',title:'Bolsa de Nova York',exit:landmarkFront(L),key:'nyse'});return;}const I=L.info;const acts=[];if(I.act==='market')acts.push({t:'📈 Entrar no pregão',d:'Mercado, concorrentes e empresas de amigos',fn:()=>{closeModal();onTool('market');}});
   if(I.act==='bank')acts.push({t:'🏦 Falar com o banco',d:'Empréstimos e juros',fn:()=>{closeModal();openBank();}});acts.push({t:'↩ Voltar para a rua',fn:closeModal});
   modal(I.ico,I.name,'<p>'+I.txt+'</p><p class="small">Wall Street · Lower Manhattan</p>',acts);}
 
@@ -2577,7 +2580,6 @@ function drawMini(dt){if(INT.active)return;miniT-=dt;if(miniT>0)return;miniT=0.1
   const hx=hero.x/TILE,hy=hero.y/TILE;g.clearRect(0,0,S_,S_);g.save();g.beginPath();g.arc(S_/2,S_/2,S_/2,0,7);g.clip();g.fillStyle='#10304a';g.fillRect(0,0,S_,S_);
   g.imageSmoothingEnabled=true;g.drawImage(MAPART,(hx-view/2)*MAPPX,(hy-view/2)*MAPPX,view*MAPPX,view*MAPPX,0,0,S_,S_);
   const tx=v=>(v-hx+view/2)*k,ty=v=>(v-hy+view/2)*k;drawRouteOn(g,tx,ty,k,5);
-  for(const w of workers)if(w.contact){g.fillStyle='#ffd34a';g.beginPath();g.arc(tx(w.x/TILE),ty(w.y/TILE),4,0,7);g.fill();}
   if(WAYPOINT){const ang=Math.atan2(ty(WAYPOINT.y/TILE)-S_/2,tx(WAYPOINT.x/TILE)-S_/2),dd=Math.hypot(tx(WAYPOINT.x/TILE)-S_/2,ty(WAYPOINT.y/TILE)-S_/2),rr=Math.min(dd,S_/2-12);
     const wx=S_/2+Math.cos(ang)*rr,wy=S_/2+Math.sin(ang)*rr;g.fillStyle='#2f8fff';g.strokeStyle='#fff';g.lineWidth=3;g.beginPath();g.arc(wx,wy,8,0,7);g.fill();g.stroke();}
   drawPlayerArrow(g,S_/2,S_/2,13);g.restore();
@@ -2744,7 +2746,7 @@ function smallTalk(trait){const m=S.market,rv=rivals.length?pick(rivals):null,lm
 
 /* ---- atendentes: um por estabelecimento, com nome e jeito fixos ---- */
 function staffKey(spec){return spec.kind+':'+(spec.job?spec.job.id:spec.co?spec.co.id:spec.rv?spec.rv.id:spec.key||'');}
-function staffRole(spec){if(spec.kind==='dealer')return ['vendedor','Consultor(a) de vendas'];if(spec.kind==='restaurant')return ['garcom','Garçom/garçonete'];if(spec.kind==='sede')return ['secretaria','Secretária executiva'];
+function staffRole(spec){if(spec.kind==='nyse')return ['pregao','Especialista do pregão'];if(spec.kind==='broker')return ['corretora','Assessor(a) · '+brokerOf(spec.broker).n];if(spec.kind==='dealer')return ['vendedor','Consultor(a) de vendas'];if(spec.kind==='restaurant')return ['garcom','Garçom/garçonete'];if(spec.kind==='sede')return ['secretaria','Secretária executiva'];
   if(spec.kind==='office')return ['recepcao_own','Recepção'];if(spec.kind==='rival')return ['recepcao_rival','Recepção'];
   if(spec.kind==='job')return spec.job.style==='cafe'?['barista','Barista']:['recepcao_job','Recepção'];return null;}
 function staffMem(spec){S.staff=S.staff||{};const k=staffKey(spec);if(!S.staff[k])S.staff[k]=Object.assign(persona(k),{rel:10,met:0,last:-1,talk:-1});return S.staff[k];}
@@ -2764,6 +2766,10 @@ function openStaff(p,extra){INT.talkP=p;const mem=p.mem,T=TRAITS[mem.trait],spec
 function staffReply(p,txt,more){modal('🧑‍💼',esc(p.mem.name),'<p class="quote">'+txt+'</p>',(more||[]).concat([{t:'↩ Voltar',fn:()=>openStaff(p,'"Mais alguma coisa?"')},{t:'Tchau',fn:closeModal}]));refreshHUD();}
 function eat(p,name,price,en,line){if(S.cash<price)return staffReply(p,'"Hm… o cartão não passou. Fica pra próxima?"');S.cash-=price;S.energy=Math.min(S.energy+en,120);p.mem.rel=Math.min(100,p.mem.rel+1);staffReply(p,line+'<br><span class="small">'+name+' · −'+money(price)+' · ⚡+'+en+'</span>');}
 function staffActions(p){const s=p.staff,spec=p.spec,mem=p.mem,h=nowHour();
+  if(s==='pregao')return [{t:'📈 Ver cotações e investir',d:'Sua conta na corretora',fn:()=>{closeModal();openInvest();}},{t:'🏛️ IPO e aquisições do distrito',fn:()=>{closeModal();onTool('market');}},
+    {t:'🧭 O que está mexendo o mercado?',fn:()=>{ensureMk();const best=STOCKS.map(x=>[x,priceNow(x.t)/S.mk.p[x.t]-1]).sort((a,b)=>b[1]-a[1]);staffReply(p,'"Hoje quem puxa é a '+best[0][0].n+' ('+pct(best[0][1])+'). Quem apanha é a '+best[best.length-1][0].n+' ('+pct(best[best.length-1][1])+'). A economia está '+S.market.cycle+'."');}}];
+  if(s==='corretora'){const b=brokerOf(spec.broker),mine=S.inv&&S.inv.b===b.id;return [{t:mine?'📈 Minha conta':'🖊️ Abrir conta aqui',d:b.txt,fn:()=>{if(!S.inv){S.inv={b:b.id,cash:0,pos:{},since:S.day,trades:0};mem.rel=Math.min(100,mem.rel+5);log('📈 Conta aberta na '+b.n+'.');}closeModal();openInvest();}},
+    {t:'💡 Alguma recomendação?',d:mem.tip===S.day?'Já pediu hoje':'Opinião do(a) assessor(a)',dis:mem.tip===S.day,fn:()=>{mem.tip=S.day;ensureMk();const s=pick(STOCKS),a=analyst(s.t);staffReply(p,'"'+(a[0].startsWith('Compra')?'Eu olharia a '+s.n+' ('+s.t+'). '+s.txt:'Eu ficaria longe da '+s.n+' ('+s.t+') por enquanto.')+'" <span class="small">— não é garantia</span>');}}];}
   if(s==='vendedor')return [{t:'🚗 Me mostra os carros',d:'Modelos, preço e o que combina com você',fn:()=>showroomTour(p)},{t:'🏦 Como funciona o financiamento?',fn:()=>staffReply(p,'"Entrada de 30% e o resto vai para o seu crédito no banco, com os juros do mercado ('+S.market.rate.toFixed(1)+'%). Seu limite livre hoje: '+money(Math.max(0,loanLimit()-S.debt))+'."')}];
   if(s==='garcom')return [{t:'☕ Café · $6',d:'⚡+4',fn:()=>eat(p,'Café',6,4,'"Café passado agora. Cuidado que tá quente."')},{t:'🍝 Prato executivo · $28',d:'⚡+12',fn:()=>eat(p,'Prato executivo',28,12,'"O de hoje é '+pick(['frango grelhado com purê','risoto de cogumelos','salmão com legumes','massa ao pomodoro'])+'. Excelente escolha."')},
     {t:'🥩 Jantar completo · $85',d:h<18?'A cozinha do jantar abre às 18:00':'⚡+22',dis:h<18,fn:()=>eat(p,'Jantar completo',85,22,'"O chef caprichou. Fica à vontade, a mesa é sua."')},{t:'👂 O que andam falando no salão?',fn:()=>staffReply(p,smallTalk(mem.trait))}];
@@ -2820,24 +2826,125 @@ const ARCH={
   fofoqueira:{ico:'🤫',t:'Assistente de concorrente',w:()=>rivals.length?2:0,open:p=>{p.rv=pick(rivals);return '"Você é da '+(sede?'sede nova':'turma nova')+', né? Eu trabalho na '+p.rv.name+'… e tenho cada história."';},
     ch:[['👂 Ouvir tudo',p=>{repUp('market',0.5);return '"'+(p.rv.drift<1?'Estão perdendo cliente atrás de cliente. O chefe está desesperado.':'O chefe quer comprar uma empresa até o fim do mês. Toma cuidado.')+' Eles têm '+p.rv.staff+' pessoas." · 🔎 informação valiosa';}],['🙅 Mudar de assunto',()=>'"Tá bom, tá bom. Mas que é verdade, é."']]},
   rival:{ico:'😏',t:'Executivo rival',w:()=>S.phase>=2?2:0.6,open:p=>{p.rv=rivals.length?pick(rivals):null;return '"Então você é o novato'+(p.rv?' que a '+p.rv.name+' anda comentando':'')+'. Aproveita enquanto dura."';},
-    ch:[['🔥 Responder à altura',()=>{if(S.rep.market>8){repUp('market',2);return 'Ele fica sem resposta. Quem estava perto riu. · 🤝 +2';}repUp('public',-1);return 'Ele ri da sua cara. Não foi o seu melhor momento. · ⭐ −1';}],['🧊 Ignorar com classe',()=>{repUp('public',1);return 'Você só sorri e segue. Elegância conta. · ⭐ +1';}],['🤝 Propor uma parceria',()=>{if(chance(0.25+S.skills.negotiation/200)){repUp('market',1.5);gainSkill('negotiation',0.3);return '"…Interessante. Vou pensar." · 🤝 +1,5';}return '"Parceria? Com você? Boa piada."';}]]},
+    ch:[['🔥 Responder à altura',()=>{if(S.rep.market>8){repUp('market',2);return 'Ele fica sem resposta. Quem estava perto riu. · 🤝 +2';}repUp('public',-1);return 'Ele ri da sua cara. Não foi o seu melhor momento. · ⭐ −1';}],['🧊 Ignorar com classe',()=>{repUp('public',1);return 'Você só sorri e segue. Elegância conta. · ⭐ +1';}],['🤝 Propor uma parceria',p=>{if(chance(0.25+S.skills.negotiation/200)){repUp('market',1.5);gainSkill('negotiation',0.3);const ct=genContact(CONTACT_DEFS.find(d=>d.kind==='client'));ct.rel=20;ct.mem=['parceria proposta na rua'];contacts.push(ct);return '"…Interessante. Vou pensar." · 🤝 +1,5 · 📇 virou contato (cliente)';}return '"Parceria? Com você? Boa piada."';}]]},
   musico:{ico:'🎷',t:'Músico de rua',w:()=>nowHour()>16?3:1,open:p=>'Um saxofonista toca '+pick(['um jazz lento','uma versão de New York, New York','um blues que para o trânsito'])+'. Ele pisca para você.',
     ch:[['💵 Gorjeta de $5',()=>{if(S.cash<5)return 'Sem trocado hoje.';S.cash-=5;S.energy=Math.min(S.energy+3,120);return '"Essa é pra você!" Ele toca mais alto. · ⚡ +3';}],['🎶 Pedir uma música',()=>{S.energy=Math.min(S.energy+4,120);return 'Por um minuto, Wall Street parece parar. · ⚡ +4';}],['↩ Seguir',()=>'A música vai sumindo atrás de você.']]},
   veterano:{ico:'👴',t:'Veterano de Wall Street',w:()=>1.5,open:p=>'"Trabalhei '+ri(30,45)+' anos ali na Bolsa. Quer um conselho de graça?"',
     ch:[['🧭 Quero sim',()=>{gainSkill('finance',0.25);gainSkill('leadership',0.25);return '"'+(S.debt>S.cash?'Paga essa dívida antes que ela te pague.':!companies.length?'Pare de esperar a hora certa. Abra a primeira empresa.':S.cash>20000?'Dinheiro parado perde valor. Põe para trabalhar.':'Cuida da sua gente que ela cuida do seu negócio.')+'"';}],['📜 Como era antigamente?',()=>'"'+pick(LANDMARKS).info.txt+'"'],['↩ Obrigado',()=>'"Vai lá, garoto(a)."']]}};
 const ARCH_KEYS=Object.keys(ARCH);
-function talkToPedestrian(c){c.stop=true;if(!c.pp){const k=(()=>{let tot=0;const ws=ARCH_KEYS.map(k=>{const w=ARCH[k].w();tot+=w;return w;});let r=Math.random()*tot;for(let i=0;i<ws.length;i++){r-=ws[i];if(r<=0)return ARCH_KEYS[i];}return 'turista';})();
+function talkToPedestrian(c){c.stop=true;if(c.contact&&contacts.includes(c.contact)){openContact(c.contact);return;}if(!c.pp){const k=(()=>{let tot=0;const ws=ARCH_KEYS.map(k=>{const w=ARCH[k].w();tot+=w;return w;});let r=Math.random()*tot;for(let i=0;i<ws.length;i++){r-=ws[i];if(r<=0)return ARCH_KEYS[i];}return 'turista';})();
     c.pp={arch:k,trait:pick(TRAIT_KEYS),met:0};c.name=c.name||pick(FIRST)+' '+pick(LAST);}
   const A=ARCH[c.pp.arch],T=TRAITS[c.pp.trait];
   if(c.day===S.day){modal(A.ico,esc(c.name),'<p class="quote">"'+pick(T.again)+' '+pick(['A gente se fala amanhã.','Hoje já deu, né?','Corre aí que eu também tô correndo.'])+'"</p>',[{t:'↩ Seguir caminho',fn:closeModal}]);return;}
   const tone={apressado:'<span class="small">(olhando o relógio)</span> ',desconfiado:'<span class="small">(desconfiado)</span> ',piadista:'<span class="small">(rindo)</span> '}[c.pp.trait]||'';
   const opener=A.open(c.pp);
-  modal(A.ico,esc(c.name)+' · '+A.t,'<p class="quote">'+tone+opener+'</p><div class="small">'+T.n+'</div>',A.ch.map(([t,fx])=>({t,fn:()=>{c.day=S.day;c.pp.met++;const res=fx(c.pp);modal(A.ico,esc(c.name),'<p class="quote">'+res+'</p>',[{t:'↩ '+pick(T.bye).replace(/[!.]$/,''),fn:closeModal}]);refreshHUD();}})));}
+  const CK={investidor:'investor',recrutadora:'headhunter',veterano:'mentor',trader:'trader',jornalista:'press'}[c.pp.arch];const ch=A.ch.slice();
+  if(CK)ch.splice(ch.length-1,0,['🤝 Trocar contato',()=>{const def=CONTACT_DEFS.concat(CONTACT_DEFS_X).find(d=>d.kind===CK);const ok=chance(0.45+S.skills.charisma/150+S.rep.public/220+(TRAITS[c.pp.trait].deal||0));
+    if(!ok)return '"Prazer, mas não costumo passar meu contato assim." ('+TRAITS[c.pp.trait].n.toLowerCase()+')';const ct=genContact(def);ct.name=c.name;ct.trait=c.pp.trait;ct.rel=14;ct.mem=['nos conhecemos na rua, dia '+S.day];contacts.push(ct);c.contact=ct;saveLocal();return '"Me liga essa semana." · 📇 '+c.name+' ('+def.role+') agora é seu contato';}]);
+  modal(A.ico,esc(c.name)+' · '+A.t,'<p class="quote">'+tone+opener+'</p><div class="small">'+T.n+'</div>',ch.map(([t,fx])=>({t,fn:()=>{c.day=S.day;c.pp.met++;const res=fx(c.pp);modal(A.ico,esc(c.name),'<p class="quote">'+res+'</p>',[{t:'↩ '+pick(T.bye).replace(/[!.]$/,''),fn:closeModal}]);refreshHUD();}})));}
 // conversa rápida com quem está dentro dos lugares (clientes, funcionários de outras empresas)
 function ambientLine(){const k=INT.active?INT.active.kind:'';const L={restaurant:['Esse lugar lota no almoço. Chegou cedo, hein?','Fechei um contrato nessa mesa ano passado. Dá sorte.','O garçom aqui sabe mais de mercado que muito analista.'],
     job:['Meu chefe chega às '+fmtHour(INT.active&&INT.active.job?INT.active.job.hour:9)+' e quer tudo pronto.','Estou aqui há dois anos e ainda não sei onde fica o arquivo.','Hoje o pregão vai ser pesado.'],
     dealer:['Estou entre o sedã e o SUV há três semanas.','Minha esposa vai me matar se eu levar o conversível.','Esse vendedor é bom, viu? Cuidado com a carteira.']}[k]||['Correria hoje, hein?'];
   return pick(L.concat([smallTalk('simpatico')]));}
+
+/* ============================ MERCADO FINANCEIRO: ações, corretoras, conta de investimentos ============================
+   Empresas e marcas fictícias (regra do projeto); a Bolsa é o prédio real da Broad St. Preços: passeio aleatório diário
+   com tendência por setor + ciclo da economia; durante o dia o preço anda até o fechamento (cotações "ao vivo"). */
+const STOCKS=[
+  {t:'NWDS',n:'Northwind Systems',s:'Tecnologia',p:412,v:.021,d:.0007,b:1.2,txt:'Software corporativo e nuvem. A queridinha de Wall Street.'},
+  {t:'QBTX',n:'Quantabit',s:'Semicondutores',p:138,v:.03,d:.0009,b:1.5,txt:'Chips para IA e data centers. Sobe forte, cai forte.'},
+  {t:'HLXA',n:'Helix Pharma',s:'Saúde',p:96,v:.017,d:.0004,b:.6,txt:'Farmacêutica com remédios de alto custo. Defensiva.'},
+  {t:'ATBK',n:'Atlantic Bancorp',s:'Bancos',p:57,v:.016,d:.0003,b:1.0,txt:'Banco de varejo da Costa Leste. Gosta de juros altos.'},
+  {t:'GRDX',n:'Gridline Energy',s:'Energia',p:83,v:.02,d:.0003,b:.8,txt:'Petróleo, gás e eólica. Paga bem, oscila com o ciclo.'},
+  {t:'KSTR',n:'Keystone Retail',s:'Varejo',p:164,v:.015,d:.0004,b:.9,txt:'Rede de lojas e e-commerce em todo o país.'},
+  {t:'ORBQ',n:'Orbital Aerospace',s:'Indústria',p:221,v:.021,d:.0005,b:1.1,txt:'Aviões comerciais e satélites.'},
+  {t:'STRV',n:'Streamverse Media',s:'Mídia',p:74,v:.026,d:.0003,b:1.2,txt:'Streaming e estúdios. Briga por assinantes.'},
+  {t:'CRGX',n:'Cargoline Logistics',s:'Transporte',p:119,v:.017,d:.0004,b:1.0,txt:'Frete, caminhões e entregas de última milha.'},
+  {t:'BRZN',n:'Brazen Motors',s:'Automotivo',p:245,v:.034,d:.0006,b:1.6,txt:'Carros elétricos. Fãs fiéis e críticos ferozes.'},
+  {t:'HRBG',n:'Harborgate Insurance',s:'Seguros',p:66,v:.011,d:.0003,b:.5,txt:'Seguros e previdência. Lenta e estável.'},
+  {t:'NX500',n:'Fundo Índice NX 500',s:'ETF',p:520,v:.01,d:.0004,b:1.0,txt:'Fundo que replica as 500 maiores da bolsa. Diversificação em uma compra.'}];
+const BROKERS=[
+  {id:'liberty',n:'Liberty Square Securities',ico:'🗽',fee:0,pct:0,spread:.0025,txt:'Corretagem zero. Ganha no spread (0,25% em cada ordem). Só pelo app.',col:'#3a6ad0'},
+  {id:'hudson',n:'Hudson & Pell',ico:'🎩',fee:4.95,pct:0,spread:0,txt:'$4,95 por ordem e relatórios de analistas (recomendação para cada ação). Atendimento na Pine St.',col:'#8a6a2a'},
+  {id:'bowline',n:'Bowline Capital',ico:'⚓',fee:0,pct:.001,spread:0,txt:'0,1% por ordem e o saldo parado rende 4% ao ano. Depósito mínimo de $1.000.',col:'#1d6a5a',min:1000}];
+const brokerOf=id=>BROKERS.find(b=>b.id===id);
+function ensureMk(){if(S.mk&&S.mk.p)return S.mk;const p={},prev={},h={},ret={};for(const s of STOCKS){let x=s.p;const arr=[];for(let i=0;i<40;i++){x*=Math.exp(s.d+s.v*0.8*gauss());arr.push(+x.toFixed(2));}p[s.t]=arr[arr.length-1];prev[s.t]=arr[arr.length-2];h[s.t]=arr;ret[s.t]=0;}
+  S.mk={p,prev,h,ret,day:S.day,tips:{}};newDayReturns();return S.mk;}
+function gauss(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function mktFactor(){const c=S.market.cycle;return (c==='aquecido'?.0012:c==='recessão'?-.0022:0)+(.0022*gauss());}
+function newDayReturns(){const mk=S.mk,f=mktFactor();for(const s of STOCKS){const tip=mk.tips[s.t]&&mk.tips[s.t].until>=S.day?mk.tips[s.t].k:0;
+    const rate=s.s==='Bancos'?(S.market.rate-6)*.0004:0;mk.ret[s.t]=s.d+s.b*f+s.v*gauss()*0.8+tip+rate;}}
+function stocksDaily(){const mk=ensureMk();for(const s of STOCKS){mk.prev[s.t]=mk.p[s.t];mk.p[s.t]=+(mk.p[s.t]*Math.exp(mk.ret[s.t])).toFixed(2);mk.h[s.t].push(mk.p[s.t]);if(mk.h[s.t].length>60)mk.h[s.t].shift();}
+  const inv=S.inv;if(inv){const b=brokerOf(inv.b);if(b&&b.id==='bowline'&&inv.cash>0)inv.cash+=inv.cash*0.04/365;
+    for(const t in inv.pos){const ch=mk.p[t]/mk.prev[t]-1;if(Math.abs(ch)>0.04&&inv.pos[t].q>0)inbox(b?b.n:'Corretora',(ch>0?'📈 ':'📉 ')+t+' '+(ch>0?'subiu ':'caiu ')+(Math.abs(ch)*100).toFixed(1)+'% hoje. Você tem '+inv.pos[t].q+' ações.',ch>0?'📈':'📉');}}
+  mk.day=S.day;newDayReturns();}
+function priceNow(t){const mk=ensureMk(),f=cl(dayAcc/DAY_SEC,0,1),s=STOCKS.find(x=>x.t===t);const wig=Math.sin(performance.now()/2300+t.charCodeAt(0))*Math.sin(performance.now()/5100+t.charCodeAt(1)*3)*s.v*0.12;
+  return +(mk.p[t]*Math.exp(mk.ret[t]*(0.3+0.7*f)+wig*(0.4+0.6*Math.sin(Math.PI*f)))).toFixed(2);}
+function invValue(){if(!S.inv)return 0;let v=S.inv.cash||0;for(const t in S.inv.pos)v+=S.inv.pos[t].q*(S.mk&&S.mk.p?S.mk.p[t]:0);return Math.round(v);}
+const pct=v=>(v>=0?'+':'')+(v*100).toFixed(2).replace('.',',')+'%';
+function spark(arr,w,h,col){const mn=Math.min(...arr),mx=Math.max(...arr);return '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="width:'+w+'px;height:'+h+'px"><polyline fill="none" stroke="'+col+'" stroke-width="1.8" points="'+arr.map((v,i)=>(i/(arr.length-1)*w).toFixed(1)+','+(h-2-(v-mn)/((mx-mn)||1)*(h-4)).toFixed(1)).join(' ')+'"/></svg>';}
+function analyst(t){const mk=ensureMk(),s=STOCKS.find(x=>x.t===t),h=mk.h[t],mom=h[h.length-1]/h[Math.max(0,h.length-10)]-1;const score=s.d*400+mom*2+(mk.tips[t]&&mk.tips[t].until>=S.day?.6:0)+gauss()*.25;
+  return score>.45?['Compra forte','var(--green)']:score>.15?['Compra','var(--green)']:score>-.15?['Neutra','var(--dim)']:['Venda','var(--red)'];}
+// ---- app de investimentos (AuvraOS) ----
+function openInvest(){ensureMk();const inv=S.inv;
+  if(!inv){modal('📈','Investir · escolha a corretora','<p class="small">Abra uma conta, deposite e compre ações das maiores empresas americanas listadas na Bolsa de Nova York. Cada corretora cobra de um jeito.</p>'+
+      BROKERS.map(b=>'<div class="lrow" data-br="'+b.id+'"><span>'+b.ico+' <b>'+b.n+'</b><br><span class="small">'+b.txt+'</span></span><span class="small">Abrir ›</span></div>').join(''),[{t:'↩ Fechar',fn:closeModal}]);
+    document.querySelectorAll('[data-br]').forEach(r=>r.onclick=()=>{S.inv={b:r.dataset.br,cash:0,pos:{},since:S.day,trades:0};log('📈 Conta aberta na '+brokerOf(r.dataset.br).n+'.');toast('📈 Conta aberta na '+brokerOf(r.dataset.br).n);openInvest();});return;}
+  const b=brokerOf(inv.b),val=invValue();let cost=0,mv=0;for(const t in inv.pos){cost+=inv.pos[t].q*inv.pos[t].avg;mv+=inv.pos[t].q*priceNow(t);}
+  const rows=STOCKS.map(s=>{const p=priceNow(s.t),d=p/S.mk.p[s.t]-1,pos=inv.pos[s.t];const c=d>=0?'var(--green)':'var(--red)';
+    return '<div class="lrow stk" data-st="'+s.t+'"><span><b>'+s.t+'</b> <span class="small">'+esc(s.n)+'</span><br><span class="small">'+s.s+(pos&&pos.q?' · você tem '+pos.q:'')+'</span></span><span class="sp">'+spark(S.mk.h[s.t].slice(-30),70,24,c)+'</span><span style="text-align:right"><b>$'+p.toFixed(2)+'</b><br><span class="small" style="color:'+c+'">'+pct(d)+'</span></span></div>';}).join('');
+  const m=modal(b.ico,b.n,'<div class="kpis">'+kpi('Total investido',money(val),'var(--gold)')+kpi('Saldo em conta',money(inv.cash))+kpi('Em ações',money(mv))+kpi('Resultado',(mv-cost>=0?'+':'')+money(mv-cost),mv-cost>=0?'var(--green)':'var(--red)')+'</div>'+
+    '<div class="sec">AÇÕES · BOLSA DE NOVA YORK · '+fmtHour(nowHour())+(nowHour()<9.5||nowHour()>16?' · pregão fechado (ordens no preço atual)':' · pregão aberto')+'</div>'+rows,
+    [{t:'💵 Depositar',d:'Do seu caixa ('+money(S.cash)+')',fn:()=>moveMoney(true)},{t:'🏦 Sacar',d:'Para o seu caixa',fn:()=>moveMoney(false)},{t:'🔁 Trocar de corretora',d:'Só com a conta zerada',fn:()=>{let has=false;for(const t in inv.pos)if(inv.pos[t].q)has=true;if(has||inv.cash>1)return toast('Venda tudo e saque o saldo antes de trocar.');S.inv=null;openInvest();}},{t:'↩ Fechar',fn:closeModal}]);
+  m.querySelectorAll('[data-st]').forEach(r=>r.onclick=()=>openStock(r.dataset.st));}
+function moveMoney(dep){const inv=S.inv,b=brokerOf(inv.b),src=dep?S.cash:inv.cash;const opts=[100,1000,10000,50000].filter(v=>v<src).map(v=>[money(v),v]).concat([['Tudo · '+money(src),src]]);
+  modal(dep?'💵':'🏦',dep?'Depositar na '+b.n:'Sacar da '+b.n,'<p class="small">'+(dep?'Caixa disponível: ':'Saldo na corretora: ')+money(src)+(dep&&b.min&&inv.cash<b.min?' · depósito mínimo '+money(b.min):'')+'</p>',
+    opts.map(([l,v])=>({t:l,dis:v<=0||(dep&&b.min&&inv.cash+v<b.min),fn:()=>{v=Math.floor(v*100)/100;if(dep){S.cash-=v;inv.cash+=v;}else{inv.cash-=v;S.cash+=v;}refreshHUD();saveLocal();toast((dep?'💵 Depositado ':'🏦 Sacado ')+money(v));openInvest();}})).concat([{t:'↩ Voltar',fn:openInvest}]));}
+function openStock(t){const s=STOCKS.find(x=>x.t===t),inv=S.inv,b=brokerOf(inv.b),p=priceNow(t),mk=S.mk,pos=inv.pos[t]||{q:0,avg:0};const day=p/mk.p[t]-1,h=mk.h[t],m30=p/h[Math.max(0,h.length-30)]-1;
+  const buyP=p*(1+b.spread),sellP=p*(1-b.spread),feeOf=v=>b.fee+v*b.pct;const maxQ=Math.max(0,Math.floor((inv.cash-b.fee)/(buyP*(1+b.pct))));
+  const an=b.id==='hudson'?analyst(t):null;const c=day>=0?'var(--green)':'var(--red)';
+  const trade=(buy,q)=>{q=Math.floor(q);if(q<=0)return;const px=buy?buyP:sellP,gross=px*q,fee=feeOf(gross);
+    if(buy){if(gross+fee>inv.cash)return toast('Saldo insuficiente na corretora — deposite mais.');inv.cash-=gross+fee;const P=inv.pos[t]||{q:0,avg:0};P.avg=(P.avg*P.q+gross)/(P.q+q);P.q+=q;inv.pos[t]=P;}
+    else{const P=inv.pos[t];if(!P||P.q<q)return toast('Você não tem essa quantidade.');inv.cash+=gross-fee;P.q-=q;if(!P.q)delete inv.pos[t];if(P.q>=0)S.mk.real=(S.mk.real||0)+(px-P.avg)*q;}
+    inv.trades++;gainSkill('finance',0.15);log((buy?'🟢 Comprou ':'🔴 Vendeu ')+q+' '+t+' a $'+px.toFixed(2));toast((buy?'🟢 Compra':'🔴 Venda')+' executada: '+q+' '+t+' · taxa '+money(fee));saveLocal();openStock(t);};
+  const m=modal('📊',t+' · '+esc(s.n),'<div class="kpis">'+kpi('Preço','$'+p.toFixed(2),'var(--gold)')+kpi('Hoje',pct(day),c)+kpi('30 dias',pct(m30),m30>=0?'var(--green)':'var(--red)')+kpi('Sua posição',pos.q?pos.q+' × $'+pos.avg.toFixed(2):'—')+'</div>'+
+    '<div class="chartbox">'+spark(h.slice(-40).concat([p]),300,80,c)+'</div><p class="small">'+s.s+' · '+s.txt+(an?'<br>🎩 Analistas da Hudson & Pell: <b style="color:'+an[1]+'">'+an[0]+'</b>':'')+'<br>Saldo na corretora: '+money(inv.cash)+' · '+(b.fee?'taxa $'+b.fee.toFixed(2)+'/ordem':b.pct?'taxa 0,1%':'spread 0,25%')+(pos.q?' · resultado '+(((p-pos.avg)*pos.q)>=0?'+':'')+money((p-pos.avg)*pos.q):'')+'</p>',
+    [{t:'🟢 Comprar 1',d:'$'+buyP.toFixed(2),dis:maxQ<1,fn:()=>trade(true,1)},{t:'🟢 Comprar 10',dis:maxQ<10,fn:()=>trade(true,10)},{t:'🟢 Comprar o máximo ('+maxQ+')',dis:maxQ<1,fn:()=>trade(true,maxQ)},
+     {t:'🔴 Vender 1',dis:pos.q<1,fn:()=>trade(false,1)},{t:'🔴 Vender tudo ('+pos.q+')',dis:pos.q<1,fn:()=>trade(false,pos.q)},{t:'↩ Voltar',fn:openInvest}]);}
+
+/* ---- a Bolsa por dentro: o pregão gigante ---- */
+let TICKER_TEX=null,tickerT=0;
+function tickerCanvas(){const {c,g}=makeCanvas(2048,64);return {c,g};}
+function drawTicker(g){g.fillStyle='#05070a';g.fillRect(0,0,2048,64);g.font='bold 36px "Courier New",monospace';g.textBaseline='middle';let x=12;const off=(performance.now()/18)%400;
+  for(let k=0;k<2;k++)for(const s of STOCKS){const p=priceNow(s.t),d=p/S.mk.p[s.t]-1;g.fillStyle='#e8e3d4';g.fillText(s.t,x-off,33);x+=g.measureText(s.t+' ').width;g.fillStyle=d>=0?'#3fd27a':'#ff5a4a';const t=p.toFixed(2)+(d>=0?' ▲':' ▼')+(Math.abs(d)*100).toFixed(2)+'%   ';g.fillText(t,x-off,33);x+=g.measureText(t).width;}}
+function buildNYSE(B){ensureMk();const I=imat(),W=44,D=30;buildRoom(B,W,D,I.marbleF,{wall:I.wallDark,H:11});
+  // colunas, galeria e a bandeira
+  for(let x=-W/2+3;x<=W/2-3;x+=5){cyl(B,I.marble||I.metal,x,0,-D/2+0.7,0.45,0.5,11,14);}
+  sbox(B,I.deskDark,0,6.2,-D/2+2.2,W-2,0.35,3.2);sbox(B,I.metal,0,7.25,-D/2+3.75,W-2,0.9,0.08);
+  const stripe=std({map:((w,h,draw)=>{const {c,g}=makeCanvas(w,h);draw(g,w,h);return texFrom(c);})(512,270,(g,w,h)=>{for(let i=0;i<13;i++){g.fillStyle=i%2?'#f4f1ea':'#b8202a';g.fillRect(0,i*h/13,w,h/13+1);}g.fillStyle='#22336e';g.fillRect(0,0,w*0.42,h*7/13);g.fillStyle='#fff';for(let r=0;r<9;r++)for(let k=0;k<(r%2?5:6);k++){g.beginPath();g.arc(16+k*34+(r%2?17:0),12+r*15.5,3.2,0,7);g.fill();}}),roughness:.8});INT.mats.push(stripe);
+  B.add(stripe,xf(new THREE.PlaneGeometry(14,7.4),0,8.2,-D/2+0.08));
+  // fita de cotações nas paredes
+  const tc=tickerCanvas();TICKER_TEX={tex:texFrom(tc.c),g:tc.g};drawTicker(tc.g);TICKER_TEX.tex.needsUpdate=true;const tm=new THREE.MeshBasicMaterial({map:TICKER_TEX.tex});INT.mats.push(tm);
+  for(const [x,z,ry,w] of [[0,D/2-0.08,Math.PI,W-1],[-W/2+0.08,0,Math.PI/2,D-1],[W/2-0.08,0,-Math.PI/2,D-1]]){B.add(tm,xf(new THREE.PlaneGeometry(w,1.1),x,5.2,z,ry));}
+  // postos de negociação (cabines redondas com telas)
+  const scr=std({color:0x0a1420,emissive:new THREE.Color(0x2a6a9a),emissiveIntensity:0.9,roughness:.3});INT.mats.push(scr);
+  for(const [x,z] of [[-13,-3],[0,-4],[13,-3],[-13,7],[0,6],[13,7]]){cyl(B,I.deskDark,x,0,z,2.2,2.3,1.05,24);cyl(B,I.counter||I.metal,x,1.05,z,2.35,2.35,0.06,24);cyl(B,I.metal,x,1.1,z,0.18,0.18,2.9,10);
+    for(let k=0;k<6;k++){const a=k/6*Math.PI*2;B.add(scr,xf(new THREE.BoxGeometry(1.3,0.75,0.08),x+Math.sin(a)*0.75,3.6,z+Math.cos(a)*0.75,a));}obst(x,z,4.6,4.6);}
+  prop(-6,10.5,'📈','Painel de cotações','Abrir sua conta de investimentos',()=>{openInvest();},1.6);
+  prop(6,10.5,'🏛️','IPO e aquisições','Empresas do distrito, IPO, ofertas',()=>{onTool('market');},1.6);
+  prop(0,-D/2+5.2,'🔔','Sino de abertura','Toque às 9:30 com reputação de mercado',()=>ringBell(),1.6);
+  const r=Math.random;for(let i=0;i<22;i++){const look=randomLook(r,i%3?'banker':'worker');const z0=-8+(i%4)*5,x0=-18+(i*7)%36;const p=addIntPerson(look,x0,z0,0,'walk',{path:[[x0,z0],[x0+ri(-6,6),z0+ri(-3,3)],[x0+ri(-6,6),z0+ri(-3,3)]],i:0});}
+  for(const [x,z] of [[-13,-3],[0,6],[13,7]])for(let k=0;k<3;k++){const a=k*2.1+0.4;addIntPerson(randomLook(r,'banker'),x+Math.sin(a)*2.75,z+Math.cos(a)*2.75,a+Math.PI,'stand');}}
+function ringBell(){const h=nowHour();if(S.bell===S.day)return toast('🔔 O sino já tocou hoje.');if(h<9.2||h>9.8)return toast('🔔 O sino de abertura toca às 9:30.');if(S.rep.market<10)return toast('🔔 Só convidados com reputação de mercado 10+ tocam o sino.');
+  S.bell=S.day;repUp('market',2);repUp('public',2);MP.news(S.name+' tocou o sino de abertura da Bolsa');toast('🔔 DING DING DING! O pregão abriu. +2 reputação');}
+function updateTicker(dt){if(!TICKER_TEX||!INT.active||INT.active.kind!=='nyse')return;tickerT-=dt;if(tickerT>0)return;tickerT=0.06;drawTicker(TICKER_TEX.g);TICKER_TEX.tex.needsUpdate=true;}
+/* ---- corretoras com escritório ---- */
+function buildBroker(B,spec){const I=imat(),b=brokerOf(spec.broker),W=14,D=11;buildRoom(B,W,D,I.carpet,{wall:I.wallDark});
+  for(let i=0;i<3;i++){const d=fDesk(B,-4+i*4,-1.5,Math.PI);if(i!==1)addIntPerson(randomLook(Math.random,'banker'),d.sx,d.sz,d.rot,'sit');}
+  const scr=std({color:0x0a1420,emissive:new THREE.Color(0x2a6a9a),emissiveIntensity:0.9});INT.mats.push(scr);for(let i=0;i<4;i++)B.add(scr,xf(new THREE.BoxGeometry(2.2,1.2,0.06),-4.5+i*3,2.4,-D/2+0.1));
+  const sm=std({map:signTex(b.n,b.col,'#f4efe2'),roughness:.4});INT.mats.push(sm);B.add(sm,xf(new THREE.PlaneGeometry(6,1.12),0,3.4,-D/2+0.07));
+  prop(0,1.2,b.ico,'Plataforma '+b.n,S.inv&&S.inv.b===b.id?'Sua conta':'Ver condições',()=>openInvest(),1.5);}
 
 /* ============================ VIDA: INTERIORES, CASA, CARRO, PEDESTRES ============================
    Interiores são salas 3D construídas na hora, longe da cidade (que fica oculta enquanto você está dentro).
@@ -2922,7 +3029,7 @@ function enterInterior(spec){if(INT.active)exitInterior();if(PCAR&&PCAR.driving)
   INT.active=spec;INT.back={x:hero.x,y:hero.y,yaw:CAM.yaw,dist:CAM.dist,pitch:CAM.pitch};INT.obst=[];INT.props=[];INT.people=[];INT.spin=[];INT.seats=[];INT.talkP=null;
   const keep=new Set([sun,sun.target,hemi,camera,heroMesh]);INT.hidden=[];for(const o of scene.children)if(!keep.has(o)&&o.visible){INT.hidden.push(o);o.visible=false;}
   INT.group=new THREE.Group();INT.group.position.set(IORIG.x,0,IORIG.z);scene.add(INT.group);const B=new Batch();
-  ({office:buildOffice,sede:buildSedeRoom,rival:buildRivalLobby,home:buildHome,dealer:buildShowroom,job:jobInterior,restaurant:restaurantInterior,garage:garageInterior})[spec.kind](B,spec);
+  ({office:buildOffice,sede:buildSedeRoom,rival:buildRivalLobby,home:buildHome,dealer:buildShowroom,job:jobInterior,restaurant:restaurantInterior,garage:garageInterior,nyse:buildNYSE,broker:buildBroker})[spec.kind](B,spec);
   if(spec.kind==='office')placeCandidates(B,spec.co);if(spec.kind==='sede')sedeMeetingHook();INT.staffP=null;addStaff(spec);
   B.build(INT.group);INT.group.traverse(o=>{if(o.isMesh&&!o.isSkinnedMesh){o.castShadow=false;o.receiveShadow=false;}});intLights(INT.W,INT.D,spec.kind==='home');
   {let sx=0,sz=INT.D/2-2.6;const ok=(x,z)=>intWalkable(PX(IORIG.x+x),PX(IORIG.z+z));if(!ok(sx,sz)){outer:for(let r=0.4;r<4;r+=0.4)for(let k=0;k<12;k++){const x=Math.cos(k/12*6.283)*r,z=sz+Math.sin(k/12*6.283)*r;if(ok(x,z)){sx=x;sz=z;break outer;}}}
@@ -3004,6 +3111,13 @@ function buildHome(B){const I=imat(),a=S.assets||{},t=a.home||0,lv=a.decor||0;co
   for(let i=0;i<lv*2+(t>=2?2:0);i++)fPlant(B,(i%2?W/2-0.7:-W/2+0.7),-D/2+3+i*1.2,1.1+lv*0.1);
   if(lv>=1)B.add(I.rug,xf(new THREE.BoxGeometry(3,0.01,2),0,0.01,D/2-3));
   if(lv>=2)for(let i=0;i<lv;i++){const pm=std({color:[0x8a3a2a,0x2a4a6a,0xc9a24a][i%3],roughness:.6});INT.mats.push(pm);B.add(pm,xf(new THREE.BoxGeometry(1.2,0.9,0.04),-W/2+0.03,1.7,-1+i*1.8,Math.PI/2));}}
+function contactsLife(){for(const c of contacts){if(c.rel<22||!chance(0.14))continue;const f=c.name.split(' ')[0];
+    if(c.kind==='investor'||c.kind==='trader'){ensureMk();const s=pick(STOCKS.filter(x=>x.t!=='NX500'));const good=chance(0.6);S.mk.tips[s.t]={k:good?0.01:-0.009,until:S.day+2};inbox(f,(good?'Compra '+s.t+' antes de quinta. Confia.':'Sai da '+s.t+'. Notícia ruim chegando.'),c.ico);}
+    else if(c.kind==='client'&&companies.some(x=>!(x.build>0))){const pay=Math.round((300+S.skills.negotiation*8)*Math.pow(S.phase,1.5));S.cash+=pay;repUp('market',0.3);inbox(f,'Fechei um pedido com a sua empresa: +'+money(pay)+'.',c.ico);log('🤝 '+c.name+' trouxe um pedido: +'+money(pay));}
+    else if(c.kind==='press'){const g=S.rep.public>30?chance(0.7):chance(0.55);repUp('public',g?1:-1);inbox(f,g?'Saiu uma nota positiva sobre você no jornal de hoje.':'Saiu uma nota crítica sobre você. Não fui eu que escrevi!',c.ico);}
+    else if(c.kind==='mentor'){gainSkill(pick(['finance','leadership','negotiation']),0.4);inbox(f,pick(['Lembre: caixa é rei.','Contrate gente melhor que você.','Não confunda movimento com progresso.','Negocie sempre a segunda proposta.']),c.ico);}
+    else if(c.kind==='banker'&&S.debt>0)inbox(f,'Vi sua dívida de '+money(S.debt)+'. Se precisar renegociar, passa no banco.',c.ico);
+    else if(c.kind==='headhunter'&&companies.length)inbox(f,'Tenho um nome forte para a '+pick(companies).name+'. Me liga.',c.ico);}}
 let SLEEPFX=null;
 function sleepHome(){closeModal();if(S.over||SLEEPFX)return;const b=INT.bed;if(!b||!heroMesh){dayAcc=0;S.slept=true;SLEPT=true;endDay();afterDay3d();refreshHUD();return;}
   hero.auto=false;SLEEPFX={t:0,dur:7.5,done:false,cam:{yaw:CAM.yaw,dist:CAM.dist,pitch:CAM.pitch}};
@@ -3086,11 +3200,12 @@ function placeOf(key){if(key==='sede')return {x:bFront(sede)[0],y:bFront(sede)[1
   const sp=SPECIAL[key];return sp?{x:sp.front[0],y:sp.front[1],name:sp.name}:null;}
 /* ---- AuvraOS: o celular do jogador ---- */
 let osTab='agenda';
-function openOS(tab){osTab=tab||osTab;const unread=S.inbox.filter(m=>!m.read).length;const tabs=[['agenda','📅 Agenda'],['msg','✉️ Mensagens'+(unread?' ('+unread+')':'')],['taxi','🚕 Táxi'],['jobs','💼 Vagas'],['news','📰 Notícias']];
+function openOS(tab){osTab=tab||osTab;const unread=S.inbox.filter(m=>!m.read).length;const tabs=[['agenda','📅 Agenda'],['msg','✉️ Mensagens'+(unread?' ('+unread+')':'')],['invest','📈 Investir'],['taxi','🚕 Táxi'],['jobs','💼 Vagas'],['news','📰 Notícias']];
   let body='<div class="seg" style="margin-bottom:8px">'+tabs.map(([k,l])=>'<button data-os="'+k+'" class="'+(k===osTab?'on':'')+'">'+l+'</button>').join('')+'</div>';
   if(osTab==='agenda'){const it=S.agenda.filter(a=>a.day>=S.day).sort((a,b)=>a.day-b.day||a.hour-b.hour);
     body+='<p class="small">Agora: dia '+S.day+' · '+fmtHour(nowHour())+(timeScale()<1?' · ⏱ modo agenda (tempo mais lento)':'')+'</p>'+(it.length?it.map(a=>'<div class="lrow" data-wp="'+a.id+'"><span>'+(a.status==='done'?'✅':'📍')+' <b>'+esc(a.title)+'</b><br><span class="small">Dia '+a.day+' · '+fmtHour(a.hour)+' · '+esc(a.place?a.place.name:'')+'</span></span><span class="small">'+(a.status==='pending'?'Ir ›':a.status==='done'?'feito':'perdido')+'</span></div>').join(''):'<p class="small">Nenhum compromisso. Arrume um emprego ou aceite convites de reunião.</p>');}
   else if(osTab==='msg')body+=S.inbox.length?S.inbox.map(m=>{m.read=true;return '<div class="lrow"><span>'+m.ico+' <b>'+esc(m.from)+'</b><br><span class="small">'+esc(m.txt)+'</span></span><span class="small">dia '+m.d+'</span></div>';}).join(''):'<p class="small">Sem mensagens.</p>';
+  else if(osTab==='invest'){osTab='agenda';closeModal();openInvest();return;}
   else if(osTab==='taxi'&&!TAXI&&!INT.active&&!(PCAR&&PCAR.driving)){osTab='agenda';closeModal();openTaxiMap();return;}
   else if(osTab==='taxi')body+=taxiTab();
   else if(osTab==='jobs')body+=JOBS.map(j=>{const sp=SPECIAL['job:'+j.id];const ok=S.phase>=j.phase;const mine=S.job&&S.job.id===j.id;return '<div class="lrow" data-job="'+j.id+'"><span>'+j.ico+' <b>'+esc(j.t)+'</b> · '+esc(j.co)+'<br><span class="small">'+money(jobPay(j,0))+'/turno · turno às '+fmtHour(j.hour)+' · '+(ok?esc(j.req):'🔒 fase '+j.phase+'+')+'</span></span><span class="small">'+(mine?'seu emprego':'ver no mapa ›')+'</span></div>';}).join('');
@@ -3120,7 +3235,8 @@ function addPlace(k,F,name,ico,cat,col,bg,fg){if(!F)return;const face=faceOf(F.g
   const ic=new THREE.Sprite(new THREE.SpriteMaterial({map:emojiTex(ico),transparent:true}));ic.scale.set(1.1,1.1,1);ic.position.set(M(front[0]),3,M(front[1]));cityGroup.add(ic);SPECIAL[k].icon=ic;}
 function setupCareerPlaces(){const used=new Set(Object.values(SPECIAL).map(s=>s.F));const pickF=(tx,ty)=>{let best=null,bd=1e9;for(const F of FILLERS){if(used.has(F))continue;const d=Math.hypot(F.gx+F.w/2-tx,F.gy+F.h/2-ty);if(d<bd){bd=d;best=F;}}if(best)used.add(best);return best;};
   for(const j of JOBS)addPlace('job:'+j.id,pickF(j.at[0],j.at[1]),j.co,j.ico,'job','#8fd07a','#20301c','#e8f5e2');
-  addPlace('rest',pickF(30,35),'The Exchange Grill','🍽️','place','#8fc8ff','#3a1a14','#f4e2c8');}
+  addPlace('rest',pickF(30,35),'The Exchange Grill','🍽️','place','#8fc8ff','#3a1a14','#f4e2c8');
+  for(const [b,x,y] of [['hudson',17,6],['bowline',30,26],['liberty',14,36]]){const B_=brokerOf(b);addPlace('broker:'+b,pickF(x,y),B_.n,B_.ico,'place','#8fe0c8',B_.col,'#f4efe2');}}
 function jobInterior(B,spec){const I=imat(),j=spec.job;const st=j.style;const W=st==='trading'?20:14,D=st==='trading'?14:11;buildRoom(B,W,D,st==='bank'||st==='trading'?I.marbleF:st==='cafe'?I.wood:I.carpet,{wall:st==='trading'?I.wallDark:I.wall});
   if(st==='cafe'){B.add(I.deskDark,xf(new THREE.BoxGeometry(6,1.05,0.8),0,0.525,-D/2+2.2));B.add(I.counter,xf(new THREE.BoxGeometry(6.1,0.06,0.85),0,1.07,-D/2+2.2));obst(0,-D/2+2.2,6,0.8);
     B.add(I.metal,xf(new THREE.BoxGeometry(0.8,0.6,0.5),-1.5,1.4,-D/2+2.2));for(let i=0;i<4;i++){const tx=-4.5+i*3,tz=1.5;B.add(I.deskDark,xf(new THREE.CylinderGeometry(0.5,0.5,0.04,14),tx,0.75,tz));B.add(I.metal,xf(new THREE.CylinderGeometry(0.05,0.05,0.74,6),tx,0.37,tz));obst(tx,tz,1,1);
@@ -3334,7 +3450,7 @@ async function logout(){try{saveLocal();await MP.saveCloud();await MP.sb.auth.si
 /* ============================ LAÇO ============================ */
 const DAY_SEC=600; /* 1 dia de jogo (07:00–23:00) = 10 min reais; 1 hora ≈ 37,5 s */let lastShadow=0,last=performance.now(),dayAcc=0,menuOpen=true,lastPhase=0;const HIST=[];
 function modalOpen(){return !!document.getElementById('scrim');}
-function afterDay3d(){careerDaily();if(SLEPT)S.energy+=homeEnergy();else if(started)toast('😴 Você virou a noite fora de casa — energia baixa. Durma em casa para recuperar tudo.');SLEPT=false;HIST.push({d:S.day,n:Math.round(netWorth()),c:Math.round(S.cash)});if(HIST.length>400)HIST.splice(0,HIST.length-400);
+function afterDay3d(){careerDaily();stocksDaily();contactsLife();if(SLEPT)S.energy+=homeEnergy();else if(started)toast('😴 Você virou a noite fora de casa — energia baixa. Durma em casa para recuperar tudo.');SLEPT=false;HIST.push({d:S.day,n:Math.round(netWorth()),c:Math.round(S.cash)});if(HIST.length>400)HIST.splice(0,HIST.length-400);
   if(S.phase!==lastPhase){lastPhase=S.phase;paintGround();paintMiniBase();if(placing){paintOverlay();}}}
 function frame(now){const dt=Math.min((now-last)/1000,0.05);last=now;
   try{
@@ -3344,9 +3460,9 @@ function frame(now){const dt=Math.min((now-last)/1000,0.05);last=now;
     if(started){const dtx=document.getElementById('dayTxt'),tt='Dia '+S.day+' · '+fmtHour(nowHour())+(timeScale()<1?' ⏱':'');if(dtx&&dtx.dataset.t!==tt){dtx.dataset.t=tt;dtx.textContent=tt;}}
     tod=SETTINGS.cycle?nowHour()/24:0.45;
     const dp=document.getElementById('dayProg');if(dp)dp.style.width=(dayAcc/DAY_SEC*100)+'%';
-    if(INT.active){updateSleep(dt);updateHero(dt);updateInterior(dt);}else{updateDelivery();updateFame(dt);updateWorkers(dt);updateDriving(dt);updateTaxi(dt);updateHero(dt);updateTraffic(dt);updateCrowd(dt);updateNPCs(dt);updateSteam(dt);syncBuildings();updateGhost();}updateCamera(dt);updateLighting();updateInteract();updateGuide(dt);
+    if(INT.active){updateSleep(dt);updateHero(dt);updateInterior(dt);updateTicker(dt);}else{updateDelivery();updateFame(dt);updateWorkers(dt);updateDriving(dt);updateTaxi(dt);updateHero(dt);updateTraffic(dt);updateCrowd(dt);updateNPCs(dt);updateSteam(dt);syncBuildings();updateGhost();}updateCamera(dt);updateLighting();updateInteract();updateGuide(dt);
     if(started&&now-(frame.saved||0)>30000){frame.saved=now;saveLocal();}
-    if(SETTINGS.quality==='media'&&now-lastShadow>=125){sun.shadow.needsUpdate=true;lastShadow=now;}
+    if(SETTINGS.quality==='media'&&CAM.mode!=='menu'&&now-lastShadow>=125){sun.shadow.needsUpdate=true;lastShadow=now;}
     if(!INT.active)updatePersonLODs();renderer.render(scene,camera);
     if(started&&!menuOpen)drawMini(dt);
   }catch(e){console.error(e);}
@@ -3382,6 +3498,7 @@ const FIRST=["Alex","Sam","Noa","Liv","Cris","Vic","Dani","Theo","Mara","Iris","
 const LAST=["Moreau","Sterling","Okafor","Vance","Reyes","Cho","Bianchi","Haddad","Costa","Nakamura","Adeyemi","Volkov","Mensah","Duarte","Khan","Romano","Silva","Aoki","Vega","Brandt"];
 const ROLES=[{t:"Engenheiro(a)",fam:"tech"},{t:"Cientista de Dados",fam:"tech"},{t:"Designer",fam:"tech"},{t:"Head de Vendas",fam:"soft"},{t:"Operações",fam:"real"},{t:"Marketing",fam:"soft"},{t:"Financeiro(a)",fam:"any"}];
 const SEASONS=["Primavera","Verão","Outono","Inverno"];
+const CONTACT_DEFS_X=[{kind:'trader',role:'Trader do pregão',ico:'📊'},{kind:'press',role:'Jornalista de economia',ico:'🗞️'}];
 const CONTACT_DEFS=[{kind:'investor',role:'Investidora anjo',ico:'💼'},{kind:'banker',role:'Gerente do banco',ico:'🏦'},{kind:'mentor',role:'Mentor de negócios',ico:'🎓'},{kind:'client',role:'Cliente corporativo',ico:'🤝'},{kind:'headhunter',role:'Headhunter',ico:'🎯'}];
 function newState(name){return {v:2,assets:{car:0,home:0,decor:0},name:name||'Você',cash:3000,debt:0,escrow:0,energy:100,rep:{market:5,talent:5,public:6},skills:{negotiation:10,charisma:12,finance:8,leadership:8},
   market:{cycle:"estável",mult:1.0,rate:6.0,mood:0,target:1.0},phase:1,phaseName:"Sobrevivência",day:1,season:"Primavera",over:false,won:false,wonSeen:false,
@@ -3413,7 +3530,7 @@ function expandCost(co){return Math.round(co.baseRev*co.scale*60*(1+(co.expandN|
 function opsCost(co){return Math.round(150+co.baseRev*co.scale*4);}
 function dailyExpenses(){return 45+S.phase*S.phase*8+companies.length*8;}
 function equity(){let n=0;companies.forEach(c=>n+=coValue(c)*stakeOf(c));return n;}
-function netWorth(){return Math.round(S.cash+S.escrow+equity()-S.debt+assetValue());}
+function netWorth(){return Math.round(S.cash+S.escrow+equity()-S.debt+assetValue()+(typeof invValue==='function'?invValue():0));}
 /* bens pessoais: carro (revende a 70%) e casa (90%) + reformas (50%) — ver CASA & CARRO */
 const CAR_DEF=[{n:'A pé',p:0,v:0,rep:0},{n:'Sedã usado',p:9000,v:14,rep:1,d:'Confiável, discreto, cheiro de carro de aplicativo.'},{n:'Sedã executivo',p:38000,v:17,rep:2,d:'Preto, silencioso, perfeito para reuniões no centro.'},
   {n:'SUV de luxo',p:120000,v:18,rep:4,d:'Alto, imponente e com bancos de couro.'},{n:'Esportivo',p:420000,v:24,rep:6,d:'Vermelho, baixo e barulhento — todo mundo olha.'},{n:'Supercarro',p:1500000,v:30,rep:9,d:'Para quando o primeiro IPO dá certo.'},{n:'Limusine com motorista',p:4000000,v:16,rep:12,d:'O carro de quem não dirige mais.'}];
@@ -3580,8 +3697,11 @@ function openContact(c){const ok=S.day!==c.last;const rl=c.rel>=60?'aliado(a)':c
   if(c.kind==='banker')acts.push({t:'🏦 Pedir condições especiais',d:S.flags.banker?'Já concedidas (juros −30%, crédito +20%)':c.rel<30?'Relação mínima 30':'Juros −30% e crédito +20%',dis:!!S.flags.banker||c.rel<30,fn:after(()=>{S.flags.banker=true;remember(c,'liberou condições especiais');toast('🏦 Condições especiais!');openContact(c);})});
   if(c.kind==='client'){const cd=S.day-c.lastDeal>=8;const pay=Math.round((500+S.skills.negotiation*15)*Math.pow(S.phase,1.6));acts.push({t:'🤝 Fechar contrato (⚡25)',d:c.rel<25?'Relação mínima 25':!cd?'Próximo contrato em '+(8-(S.day-c.lastDeal))+' dias':'+'+money(pay)+' e reputação de mercado',dis:c.rel<25||!cd,fn:after(()=>{S.cash+=pay;c.lastDeal=S.day;repUp('market',1);gainSkill('negotiation',1);remember(c,'fechamos contrato');toast('🤝 Contrato: +'+money(pay));openContact(c);})});}
   if(c.kind==='headhunter'){const fee=1500*S.phase;acts.push({t:'🎯 Buscar um talento estrela ('+money(fee)+')',d:c.rel<30?'Relação mínima 30':!companies.length?'Precisa de uma empresa':'Competência 85–98',dis:c.rel<30||!companies.length||S.cash<fee,fn:()=>{const star=genPerson(true);modal('🎯','Talento: '+esc(star.name),'<p>'+star.role+' · competência <b>'+star.competence+'</b> · '+moneyFull(star.salary)+'/dia</p>',companies.map(co=>({t:'Contratar na '+esc(co.name),d:co.employees.length+'/'+maxStaff(co),fn:after(()=>{if(actHire(co,star)){S.cash-=fee;remember(c,'achou '+star.name+' para você');toast('⭐ '+star.name+' contratada');}closeModal();})})).concat([{t:'↩ Voltar',fn:()=>openContact(c)}]));}});}
+  if(c.kind==='trader'||c.kind==='investor'){const cd=c.tipDay!==S.day;acts.push({t:'📈 Pedir uma dica de ação',d:c.rel<20?'Relação mínima 20':!cd?'Já pediu hoje':'Dica de quem está no mercado',dis:c.rel<20||!cd,fn:()=>{c.tipDay=S.day;ensureMk();const s=pick(STOCKS.filter(x=>x.t!=='NX500'));const good=chance(0.55+c.rel/250);S.mk.tips[s.t]={k:good?0.009+c.rel/9000:-0.008,until:S.day+3};remember(c,'deu uma dica de '+s.t);
+      modal('📈','Dica de '+esc(c.name.split(' ')[0]),'<p class="quote">"'+(good?'Fica de olho na '+s.n+' ('+s.t+'). Vem notícia boa por aí.':'Se tiver '+s.t+', eu venderia. Tem coisa feia vindo.')+'"</p><p class="small">Dicas valem por alguns dias — e ninguém acerta sempre.</p>',[{t:'📈 Abrir investimentos',fn:()=>{closeModal();openInvest();}},{t:'↩ Voltar',fn:()=>openContact(c)}]);}});}
+  if(c.kind==='press'){const cd=S.day-(c.lastDeal||-99)>=7;acts.push({t:'📰 Dar uma entrevista',d:!cd?'Próxima em '+(7-(S.day-c.lastDeal))+' dias':c.rel<20?'Relação mínima 20':'Reputação pública +',dis:!cd||c.rel<20,fn:after(()=>{c.lastDeal=S.day;const g=2+c.rel/25;repUp('public',g);remember(c,'publicou uma matéria');MP.news(S.name+' deu entrevista sobre Wall Street');toast('📰 Matéria publicada · ⭐ +'+g.toFixed(1));openContact(c);})});}
   acts.push({t:'↩ Fechar',fn:closeModal});
-  modal(c.ico,esc(c.name)+' · '+c.role,'<div class="lab"><span>Relação: '+rl+'</span><b>'+Math.round(c.rel)+'/100</b></div><div class="bar"><i style="width:'+c.rel+'%"></i></div>'+(c.mem.length?'<p class="small" style="margin-top:8px">Lembra de: '+c.mem.map(esc).join(' · ')+'</p>':'<p class="small" style="margin-top:8px">Vocês ainda não se conhecem.</p>'),acts);
+  modal(c.ico,esc(c.name)+' · '+c.role+(c.trait&&TRAITS[c.trait]?' · '+TRAITS[c.trait].n.toLowerCase():''),'<div class="lab"><span>Relação: '+rl+'</span><b>'+Math.round(c.rel)+'/100</b></div><div class="bar"><i style="width:'+c.rel+'%"></i></div>'+(c.mem.length?'<p class="small" style="margin-top:8px">Lembra de: '+c.mem.map(esc).join(' · ')+'</p>':'<p class="small" style="margin-top:8px">Vocês ainda não se conhecem.</p>'),acts);
   talkingTo=workers.find(w=>w.contact===c)??null;
 }
 function openTeam(){const tot=totalStaff();
@@ -3688,14 +3808,14 @@ function heroStart(){return {x:(WORLD.cxA+0.5)*TILE,y:(WORLD.cyA+3.2)*TILE};}
 function newGame(name){S=newState(name);companies=[];rivals=[];contacts=[];buildings.length=0;workers.length=0;FEED.length=0;HIST.length=0;
   placeSede(WORLD.SEDE_AT[0],WORLD.SEDE_AT[1]);const startNiches=['ai','saas','logi','retail','fintech','media','health'];
   WORLD.STARTER_LOTS.forEach((l,i)=>{const r=genRival(NICHE[startNiches[i]],rnd(30000,140000));rivals.push(r);placeRival(r,l[0],l[1]);});
-  contacts=CONTACT_DEFS.map(genContact);spawnContacts();ambient();const h=heroStart();makeHero(h.x,h.y);
+  contacts=[];spawnContacts();ambient();const h=heroStart();makeHero(h.x,h.y);
   log('🌱 '+S.name+' chegou a Wall Street com '+money(S.cash)+' e um notebook velho.');lastPhase=S.phase;}
 function loadGame(d){S=Object.assign(newState(),d.S);S.speed=1;companies=[];rivals=[];buildings.length=0;workers.length=0;FEED.length=0;HIST.length=0;(d.feed||[]).forEach(f=>FEED.push(f));(d.hist||[]).forEach(h=>HIST.push(h));
   const fresh=d.map!=='wallstreet'; // save do mapa antigo: empresas são re-assentadas nos terrenos de Wall Street
   const sd=!fresh&&d.sede&&footprintFree('hq',d.sede.gx,d.sede.gy)?d.sede:{gx:WORLD.SEDE_AT[0],gy:WORLD.SEDE_AT[1]};placeSede(sd.gx,sd.gy);
   for(const c of d.companies||[]){const gx=c.gx,gy=c.gy;delete c.gx;delete c.gy;let b=null;const spr=NICHE[c.niche].spr;if(!fresh&&gx!=null&&footprintFree(spr,gx,gy))b=placeBuilding(spr,gx,gy);else{const sp=findFreeSpot(spr,false);if(sp)b=placeBuilding(spr,sp.gx,sp.gy);}c.b=b;if(b)b.co=c;companies.push(c);if(b)c.employees.forEach(()=>spawnWorker(b,c));}
   for(const r of d.rivals||[]){const gx=r.gx,gy=r.gy;delete r.gx;delete r.gy;r.b=null;rivals.push(r);const spr=NICHE[r.niche].spr;if(!fresh&&gx!=null&&footprintFree(spr,gx,gy))placeRival(r,gx,gy);else placeRival(r,null,null);}
-  contacts=d.contacts&&d.contacts.length?d.contacts:CONTACT_DEFS.map(genContact);spawnContacts();ambient();
+  contacts=d.contacts||[];spawnContacts();ambient();
   const h=(!fresh&&d.hero&&walkable(d.hero.x,d.hero.y))?d.hero:heroStart();makeHero(h.x,h.y);
   if(d.avatar&&!readJSON('auvra_avatar')){Object.assign(AVATAR,d.avatar);normalizeAvatar();saveAvatar();rebuildHero();}lastPhase=S.phase;}
 addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){saveLocal();MP.saveCloud();}});addEventListener('pagehide',saveLocal);
