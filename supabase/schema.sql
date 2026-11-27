@@ -319,3 +319,39 @@ revoke all on function public.send_gift(uuid,text,bigint,text) from public, anon
 revoke all on function public.claim_gifts() from public, anon;
 grant execute on function public.send_gift(uuid,text,bigint,text) to authenticated;
 grant execute on function public.claim_gifts() to authenticated;
+
+-- Moradia: cada nível de casa tem um prédio; cada jogador mora num andar exclusivo dele
+create table if not exists public.residences (
+  user_id     uuid primary key references public.players(id) on delete cascade,
+  tier        smallint not null check (tier between 0 and 4),
+  floor       int not null check (floor between 1 and 200),
+  updated_at  timestamptz not null default now(),
+  unique (tier, floor)
+);
+alter table public.residences enable row level security;
+drop policy if exists residences_read on public.residences;
+create policy residences_read on public.residences for select to authenticated using (true);
+-- sem escrita direta: o andar é atribuído pela função (menor andar livre da faixa do prédio)
+create or replace function public.claim_residence(p_tier int, p_min int, p_max int)
+returns int language plpgsql security definer set search_path = '' as $$
+declare me uuid := auth.uid(); cur public.residences; f int; tries int := 0;
+begin
+  if me is null then raise exception 'not_authenticated'; end if;
+  if p_tier < 0 or p_tier > 4 or p_min < 1 or p_max > 200 or p_min > p_max then raise exception 'bad_range'; end if;
+  select * into cur from public.residences where user_id = me;
+  if found and cur.tier = p_tier and cur.floor between p_min and p_max then return cur.floor; end if;
+  delete from public.residences where user_id = me;
+  loop
+    select g into f from generate_series(p_min, p_max) g
+      where not exists (select 1 from public.residences r where r.tier = p_tier and r.floor = g) order by g limit 1;
+    if f is null then return null; end if; -- prédio lotado
+    begin
+      insert into public.residences(user_id, tier, floor) values (me, p_tier, f);
+      return f;
+    exception when unique_violation then
+      tries := tries + 1; if tries > 5 then return null; end if;
+    end;
+  end loop;
+end $$;
+revoke all on function public.claim_residence(int,int,int) from public, anon;
+grant execute on function public.claim_residence(int,int,int) to authenticated;
