@@ -95,6 +95,12 @@ menu ou painel aberto.
 - **Noite visível:** céu com brilho da cidade, luar mais forte e poças de luz quente sob os postes.
 - **HUD mínimo:** caixa e energia no canto, relógio + 🗺 mapa + ▦ ações + ☰ menu no outro, minimapa redondo. A barra de
   ferramentas só aparece ao tocar em ▦; a missão aparece por alguns segundos quando muda (toque no caixa para revê-la).
+- **Entrar nos prédios:** os marcos da Wall Street viraram lugares.
+  - **Torres** (1, 14, 40 e 60 Wall St): saguão com recepção e placa histórica, **elevador** com painel de andares, escritórios de empresas fictícias (networking na recepção), lajes para alugar e **Sky Lounge** na cobertura (com traje elegante).
+  - **70 Pine:** residencial, com apartamento modelo e cobertura à venda (só com hora marcada).
+  - **Salões históricos:** 55 Wall (salão de eventos), 23 Wall (salão do banco), Federal Hall (museu) e Trinity Church (igreja).
+  - **Comércios de rua** no térreo, na fachada lateral (deli, café, farmácia, banca, mercadinho e floricultura), cada um com atendente e itens que têm efeito: energia, finanças, liderança ou reputação.
+  - **Helipontos:** um no topo real do 1 Wall St, com a cidade em volta, e o **Heliporto de Downtown** no píer do East River. Voo panorâmico ou voo particular entre eles.
 - **Trânsito com regras:** cada rua tem a mão real (mão direita nas de mão dupla). Carros, táxis, ônibus e **motos**
   andam no centro da faixa, param antes da faixa de pedestres no vermelho, decidem no amarelo se dá para passar,
   mantêm distância, dão **seta** e viram em curva suave (direita só da faixa da direita, esquerda só da esquerda,
