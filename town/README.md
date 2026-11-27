@@ -70,9 +70,9 @@ menu ou painel aberto.
 
 - **Controles:** o analógico só **anda** (passo natural); o botão 🏃 à direita liga a corrida (desliga ao soltar o
   analógico); arrastar o lado direito da tela gira a câmera, pinça aproxima.
-- **Táxi (📱 Celular → Táxi):** escolha o destino (compromisso de hoje, trabalho, casa, sede, lojas, marcos ou o ponto
-  marcado no mapa), veja preço, distância e horário de chegada, pague e entre no táxi que para na rua mais próxima. A
-  corrida consome o tempo do trajeto no relógio — bem menos que ir a pé.
+- **Táxi (📱 Celular → Táxi):** o mapa abre e você toca no destino (rota, preço e horário de chegada). O táxi vem
+  dirigindo pela rua até você; ao entrar, a corrida é acompanhada no mapa e o relógio anda até a chegada.
+- **Dormir:** na cama o personagem deita, a janela escurece, a madrugada passa e amanhece.
 - **Obras de verdade:** fundar uma empresa abre um **canteiro de obras** (tapume, estrutura subindo andar por andar,
   andaime e grua) com prazo de 2 a 9 dias conforme o porte. A empresa só fatura e contrata depois de pronta; dá para
   pagar hora extra e adiantar um dia.

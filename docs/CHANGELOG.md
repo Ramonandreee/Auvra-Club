@@ -2,6 +2,14 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## [1.9.0] — 2026-11-28 — *Animações de verdade*
+- Dormir: o personagem deita na cama, a janela escurece, a madrugada passa e amanhece (o dia vira no meio).
+- Táxi: destino escolhido no mapa (com rota e preço), o táxi vem dirigindo pela rua até você e a corrida é
+  acompanhada no mapa, com o relógio andando até a chegada.
+- Cabelo moldado ao crânio real de cada personagem (sem vãos nas laterais e na nuca).
+- Casa: não nasce mais dentro de móveis; em qualquer interior dá para sair de um ponto preso. Botão de correr discreto
+  (silhueta monocromática).
+
 ## [1.8.0] — 2026-11-28 — *Gente de verdade e frota variada*
 - Frota com silhuetas próprias: sedã, SUV, hatch, cupê, picape, van, limusine, caminhão-baú, ônibus e táxis (sedã e
   minivan), com faróis, lanternas, para-choques, rodas com aro e retrovisores; tráfego respeita o tamanho de cada um.
