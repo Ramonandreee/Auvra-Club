@@ -2,6 +2,15 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## [2.0.1] — 2026-11-28 — *Correções: progresso, travamento, tela cheia*
+- Login baixa o save da nuvem e usa o mais recente (aparelho × nuvem); nuvem salva a cada minuto e ao sair do app —
+  antes, ao entrar em outro armazenamento, o jogo recomeçava.
+- Travamento ao entrar na cidade: com destino sem rota possível o GPS recalculava a rota a cada quadro; agora tenta
+  a cada 4 s, e o suavizador de rota é limitado.
+- iPhone (app instalado): mede a tela real (o iOS informa a altura sem a barra de status) e usa a área inteira.
+- Missão recolhida num botão 🎯 (ponto dourado quando muda). Mapa e diálogos cabem sem rolar (✕ no topo, filtros
+  recolhidos, botões em duas colunas).
+
 ## [2.0.0] — 2026-11-28 — *Wall Street de verdade: Bolsa, corretoras e investimentos*
 - **Bolsa de Nova York por dentro:** pregão gigante (colunas, galeria, bandeira, 6 postos de negociação com telas,
   fita de cotações ao vivo nas paredes, traders circulando), especialista do pregão e o sino de abertura (9:30,

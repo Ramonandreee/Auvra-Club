@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="Auvra Club">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest">
-<script>(function(){var t=matchMedia("(pointer:coarse)").matches||("ontouchstart" in window&&navigator.maxTouchPoints>0);function a(){var pw=innerWidth,ph=innerHeight,sa=navigator.standalone||matchMedia("(display-mode: standalone)").matches;if(sa&&window.screen&&screen.height){var L=Math.max(screen.width,screen.height);if(ph>pw)ph=Math.max(ph,L);}var r=document.documentElement;window.__PW=pw;window.__PH=ph;r.style.setProperty("--pw",pw+"px");r.style.setProperty("--ph",ph+"px");r.classList.toggle("rot",t&&ph>pw);}a();addEventListener("resize",a);addEventListener("orientationchange",function(){setTimeout(a,300);});window.__measure=a;})();</script>
+<script>(function(){var t=matchMedia("(pointer:coarse)").matches||("ontouchstart" in window&&navigator.maxTouchPoints>0);function a(){var pw=innerWidth,ph=innerHeight,sa=navigator.standalone||matchMedia("(display-mode: standalone)").matches;var de=document.documentElement;ph=Math.max(ph,de.clientHeight||0);pw=Math.max(pw,de.clientWidth||0);if(sa&&window.screen&&screen.height){var L=Math.max(screen.width,screen.height),Sh=Math.min(screen.width,screen.height);if(ph>pw){ph=Math.max(ph,L);pw=Math.max(pw,Sh);}else{pw=Math.max(pw,L);ph=Math.max(ph,Sh);}}var r=document.documentElement;window.__PW=pw;window.__PH=ph;r.style.setProperty("--pw",pw+"px");r.style.setProperty("--ph",ph+"px");r.classList.toggle("rot",t&&ph>pw);}a();addEventListener("resize",a);addEventListener("orientationchange",function(){setTimeout(a,300);});window.__measure=a;})();</script>
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <!-- Bibliotecas (versão fixada, CDN). Sem elas: tela de erro com "Tentar de novo"; depois da 1ª visita o
@@ -388,6 +388,24 @@
   #bigmap .bmgo{background:linear-gradient(#f6d24a,#e2a90a)!important;color:#1a1408!important;border:0!important}#bigmap .bmgo:disabled{opacity:.45}
   .lrow.stk{display:grid;grid-template-columns:1fr 74px 86px;gap:8px;align-items:center}.lrow.stk .sp{opacity:.9}
   .chartbox{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:6px;margin:6px 0;display:flex;justify-content:center}.chartbox svg{width:100%!important;max-width:520px}
+  #questPill{position:fixed;top:calc(50px + var(--st));left:calc(8px + var(--sl));width:36px;height:36px;border-radius:50%;background:rgba(14,16,20,.55);border:1px solid rgba(255,255,255,.12);font-size:16px;display:grid;place-content:center;z-index:5;filter:grayscale(.6);opacity:.85}
+  #questPill.new{filter:none;opacity:1}#questPill.new::after{content:'';position:absolute;top:2px;right:2px;width:9px;height:9px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2px #0e1014}
+  .quest{left:calc(52px + var(--sl))!important}
+  /* app instalado no iPhone: a área sob a barra de status também é nossa (o iOS informa a altura sem ela) */
+  html.rot{height:var(--ph,100vh);overflow:visible}
+  html.rot{background:#0d0e0c}
+  @media (display-mode: standalone){html:not(.rot),html:not(.rot) body{height:var(--ph,100%)}}
+  /* mapa e diálogos cabem sem rolar */
+  #bigmap .legend{gap:6px!important;overflow:hidden!important}
+  #bigmap .bmh{display:flex;align-items:center;justify-content:space-between}#bigmap .bmh b{font-size:18px!important}
+  #bigmap .bmx{width:38px;height:38px;border-radius:50%;background:#2a2d33;border:1px solid rgba(255,255,255,.14);color:#fff;font-size:16px;font-weight:800;flex:none}
+  #bigmap .bmdest{padding:8px!important}#bigmap .bmd2{margin:2px 0 6px!important}#bigmap .bmbtn{padding:7px!important}
+  #bigmap .bmquick{gap:5px!important}#bigmap .bmquick button{padding:4px 2px!important;font-size:15px!important}
+  #bigmap .bmfbtn{background:none;border:0;text-align:left;padding:2px 0;cursor:pointer}
+  #bigmap .bmchips button{padding:4px 8px!important;font-size:11px!important}
+  .modal .mact{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:6px!important}
+  .modal .mbtn{padding:7px 10px!important;min-height:0!important}.modal .mbtn span{font-size:11.5px!important}
+  .modal{max-height:calc(100 * var(--uh) - 16px - var(--st) - var(--sb))!important;width:min(720px,calc(96 * var(--uw)))!important}
 </style>
 </head>
 <body>
@@ -396,6 +414,7 @@
 <div id="bigmap" class="off"><canvas></canvas><div class="legend panel"></div></div>
 <div id="hud" class="off"><div id="guide"><span class="ga">➤</span><span class="gt"></span></div>
   <div class="panel hud-top" id="hudTop"></div>
+  <button id="questPill" title="Missão" aria-label="Missão">🎯</button>
   <div class="panel quest" id="questBox"><div class="t">Missão</div><div class="q" id="questTxt"></div></div>
   <div class="panel hud-day"><div id="dayTxt">Dia 1</div><div class="ph" id="phaseTxt"></div><div class="dprog"><i id="dayProg"></i></div>
     <div id="speed"><button id="mapBtn" title="Mapa">🗺</button><button id="toolsBtn" title="Ações">▦</button><button id="menuBtn" title="Menu">☰</button></div>
@@ -2417,7 +2436,7 @@ function setupInput(){document.querySelectorAll('#speed button[data-s]').forEach
   document.querySelectorAll('#speed button[data-s]').forEach(b=>b.onclick=()=>setSpeed(+b.dataset.s));
   document.getElementById('menuBtn').onclick=()=>openMenu('home');document.getElementById('mapBtn').onclick=openBigMap;document.getElementById('mini').onclick=openBigMap;
   {const bc=document.querySelector('#bigmap canvas');bc.addEventListener('pointerdown',bmDown);bc.addEventListener('pointermove',bmMove);bc.addEventListener('pointerup',bmUp);bc.addEventListener('pointercancel',bmUp);bc.addEventListener('wheel',bmWheel,{passive:false});}
-  document.getElementById('toolsBtn').onclick=()=>toggleTools();{const rb=document.getElementById('runBtn');rb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();setRun(!RUN);runIdle=0;});}document.getElementById('hudTop').onclick=()=>showQuest(true);
+  document.getElementById('toolsBtn').onclick=()=>toggleTools();{const rb=document.getElementById('runBtn');rb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();setRun(!RUN);runIdle=0;});}document.getElementById('questPill').onclick=()=>showQuest();
   document.getElementById('placeOk').onclick=()=>{if(placing)tryPlace(ghostGX,ghostGY);};document.getElementById('placeNo').onclick=cancelPlacing;}
 function setSpeed(s){S.speed=1;refreshHUD();} // o tempo corre sempre em 1× (pausa só com menu aberto)
 
@@ -2499,7 +2518,7 @@ function findPath(sx,sy,tx,ty,mode){const W=MAPW,N=W*MAPH;const s=nearestOpen(sx
   if(from[ti]<0&&si!==ti)return null;const out=[];for(let i=ti;i>=0;i=from[i]){out.push([i%W,(i/W)|0]);if(i===si)break;}return out.reverse();}
 function lineFree(a,b,r){const d=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.ceil(d/0.8);for(let i=1;i<n;i++){const k=i/n;if(!bodyFree(a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k,r))return false;}return true;}
 function simplifyPath(P){const o=[P[0]];for(let i=1;i<P.length-1;i++){const a=o[o.length-1],b=P[i],c=P[i+1];const cr=(b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]);if(Math.abs(cr)>0.01)o.push(b);}o.push(P[P.length-1]);return o;}
-function smoothPath(P){if(P.length<3)return P;const o=[P[0]];let i=0;while(i<P.length-1){let j=P.length-1;while(j>i+1&&!lineFree(P[i],P[j],0.3))j--;o.push(P[j]);i=j;}return o;}
+function smoothPath(P){if(P.length<3)return P;const o=[P[0]];let i=0;while(i<P.length-1){let j=Math.min(P.length-1,i+8);while(j>i+1&&!lineFree(P[i],P[j],0.3))j--;o.push(P[j]);i=j;}return o;}
 // rota em metros, do ponto (x,z) até (tx,tz)
 function planRoute(x,z,tx,tz,mode){const p=findPath(Math.floor(x/TS),Math.floor(z/TS),Math.floor(tx/TS),Math.floor(tz/TS),mode);if(!p)return null;
   let pts=p.map(([gx,gy])=>[(gx+0.5)*TS,(gy+0.5)*TS]);pts[0]=[x,z];if(pts.length>1&&Math.hypot(pts[1][0]-x,pts[1][1]-z)<TS*0.75&&lineFree([x,z],pts[1],0.25))pts.splice(0,1,[x,z]);
@@ -2535,7 +2554,7 @@ function clearWaypoint(){WAYPOINT=null;ROUTE=null;if(wpMesh)wpMesh.visible=false
 function fmtDist(d){return d>=1000?(d/1000).toFixed(1).replace('.',',')+' km':(Math.round(d/5)*5)+' m';}
 function updateGuide(dt,force){const gd=document.getElementById('guide');if(!gd)return;if(!WAYPOINT||!started||menuOpen||INT.active){gd.classList.remove('on');if(arrowMesh)arrowMesh.count=0;return;}
   const d=Math.hypot(M(WAYPOINT.x-hero.x),M(WAYPOINT.y-hero.y));if(d<4.5){toast('📍 Você chegou: '+WAYPOINT.label);clearWaypoint();return;}
-  routeT-=dt||0;const off=routeTrack();if(force||!ROUTE||routeT<=0||off>5||ROUTE.mode!==routeMode()){computeRoute();routeT=2.5;}
+  routeT-=dt||0;const off=routeTrack();if(force||routeT<=0||(ROUTE&&(off>5||ROUTE.mode!==routeMode()))){computeRoute();routeT=ROUTE?2.5:4;} // sem rota possível: tenta de novo só a cada 4 s (nunca a cada quadro)
   drawArrows();if(wpMesh)wpMesh.children[1].scale.setScalar(1+0.15*Math.sin(performance.now()*0.005));
   guideT-=dt||0;if(guideT>0&&!force)return;guideT=0.25;
   const tot=ROUTE?ROUTE.len:d,nt=ROUTE?nextTurn():{d,dir:null};const eta=fmtHour(Math.min(23.99,nowHour()+tot/(routeMode()==="car"?10:4.5)/(DAY_SEC/16)));
@@ -2618,16 +2637,15 @@ function drawBigMap(){const el=document.getElementById('bigmap'),cvm=el.querySel
   const cats=[['me','➤','Você'],['emp','⭐','Suas empresas'],['rv','🚩','Concorrentes'],['lm','🏛️','Marcos'],['ct','👤','Contatos'],['place','🏠','Casa e lojas'],['job','💼','Vagas'],['meet','📅','Compromissos']];
   const quick=[];if(SPECIAL.home)quick.push(['home','🏠','Casa']);if(sede)quick.push(['sede','⭐','Sede']);if(S.job&&SPECIAL['job:'+S.job.id])quick.push(['job:'+S.job.id,'💼','Trabalho']);if(SPECIAL.dealer)quick.push(['dealer','🚗','Carros']);if(SPECIAL.rest)quick.push(['rest','🍽️','Restaurante']);
   const nx=(S.agenda||[]).filter(a=>a.day>=S.day&&a.status==='pending'&&a.place).sort((a,b)=>a.day-b.day||a.hour-b.hour)[0];if(nx)quick.push(['agenda','📅','Compromisso']);
-  if(BM.mode==='ride'&&BM.ride){const R=BM.ride;leg.innerHTML='<div class="bmh"><b>🚕 Corrida</b><span>Táxi amarelo · tarifa paga '+money(R.price)+'</span></div><div class="bmdest"><div class="bmd1">📍 '+esc(R.d.name)+'</div><div class="bmd2">'+fmtDist(R.len*(1-R.t/R.dur))+' restantes · agora '+fmtHour(nowHour())+'</div><div class="tbar"><i style="width:'+Math.round(R.t/R.dur*100)+'%"></i></div></div><div class="bmtip">O motorista conhece os atalhos. Relaxe.</div>';return;}
+  if(BM.mode==='ride'&&BM.ride){const R=BM.ride;leg.innerHTML='<div class="bmh"><b>🚕 Corrida</b></div><div class="bmtip">Tarifa paga: '+money(R.price)+'</div><div class="bmdest"><div class="bmd1">📍 '+esc(R.d.name)+'</div><div class="bmd2">'+fmtDist(R.len*(1-R.t/R.dur))+' restantes · agora '+fmtHour(nowHour())+'</div><div class="tbar"><i style="width:'+Math.round(R.t/R.dur*100)+'%"></i></div></div><div class="bmtip">O motorista conhece os atalhos. Relaxe.</div>';return;}
   if(BM.mode==='taxi'){const d=BM.tdest,q=d?taxiQuote(d):null;
-    leg.innerHTML='<div class="bmh"><b>🚕 Chamar táxi</b><span>Toque no mapa ou num lugar para escolher o destino</span></div>'+(d?'<div class="bmdest"><div class="bmd1">📍 '+esc(d.name)+'</div><div class="bmd2">'+fmtDist(q.len)+' · chegada ~'+fmtHour(q.arrive)+'</div><button class="bmbtn bmgo" id="tGo"'+(S.cash<q.price?' disabled':'')+'>Chamar e pagar '+money(q.price)+'</button></div>':'<div class="bmtip">Caixa: '+money(S.cash)+'. O preço sai pela rota de carro.</div>')+
-      '<button class="bmbtn bmback" id="bmClose">↩ Cancelar</button>';
+    leg.innerHTML='<div class="bmh"><b>🚕 Táxi</b><button class="bmx" id="bmClose" aria-label="Cancelar">✕</button></div><div class="bmtip">Toque no destino no mapa.</div>'+(d?'<div class="bmdest"><div class="bmd1">📍 '+esc(d.name)+'</div><div class="bmd2">'+fmtDist(q.len)+' · chegada ~'+fmtHour(q.arrive)+'</div><button class="bmbtn bmgo" id="tGo"'+(S.cash<q.price?' disabled':'')+'>Chamar e pagar '+money(q.price)+'</button></div>':'<div class="bmtip">Caixa: '+money(S.cash)+'. O preço sai pela rota de carro.</div>')+'';
     const go=document.getElementById('tGo');if(go)go.onclick=()=>{BM.mode=null;callTaxi(d);};document.getElementById('bmClose').onclick=()=>{BM.mode=null;closeBigMap();};return;}
-  leg.innerHTML='<div class="bmh"><b>Mapa</b><span>Wall Street · Lower Manhattan</span></div>'+
+  leg.innerHTML='<div class="bmh"><b>Mapa</b><button class="bmx" id="bmClose" aria-label="Fechar">✕</button></div>'+
     (WAYPOINT?'<div class="bmdest"><div class="bmd1">📍 '+esc(WAYPOINT.label)+'</div><div class="bmd2">'+(ROUTE?fmtDist(ROUTE.len)+' · '+(ROUTE.mode==='car'?'🚗 de carro':'🚶 a pé'):'Sem rota')+'</div><button class="bmbtn" id="bmClear">Encerrar rota</button></div>':'<div class="bmtip">Toque num lugar do mapa ou escolha um atalho para traçar a rota.</div>')+
     '<div class="bmsec">Ir para</div><div class="bmquick">'+quick.map(([q,i,n])=>'<button data-q="'+q+'">'+i+'<span>'+n+'</span></button>').join('')+'</div>'+
-    '<div class="bmsec">Mostrar</div><div class="bmchips">'+cats.map(([c,i,n])=>'<button data-c="'+c+'" class="'+(MAPF[c]?'on':'')+'">'+i+' '+n+'</button>').join('')+'</div>'+
-    '<button class="bmbtn bmback" id="bmClose">↩ Voltar ao jogo</button>';
+    '<button class="bmsec bmfbtn" id="bmF">Filtros '+(BM.filt?'▴':'▾')+'</button>'+(BM.filt?'<div class="bmchips">'+cats.map(([c,i,n])=>'<button data-c="'+c+'" class="'+(MAPF[c]?'on':'')+'">'+i+' '+n+'</button>').join('')+'</div>':'');
+  document.getElementById('bmF').onclick=()=>{BM.filt=!BM.filt;drawBigMap();};
   leg.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{MAPF[b.dataset.c]=!MAPF[b.dataset.c];drawBigMap();});
   leg.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const q=b.dataset.q;if(q==='sede'){const f=bFront(sede);setWaypoint(f[0],f[1],'Sua sede');}else if(q==='agenda'){setWaypoint(nx.place.x,nx.place.y,nx.title);}else{const s_=SPECIAL[q];setWaypoint(s_.front[0],s_.front[1],s_.name);}drawBigMap();});
   const bc=document.getElementById('bmClear');if(bc)bc.onclick=()=>{clearWaypoint();drawBigMap();};document.getElementById('bmClose').onclick=closeBigMap;
@@ -3443,7 +3461,9 @@ async function enterAccount(){let uname=null;try{const {data}=await MP.sb.from('
     const {error}=await MP.sb.from('players').insert({id:MP.uid,name:v});if(error)return ask(/duplicate|unique/i.test(error.message)?'Esse nome já existe.':'Nome inválido (3–20 letras, números, _ ou .).');closeModal();res(v);}}]);const m=document.querySelector('.modal');if(m)m.dataset.locked=1;};ask();});}
   ACCOUNT={uid:MP.uid,name:uname,email:MP.user&&MP.user.email};AVATAR.name=uname;saveAvatar();SAVE_KEY='bs_town_v3_'+MP.uid;
   try{if(!localStorage.getItem(SAVE_KEY)&&localStorage.getItem('bs_town_v2')){localStorage.setItem(SAVE_KEY,localStorage.getItem('bs_town_v2'));localStorage.removeItem('bs_town_v2');}}catch(e){}
-  LOCAL=readLocal();if(hasSave())loadGame(LOCAL);else newGame(uname);S.name=uname;rebuildHero();paintMiniBase();
+  LOCAL=readLocal();{let cloud=null;try{cloud=await MP.loadCloud();}catch(e){}const sc=d=>d&&d.S?(d.savedAt||0)+d.S.day*1e3:-1; // o save mais recente vence (aparelho × nuvem)
+    if(cloud&&cloud.S&&(!LOCAL||!LOCAL.S||sc(cloud)>sc(LOCAL))){LOCAL=cloud;try{localStorage.setItem(SAVE_KEY,JSON.stringify(cloud));}catch(e){}}}
+  if(hasSave())loadGame(LOCAL);else newGame(uname);S.name=uname;rebuildHero();paintMiniBase();
   mpReady=MP.begin();mpReady.then(()=>{mpDone=true;const el=document.getElementById('mNet');if(el)el.textContent=netLabel();});openMenu('home');}
 async function logout(){try{saveLocal();await MP.saveCloud();await MP.sb.auth.signOut();}catch(e){}location.reload();}
 
@@ -3461,7 +3481,7 @@ function frame(now){const dt=Math.min((now-last)/1000,0.05);last=now;
     tod=SETTINGS.cycle?nowHour()/24:0.45;
     const dp=document.getElementById('dayProg');if(dp)dp.style.width=(dayAcc/DAY_SEC*100)+'%';
     if(INT.active){updateSleep(dt);updateHero(dt);updateInterior(dt);updateTicker(dt);}else{updateDelivery();updateFame(dt);updateWorkers(dt);updateDriving(dt);updateTaxi(dt);updateHero(dt);updateTraffic(dt);updateCrowd(dt);updateNPCs(dt);updateSteam(dt);syncBuildings();updateGhost();}updateCamera(dt);updateLighting();updateInteract();updateGuide(dt);
-    if(started&&now-(frame.saved||0)>30000){frame.saved=now;saveLocal();}
+    if(started&&now-(frame.saved||0)>30000){frame.saved=now;saveLocal();frame.n=(frame.n||0)+1;if(frame.n%2===0)MP.saveCloud();}
     if(SETTINGS.quality==='media'&&CAM.mode!=='menu'&&now-lastShadow>=125){sun.shadow.needsUpdate=true;lastShadow=now;}
     if(!INT.active)updatePersonLODs();renderer.render(scene,camera);
     if(started&&!menuOpen)drawMini(dt);
@@ -3755,11 +3775,11 @@ function refreshHUD(){if(!started)return;
     (S.debt>0?resource('bank','Dívida','−'+money(S.debt),'var(--red)'):'')+
     resource('energy','Energia',Math.round(S.energy),S.energy<15?'var(--red)':'inherit');
   const dtx0=document.getElementById('dayTxt');dtx0.dataset.t='';dtx0.textContent='Dia '+S.day+' · '+fmtHour(nowHour());document.getElementById('phaseTxt').textContent='Fase '+S.phase+' · '+S.phaseName;
-  {const q=currentObjective().quest,qt=document.getElementById('questTxt');if(qt.textContent!==q){qt.textContent=q;showQuest();}}
+  {const q=currentObjective().quest,qt=document.getElementById('questTxt');if(qt.textContent!==q){const first=!qt.textContent;qt.textContent=q;if(!first)document.getElementById('questPill').classList.add('new');}}
   document.querySelectorAll('#speed button[data-s]').forEach(b=>b.classList.toggle('on',+b.dataset.s===S.speed));
   const ns=document.getElementById('netState');if(ns)ns.innerHTML=icon(MP.on?'online':'offline')+(MP.on?'Online · '+Object.keys(MP.online).length:'Offline');
   if(S.won&&!S.wonSeen&&!modalOpen())winModal();}
-function showQuest(){const b=document.getElementById('questBox');if(!b)return;b.classList.add('on');clearTimeout(showQuest._t);showQuest._t=setTimeout(()=>b.classList.remove('on'),6500);}
+function showQuest(){const b=document.getElementById('questBox');if(!b)return;const open=!b.classList.contains('on');b.classList.toggle('on',open);document.getElementById('questPill').classList.remove('new');clearTimeout(showQuest._t);if(open)showQuest._t=setTimeout(()=>b.classList.remove('on'),8000);}
 function toggleTools(on){const h=document.getElementById('hud'),v=on===undefined?!h.classList.contains('tools'):on;h.classList.toggle('tools',v);document.getElementById('toolsBtn').classList.toggle('on',v);clearTimeout(toggleTools._t);if(v)toggleTools._t=setTimeout(()=>toggleTools(false),9000);}
 function refreshObj(){if(!started)return;const o=currentObjective();document.getElementById('objPanel').innerHTML=o.objs.map(ob=>ob.lab).join(' · ');}
 function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('on'),2400);}
@@ -3818,7 +3838,7 @@ function loadGame(d){S=Object.assign(newState(),d.S);S.speed=1;companies=[];riva
   contacts=d.contacts||[];spawnContacts();ambient();
   const h=(!fresh&&d.hero&&walkable(d.hero.x,d.hero.y))?d.hero:heroStart();makeHero(h.x,h.y);
   if(d.avatar&&!readJSON('auvra_avatar')){Object.assign(AVATAR,d.avatar);normalizeAvatar();saveAvatar();rebuildHero();}lastPhase=S.phase;}
-addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){saveLocal();MP.saveCloud();}});addEventListener('pagehide',saveLocal);
+addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){saveLocal();MP.saveCloud();}});addEventListener('pagehide',()=>{saveLocal();MP.saveCloud();});
 /* ============================ MULTIPLAYER (Supabase: save na nuvem, ranking, M&A entre amigos, presença e chat) ============================ */
 /* Preencha com a URL e a publishable/anon key do seu projeto Supabase (são públicas por design — a segurança vem do RLS em supabase/schema.sql). */
 const MP_CONFIG={url:'https://pfjzbfnmarywacznmxqx.supabase.co',key:'sb_publishable_ABdjfCyWQlBBxKp0pwp7Ow_uD8FydqS'};
