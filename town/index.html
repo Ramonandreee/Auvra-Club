@@ -1708,7 +1708,8 @@ function personGeometry(look,lod=0){
   jacket.unshift([0,hem,0,hip+bulk,.102+bulk,'hips']);
   if(st==='sobretudo')jacket[0][3]+=.045;
   if(st==='vestido'){jacket[0][3]+=.055;jacket[0][4]+=.04;}
-  if(st==='gala'||st==='couture'){jacket[0][3]+=.11;jacket[0][4]+=.09;jacket.splice(1,0,[0,.62,0,hip+bulk+.07,.102+bulk+.06,'hips']);} // saia longa com volume também na frenteif(st==='trench')jacket[0][3]+=.04;
+  if(st==='gala'||st==='couture'){jacket[0][3]+=.11;jacket[0][4]+=.09;jacket.splice(1,0,[0,.62,0,hip+bulk+.07,.102+bulk+.06,'hips']);} // saia longa com volume também na frente
+  if(st==='trench')jacket[0][3]+=.04;
   const clothes=jacket.map(([x,y,z,rx,rz,a,b,w])=>ring([],n,top,mat,(sx,cz)=>{
     const weave=st==='couture'?1+.14*Math.sin(sx*44+y*36)*Math.sin(y*61+cz*9)+.06*Math.max(0,cz):st==='cardigã'?1+Math.sin(sx*70)*.045:st==='tricô'?1+Math.sin(sx*60)*.05+(y<.95?Math.sin(sx*90)*.08:0):st==='jaqueta'?1+Math.max(0,cz)*.12-Math.abs(sx)*.04:1+Math.sin(sx*33+y*52)*.012+Math.cos(y*41+cz*12)*.018;
     const shape=profile?.023*Math.max(0,cz)**3*Math.exp(-Math.pow((y-1.34)/.13,2)):0;
@@ -2571,7 +2572,8 @@ function personNear(x,z,r,skip){const r2=r*r;
 // o seu carro quando você dirige (o carHit ignora o carro em que você está)
 function pcarHit(x,z,pad){if(!PCAR||!PCAR.driving)return false;const h=carHalf(PCAR),dx=x-PCAR.x,dz=z-PCAR.z,c=Math.cos(PCAR.yaw),s=Math.sin(PCAR.yaw);
   const lx=dx*c-dz*s,lz=dx*s+dz*c;return Math.abs(lx)<h[0]+(pad||0.3)&&Math.abs(lz)<h[1]+(pad||0.3);}
-function heroFree(px,py){if(INT.active){if(walkable(px,py))return true;if(walkable(hero.x,hero.y))return false;const x=M(px)-IORIG.x,z=M(py)-IORIG.z;return Math.abs(x)<INT.W/2-0.3&&Math.abs(z)<INT.D/2-0.3;} // preso dentro de algo? deixa sairconst x=M(px),z=M(py),hx=M(hero.x),hz=M(hero.y);
+function heroFree(px,py){if(INT.active){if(walkable(px,py))return true;if(walkable(hero.x,hero.y))return false;const x=M(px)-IORIG.x,z=M(py)-IORIG.z;return Math.abs(x)<INT.W/2-0.3&&Math.abs(z)<INT.D/2-0.3; /* preso dentro de algo? deixa sair */}
+  const x=M(px),z=M(py),hx=M(hero.x),hz=M(hero.y);
   if(!bodyFree(x,z,0.32)){if(solidAt(x,z)||bodyFree(hx,hz,0.32))return false;} // preso rente a uma parede? deixa sair
   if(carHit(x,z))return false;
   const p=personNear(x,z,0.62);if(p&&Math.hypot(p.x-x,p.z-z)<Math.hypot(p.x-hx,p.z-hz))return false; // não atravessa gente (mas pode se afastar)
