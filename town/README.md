@@ -19,6 +19,27 @@ o **East River** com o calçadão e uma ponte de torres góticas ao longe. Vida 
 com semáforos, caixas d’água nos telhados, entradas de metrô com globos verdes, chaminés de vapor,
 faixas de pedestre, placas verdes de esquina, escadas de incêndio. As janelas acendem à noite.
 
+**Volumetria real (v2.15).** Cada prédio de enchimento recebe a altura e a época dos prédios reais que ficam naquele trecho: são 581 pegadas do **NYC Open Data** (*Building Footprints*: altura do telhado e ano de construção).
+
+Elas são posicionadas no grid por uma deformação *thin-plate spline* calibrada em 57 cruzamentos reais do **OpenStreetMap** (© colaboradores do OpenStreetMap, ODbL). O resultado fica embutido em `REAL_BLD` e é aplicado por `applyRealVolume()`.
+
+A época decide o estilo:
+
+| Época / altura | Estilo |
+|---|---|
+| Até 1924 | pré-guerra |
+| 1925–1945, prédios altos | art déco com recuos |
+| Pós-1955 | vidro |
+| Prédios baixos | sobrados |
+
+Ruas e marcos que entraram:
+
+- **New St** (calçadão nos fundos da Bolsa).
+- **Stone St** (calçadão de pedras com mesas e guarda-sóis, onde agora fica o restaurante).
+- A estátua de bronze da **menina** em frente à Bolsa, na Broad St.
+
+Longe da Bolsa, o distrito ficou denso como o real; os terrenos livres continuam perto do centro para a jogabilidade.
+
 Lógica: o mapa continua sendo um **grid de tiles** (1 tile = 4 m = 48 “px” lógicos) — é isso que a
 economia, o save e o multiplayer enxergam. Terrenos à venda (verdes no modo construção) são onde as
 empresas nascem; os marcos e os prédios de enchimento são fixos. Cada marco tem um cartão com a

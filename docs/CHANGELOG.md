@@ -2,6 +2,20 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.15.0 — 2026-11-27
+- **feat(town): Wall Street com volumetria real.**
+  - **Altura e época de cada prédio** vêm do NYC Open Data (581 pegadas, com altura do telhado e ano de construção).
+  - **Posição no grid:** uma deformação thin-plate spline, calibrada em 57 cruzamentos reais do OpenStreetMap (ODbL), coloca cada pegada no lugar certo. Os marcos já existentes caem a ~1–3 tiles da posição real.
+  - **Estilo pela época:** pré-guerra, art déco, vidro ou sobrado.
+  - **Números:** a mediana passou de 23 para 25 andares, e o máximo de 49 para 72 (perto de One Liberty Plaza e 28 Liberty).
+- **feat(town): ruas reais que faltavam.**
+  - **New St:** calçadão nos fundos da Bolsa; o 1 Wall ficou com 4 tiles de largura.
+  - **Stone St:** calçadão de pedras com sobrados do séc. XIX, mesas e guarda-sóis. O restaurante do jogo mudou para lá.
+- **feat(town): estátua de bronze da menina** em frente à Bolsa, olhando para a fachada (lá desde 2018).
+- **feat(town): distrito mais denso.** Longe do centro, a chance de prédio por lote subiu, e os terrenos vazios caíram de 1214 para 769 tiles. Os terrenos da fase 1 perto da Bolsa ficaram iguais.
+- **docs:** atribuição dos dados em "Como jogar" e no README.
+- **Ficou para as próximas etapas** (pede ampliar o grid e migrar os saves): John St, Hanover St e a posição exata do 1 WTC ao norte da Fulton.
+
 ## 2.14.0 — 2026-11-27
 - **feat(town): menu de servidores.** A tela inicial passa a ser a escolha de cidade, com o fundo 3D atrás e 1 cartão por servidor.
   - **Wall Street · Nova York:** aberto; mostra quantos jogadores estão online, data, caixa, fase e o próximo compromisso, com o botão Jogar/Continuar.
