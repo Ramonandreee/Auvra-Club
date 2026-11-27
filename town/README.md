@@ -252,7 +252,8 @@ Ajustes reúne qualidade gráfica, câmera, ciclo dia/noite, trânsito, tela che
 - **Longe da câmera:** continua o modelo procedural, que é leve.
 - **Animação:** a mesma do procedural. O esqueleto procedural é animado e as rotações são transferidas osso a osso para o rig `game_engine` (`realPose`).
 - **Limite por qualidade:** só as pessoas mais próximas usam o modelo realista (3 em Baixa, 6 em Média, 10 em Alta). Dá para desligar em **Ajustes → Personagens realistas**.
-- **Editor:** "Modelo realista" (Automático ou um dos 5). No automático, o modelo segue gênero, tom de pele, cabelo grisalho e estilo de roupa.
+- **Editor:** "Modelo realista" (Automático ou um dos 5). No automático, a pessoa segue gênero, tom de pele e cabelo grisalho.
+- **Roupa:** cada pessoa tem duas versões. A **casual** (camiseta, calça e tênis) é a roupa padrão de início; a **social** (terno ou tailleur) aparece quando você veste um traje social no guarda-roupa.
 
 
 O HUD, a barra de ferramentas, o menu e os modais usam superfícies azul-carvão, texto claro e

@@ -2120,18 +2120,19 @@ function releasePersonAsset(asset){
    Modelos em town/models/*.glb gerados com MakeHuman/MPFB (assets CC0). Perto da câmera, cada pessoa usa um
    desses modelos; longe, continua o modelo procedural (leve). A animação é a mesma: o esqueleto procedural é
    animado como sempre e as rotações são "transferidas" para os ossos do modelo realista a cada quadro. */
-const REAL_DEFS={m1:{g:'m',n:'Clássico'},m2:{g:'m',n:'Executivo',dark:1},m3:{g:'m',n:'Jovem'},m4:{g:'m',n:'Sênior',old:1},m5:{g:'m',n:'Casual',casual:1},
-  f1:{g:'f',n:'Clássica'},f2:{g:'f',n:'Executiva',dark:1},f3:{g:'f',n:'Jovem'},f4:{g:'f',n:'Sênior',old:1},f5:{g:'f',n:'Casual',casual:1}};
+const REAL_DEFS={m1:{g:'m',n:'Clássico'},m2:{g:'m',n:'Executivo',dark:1},m3:{g:'m',n:'Jovem'},m4:{g:'m',n:'Sênior',old:1},m5:{g:'m',n:'Moderno'},
+  f1:{g:'f',n:'Clássica'},f2:{g:'f',n:'Executiva',dark:1},f3:{g:'f',n:'Jovem'},f4:{g:'f',n:'Sênior',old:1},f5:{g:'f',n:'Moderna'}};
 const REAL={assets:{},loading:{},waiting:new Set(),loader:null,failed:{}};
-const REAL_CASUAL=['casual','camiseta','polo','esportivo','moletom','regata','jaqueta','tricô','cardigã'];
-function realKeyFor(L){const g=(L.gender||(L.build==='B'?'f':'m'))==='f'?'f':'m';if(L.real&&L.real!=='auto'&&REAL_DEFS[L.real]&&REAL_DEFS[L.real].g===g)return L.real;
+// cada pessoa existe em duas versões: casual (a roupa padrão de início) e social (quando veste terno/tailleur)
+const REAL_FORMAL=['terno','alfaiataria','luxo','blazer','smoking','smart','trench','tres-pecas','dinner','bespoke','sobretudo','old-money','colete','gala','couture','vestido','saia','social'];
+function realKeyFor(L){const g=(L.gender||(L.build==='B'?'f':'m'))==='f'?'f':'m';const chosen=L.real&&L.real!=='auto'&&REAL_DEFS[L.real]&&REAL_DEFS[L.real].g===g?L.real:null;
   const c=new THREE.Color(L.skin??0xd8a888),lum=.3*c.r+.59*c.g+.11*c.b,hc=new THREE.Color(L.hair??0x332211);
   const gray=hc.r>.42&&Math.abs(hc.r-hc.b)<.08;let h=7;for(const ch of String(L.name||'')+String(L.top)+String(L.hair)+String(L.skin)+String(L.height)+String(L.topStyle)+String(L.pants))h=(Math.imul(h,31)+ch.charCodeAt(0))|0;
-  h=Math.abs(h);
-  if(L.name)return g+(REAL_CASUAL.includes(L.topStyle)?'5':lum<.36?'2':gray?'4':(h%2?'1':'3')); // você e outros jogadores: segue a roupa e o tom de pele
-  // NPCs: variedade (Wall Street é mais terno que camiseta), respeitando o tom de pele e os grisalhos
-  const pool=lum<.36?['2','2','2','5']:gray?['4','4','1']:REAL_CASUAL.includes(L.topStyle)?['5','1','3','5']:['1','3','4','1','3'];
-  return g+pool[h%pool.length];}
+  h=Math.abs(h);const v=REAL_FORMAL.includes(L.topStyle)?'':'c';
+  if(chosen)return chosen+v;
+  if(L.name)return g+(lum<.36?'2':gray?'4':['1','3','5'][h%3])+v; // você e outros jogadores: a pessoa segue tom de pele/grisalho; a roupa segue o que você veste
+  const pool=lum<.36?['2','2','5']:gray?['4','4','1']:['1','3','5','1','3'];
+  return g+pool[h%pool.length]+v;}
 function realBudget(){return SETTINGS.realistic===false?0:SETTINGS.quality==='baixa'?3:SETTINGS.quality==='alta'?10:6;}
 function realLoad(key){if(REAL.assets[key]||REAL.loading[key]||REAL.failed[key])return;REAL.loading[key]=1;REAL.loader=REAL.loader||new GLTFLoader();
   REAL.loader.load('models/'+key+'.glb',gl=>{const sc=gl.scene;sc.updateMatrixWorld(true);
@@ -2149,7 +2150,11 @@ function realLoad(key){if(REAL.assets[key]||REAL.loading[key]||REAL.failed[key])
     for(const sd of ['l','r']){const S=side(sd),P=S.proc;Object.assign(map,{['upperarm_'+sd]:'ua'+P,['lowerarm_'+sd]:'fa'+P,['hand_'+sd]:'hand'+P,['thigh_'+sd]:'th'+P,['calf_'+sd]:'sh'+P,['foot_'+sd]:'foot'+P});
       // cada segmento do braço é alinhado à direção do braço procedural em repouso (braço solto ao lado do corpo)
       const seg=[['upperarm_','lowerarm_',[S.s*.051,-.26,0]],['lowerarm_','hand_',[S.s*.011,-.21,.004]],['hand_','middle_01_',[S.s*.002,-.06,.006]]];
-      for(const [b,c,w] of seg)off[b+sd]=new THREE.Quaternion().setFromUnitVectors(dirOf(b+sd,c+sd),new THREE.Vector3(...w).normalize());}
+      for(const [b,c,w] of seg)off[b+sd]=new THREE.Quaternion().setFromUnitVectors(dirOf(b+sd,c+sd),new THREE.Vector3(...w).normalize());
+      // pernas: coxa e canela verticais sob o quadril, como o esqueleto procedural (o modelo vem em pose "A", pés afastados)
+      off['thigh_'+sd]=new THREE.Quaternion().setFromUnitVectors(dirOf('thigh_'+sd,'calf_'+sd),new THREE.Vector3(0,-1,0));
+      off['calf_'+sd]=new THREE.Quaternion().setFromUnitVectors(dirOf('calf_'+sd,'foot_'+sd),new THREE.Vector3(0,-1,0));
+      off['foot_'+sd]=off['calf_'+sd];}
     const pel=by('pelvis');REAL.assets[key]={scene:sc,rest,map,off,pelvis:pel,pelvisUp:new THREE.Vector3(0,1,0).applyQuaternion(rest[pel].pWorld.clone().invert())};REAL.loading[key]=0;
     for(const g of [...REAL.waiting]){REAL.waiting.delete(g);if(g.userData)realSync(g,g.userData.lod??1);}},undefined,()=>{REAL.loading[key]=0;REAL.failed[key]=1;});}
 function realAttach(g,key){const a=REAL.assets[key],d=g.userData;const obj=cloneSkinned(a.scene);const bones=[];obj.traverse(o=>{if(o.isBone)bones.push(o);});
@@ -2163,7 +2168,10 @@ function realSync(g,lod){const d=g.userData;if(!d||!d.look)return;const want=lod
 const _rq=new THREE.Quaternion(),_rq2=new THREE.Quaternion(),_rinv=new THREE.Quaternion();
 function realPose(d){const r=d.real,a=r.a,R=d.rig,P={};
   // rotação "de mundo" de cada osso procedural (o repouso dele é identidade)
-  const chain=(n)=>{if(P[n])return P[n];const b=R[n];const par=b.parent&&b.parent.isBone?chain(b.parent.name):null;return P[n]=par?par.clone().multiply(b.quaternion):b.quaternion.clone();};
+  // pernas e braços do modelo realista são mais longos: a mesma cadência com ângulos menores (passada natural, sem "espacate")
+  const run=sstep(2.4,6.2,d.gaitSpeed||0),K={th:.56-.12*run,sh:.62-.1*run,foot:.6,ua:.8,fa:.85};
+  const chain=(n)=>{if(P[n])return P[n];const b=R[n];const par=b.parent&&b.parent.isBone?chain(b.parent.name):null;const k=K[n.replace(/[LR]$/,'')];
+    const q=k?_rq2.identity().slerp(b.quaternion,k).clone():b.quaternion.clone();return P[n]=par?par.clone().multiply(q):q;};
   for(let i=0;i<a.rest.length;i++){const rs=a.rest[i],b=r.bones[i],pw=rs.pIdx>=0?r.W[rs.pIdx]:rs.pWorld,m=a.map[rs.name];
     if(m&&R[m]){_rq.copy(chain(m));const o=a.off[rs.name];if(o)_rq.multiply(o);_rq.multiply(rs.world);}else _rq.copy(pw).multiply(rs.local);
     r.W[i].copy(_rq);_rinv.copy(pw).invert();b.quaternion.copy(_rinv).multiply(_rq);}

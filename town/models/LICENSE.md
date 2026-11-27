@@ -1,6 +1,6 @@
 # Personagens realistas — licenças
 
-Os modelos `m1..m5.glb` (masculinos) e `f1..f5.glb` (femininos) foram gerados com **MakeHuman** através do
+Os modelos `m1..m5` (masculinos) e `f1..f5` (femininos), cada um em versão social (`m1.glb`) e casual (`m1c.glb`), foram gerados com **MakeHuman** através do
 **MPFB 2** (Blender 4.2), usando **somente assets CC0** dos pacotes oficiais da comunidade MakeHuman
 (`makehuman_system_assets`, `suits01/02`, `shirts01`, `pants01`, `shoes01`, `hair01`, `skins01-03`,
 `eyebrows01`, `eyelashes01` — versões `*_cc0.zip`). O corpo-base do MakeHuman também é CC0.
@@ -10,6 +10,10 @@ registramos os autores:
 
 | Tipo | Asset | Autor | Licença |
 |---|---|---|---|
+| clothes | elvs_crude_t-shirt_male | Makehuman, editado por Elvaerwyn | CC0 |
+| clothes | shoes04 | MakeHuman | CC0 |
+| clothes | shoes05 | MakeHuman | CC0 |
+| clothes | shoes06 | MakeHuman | CC0 |
 | clothes | female_elegantsuit01 | MakeHuman | CC0 |
 | clothes | male_elegantsuit01 | MakeHuman | CC0 |
 | clothes | namuhekam_male_polo_shirt | Namuhekam | CC0 |

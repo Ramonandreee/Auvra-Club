@@ -2,6 +2,12 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.18.1 — 2026-11-27
+- **fix(town): pernas dos personagens realistas.** Os modelos vêm em pose "A" (pés afastados), e o andar ficava com as pernas abertas em "V". Agora coxa, canela e pé são alinhados na vertical sob o quadril.
+- **fix(town): passada mais curta nos modelos realistas.** A animação foi feita para pernas mais curtas. Os ângulos de perna e braço passam a ser escalados (`realPose`), o que acaba com a "passada de espacate" ao correr.
+- **feat(town): roupa padrão de início.** Cada uma das 10 pessoas ganhou a versão **casual** (camiseta, calça de lã e tênis), que é a roupa de início, além da **social** (terno ou tailleur com sapato social ou salto). A versão segue o que você veste: camiseta/casual → casual; terno/tailleur → social. Os NPCs seguem a própria roupa. "Casual" virou "Moderno/Moderna" na lista de modelos.
+- **chore:** 20 modelos (~37 MB no total, baixados só quando usados). `sw.js` v35 com cache de modelos v2.
+
 ## 2.18.0 — 2026-11-27
 - **feat(town): personagens realistas.** 10 modelos 3D (5 homens e 5 mulheres de etnias e idades variadas, com ternos e tailleurs e 2 casuais), gerados com MakeHuman/MPFB a partir de **assets CC0**. Pele com textura, olhos, sobrancelhas, cílios, cabelo, roupa e mãos com dedos.
 - **Integração:** modelos em `town/models/`, carregados sob demanda com GLTFLoader e clonados com SkeletonUtils.
