@@ -19,6 +19,13 @@ o **East River** com o calçadão e uma ponte de torres góticas ao longe. Vida 
 com semáforos, caixas d’água nos telhados, entradas de metrô com globos verdes, chaminés de vapor,
 faixas de pedestre, placas verdes de esquina, escadas de incêndio. As janelas acendem à noite.
 
+**Mapa ampliado (v2.16).** O grid tem 104 × 114 tiles. `genWorld()` gera o traçado e `stretchWorld()` insere linhas (`ROW_INS`, com o mapeamento `RY()`):
+
+- **Norte:** Vesey St, Ann St e o 1 WTC entre a Vesey e a Fulton.
+- **Meio:** John St, entre a Fulton e a Maiden Ln.
+
+Os saves do mapa anterior (`fidi`) são migrados automaticamente para `fidi2`.
+
 **Volumetria real (v2.15).** Cada prédio de enchimento recebe a altura e a época dos prédios reais que ficam naquele trecho: são 581 pegadas do **NYC Open Data** (*Building Footprints*: altura do telhado e ano de construção).
 
 Elas são posicionadas no grid por uma deformação *thin-plate spline* calibrada em 57 cruzamentos reais do **OpenStreetMap** (© colaboradores do OpenStreetMap, ODbL). O resultado fica embutido em `REAL_BLD` e é aplicado por `applyRealVolume()`.
