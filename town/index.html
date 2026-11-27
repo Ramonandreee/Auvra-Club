@@ -517,6 +517,8 @@ setTimeout(function(){if(!window.__townReady)window.__fail('O motor 3D não carr
 <script type="module">
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {clone as cloneSkinned} from 'three/addons/utils/SkeletonUtils.js';
 /* ============================================================
    Auvra Club — Wall Street, Lower Manhattan · 3D em terceira pessoa (Three.js)
    O traçado segue o real (Broadway, Wall, Nassau/Broad, William, Pearl, Water, South St,
@@ -557,7 +559,7 @@ function tileHash(x,y,n){let h=(x*374761393+y*668265263)|0;h=(h^(h>>>13))*127412
 function readJSON(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}}
 function writeJSON(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 const isTouch=matchMedia('(pointer:coarse)').matches||('ontouchstart' in window&&navigator.maxTouchPoints>0);
-const SETTINGS=Object.assign({quality:isTouch?'media':'alta',sens:1,invertY:false,fullscreen:true,cycle:true,traffic:true},readJSON('auvra_settings')||{});
+const SETTINGS=Object.assign({quality:isTouch?'media':'alta',sens:1,invertY:false,fullscreen:true,cycle:true,traffic:true,realistic:true},readJSON('auvra_settings')||{});
 function saveSettings(){writeJSON('auvra_settings',SETTINGS);}
 const QUAL={baixa:{pr:1,shadow:0,npc:12,crowd:16,cars:8,fog:420,aa:false},
             media:{pr:1.25,shadow:1024,npc:26,crowd:34,cars:14,fog:620,aa:true},
@@ -2114,8 +2116,61 @@ function releasePersonAsset(asset){
     if(personCache.size<=120)break;
   }
 }
+/* ============================ PERSONAGENS REALISTAS (MakeHuman, CC0) ============================
+   Modelos em town/models/*.glb gerados com MakeHuman/MPFB (assets CC0). Perto da câmera, cada pessoa usa um
+   desses modelos; longe, continua o modelo procedural (leve). A animação é a mesma: o esqueleto procedural é
+   animado como sempre e as rotações são "transferidas" para os ossos do modelo realista a cada quadro. */
+const REAL_DEFS={m1:{g:'m',n:'Clássico'},m2:{g:'m',n:'Executivo',dark:1},m3:{g:'m',n:'Jovem'},m4:{g:'m',n:'Sênior',old:1},m5:{g:'m',n:'Casual',casual:1},
+  f1:{g:'f',n:'Clássica'},f2:{g:'f',n:'Executiva',dark:1},f3:{g:'f',n:'Jovem'},f4:{g:'f',n:'Sênior',old:1},f5:{g:'f',n:'Casual',casual:1}};
+const REAL={assets:{},loading:{},waiting:new Set(),loader:null,failed:{}};
+const REAL_CASUAL=['casual','camiseta','polo','esportivo','moletom','regata','jaqueta','tricô','cardigã'];
+function realKeyFor(L){const g=(L.gender||(L.build==='B'?'f':'m'))==='f'?'f':'m';if(L.real&&L.real!=='auto'&&REAL_DEFS[L.real]&&REAL_DEFS[L.real].g===g)return L.real;
+  const c=new THREE.Color(L.skin??0xd8a888),lum=.3*c.r+.59*c.g+.11*c.b,hc=new THREE.Color(L.hair??0x332211);
+  const gray=hc.r>.42&&Math.abs(hc.r-hc.b)<.08;let h=7;for(const ch of String(L.name||'')+String(L.top)+String(L.hair)+String(L.skin)+String(L.height)+String(L.topStyle)+String(L.pants))h=(Math.imul(h,31)+ch.charCodeAt(0))|0;
+  h=Math.abs(h);
+  if(L.name)return g+(REAL_CASUAL.includes(L.topStyle)?'5':lum<.36?'2':gray?'4':(h%2?'1':'3')); // você e outros jogadores: segue a roupa e o tom de pele
+  // NPCs: variedade (Wall Street é mais terno que camiseta), respeitando o tom de pele e os grisalhos
+  const pool=lum<.36?['2','2','2','5']:gray?['4','4','1']:REAL_CASUAL.includes(L.topStyle)?['5','1','3','5']:['1','3','4','1','3'];
+  return g+pool[h%pool.length];}
+function realBudget(){return SETTINGS.realistic===false?0:SETTINGS.quality==='baixa'?3:SETTINGS.quality==='alta'?10:6;}
+function realLoad(key){if(REAL.assets[key]||REAL.loading[key]||REAL.failed[key])return;REAL.loading[key]=1;REAL.loader=REAL.loader||new GLTFLoader();
+  REAL.loader.load('models/'+key+'.glb',gl=>{const sc=gl.scene;sc.updateMatrixWorld(true);
+    sc.traverse(o=>{if(!o.isMesh)return;const m=o.material,cut=/hair|brow|lash|short0|long0|bob|ponytail|braid/i.test(m.name);
+      m.transparent=false;m.alphaTest=cut?.38:0;m.depthWrite=true;m.side=cut?THREE.DoubleSide:THREE.FrontSide;m.envMapIntensity=.45;
+      if(/\.body$/.test(m.name))m.roughness=.6;else if(!cut&&!/low-poly/.test(m.name))m.roughness=Math.max(m.roughness??.8,.74);m.metalness=0;o.castShadow=false;o.frustumCulled=false;});
+    // dados de repouso (iguais em todos os clones)
+    const bones=[];sc.traverse(o=>{if(o.isBone)bones.push(o);});const idx=new Map(bones.map((b,i)=>[b,i]));
+    const rest=bones.map(b=>{const w=new THREE.Quaternion();b.getWorldQuaternion(w);const pw=new THREE.Quaternion();if(b.parent)b.parent.getWorldQuaternion(pw);
+      return {name:b.name,local:b.quaternion.clone(),world:w,pIdx:b.parent&&idx.has(b.parent)?idx.get(b.parent):-1,pWorld:pw,pos:b.position.clone(),wpos:b.getWorldPosition(new THREE.Vector3())};});
+    const by=n=>rest.findIndex(r=>r.name===n);
+    const side=sd=>{const u=rest[by('upperarm_'+sd)];return {proc:u.wpos.x<0?'L':'R',s:u.wpos.x<0?-1:1};};
+    const dirOf=(a_,b_)=>rest[by(b_)].wpos.clone().sub(rest[by(a_)].wpos).normalize();
+    const map={pelvis:'hips',spine_01:'spine',spine_03:'chest',neck_01:'neck',head:'head'},off={};
+    for(const sd of ['l','r']){const S=side(sd),P=S.proc;Object.assign(map,{['upperarm_'+sd]:'ua'+P,['lowerarm_'+sd]:'fa'+P,['hand_'+sd]:'hand'+P,['thigh_'+sd]:'th'+P,['calf_'+sd]:'sh'+P,['foot_'+sd]:'foot'+P});
+      // cada segmento do braço é alinhado à direção do braço procedural em repouso (braço solto ao lado do corpo)
+      const seg=[['upperarm_','lowerarm_',[S.s*.051,-.26,0]],['lowerarm_','hand_',[S.s*.011,-.21,.004]],['hand_','middle_01_',[S.s*.002,-.06,.006]]];
+      for(const [b,c,w] of seg)off[b+sd]=new THREE.Quaternion().setFromUnitVectors(dirOf(b+sd,c+sd),new THREE.Vector3(...w).normalize());}
+    const pel=by('pelvis');REAL.assets[key]={scene:sc,rest,map,off,pelvis:pel,pelvisUp:new THREE.Vector3(0,1,0).applyQuaternion(rest[pel].pWorld.clone().invert())};REAL.loading[key]=0;
+    for(const g of [...REAL.waiting]){REAL.waiting.delete(g);if(g.userData)realSync(g,g.userData.lod??1);}},undefined,()=>{REAL.loading[key]=0;REAL.failed[key]=1;});}
+function realAttach(g,key){const a=REAL.assets[key],d=g.userData;const obj=cloneSkinned(a.scene);const bones=[];obj.traverse(o=>{if(o.isBone)bones.push(o);});
+  obj.traverse(o=>{if(o.isMesh)o.castShadow=g===heroMesh&&SETTINGS.quality!=='baixa';});
+  d.real={obj,bones,key,a,W:a.rest.map(()=>new THREE.Quaternion())};g.add(obj);}
+function realDrop(g){const d=g.userData;if(!d.real)return;g.remove(d.real.obj);d.real=null;}
+function realSync(g,lod){const d=g.userData;if(!d||!d.look)return;const want=lod<2&&d.realOK!==false&&realBudget()>0;const key=realKeyFor(d.look);
+  if(d.real&&d.real.key!==key)realDrop(g);
+  if(want&&!d.real){if(REAL.assets[key])realAttach(g,key);else{REAL.waiting.add(g);realLoad(key);}}
+  const on=!!(want&&d.real);if(d.real)d.real.obj.visible=on;d.mesh.visible=!on;}
+const _rq=new THREE.Quaternion(),_rq2=new THREE.Quaternion(),_rinv=new THREE.Quaternion();
+function realPose(d){const r=d.real,a=r.a,R=d.rig,P={};
+  // rotação "de mundo" de cada osso procedural (o repouso dele é identidade)
+  const chain=(n)=>{if(P[n])return P[n];const b=R[n];const par=b.parent&&b.parent.isBone?chain(b.parent.name):null;return P[n]=par?par.clone().multiply(b.quaternion):b.quaternion.clone();};
+  for(let i=0;i<a.rest.length;i++){const rs=a.rest[i],b=r.bones[i],pw=rs.pIdx>=0?r.W[rs.pIdx]:rs.pWorld,m=a.map[rs.name];
+    if(m&&R[m]){_rq.copy(chain(m));const o=a.off[rs.name];if(o)_rq.multiply(o);_rq.multiply(rs.world);}else _rq.copy(pw).multiply(rs.local);
+    r.W[i].copy(_rq);_rinv.copy(pw).invert();b.quaternion.copy(_rinv).multiply(_rq);}
+  const pel=r.bones[a.pelvis];if(pel){const dy=R.hips.position.y-.91;pel.position.copy(a.rest[a.pelvis].pos).addScaledVector(a.pelvisUp,dy);}}
 function personLOD(g,lod){
   const data=g.userData;
+  realSync(g,lod);
   if(data.lod===lod)return;
   const asset=personAsset(data.look,lod);
   if(data.asset)releasePersonAsset(data.asset);
@@ -2123,7 +2178,7 @@ function personLOD(g,lod){
   data.mesh.geometry=asset.geo;data.mesh.material=asset.mat;
 }
 function disposePerson(g){
-  releasePersonAsset(g.userData.asset);g.userData.mesh.skeleton.dispose();
+  realDrop(g);REAL.waiting.delete(g);releasePersonAsset(g.userData.asset);g.userData.mesh.skeleton.dispose();
 }
 function buildPerson(L){
   const R={};
@@ -2220,6 +2275,7 @@ function animPerson(g,movementSpeed,dt,dialog=false){
     const eye=R['eye'+side],glance=Math.sin(t*.87)*.004;
     eye.rotation.y=glance*33;eye.rotation.x=Math.sin(t*.53)*.065;
   }
+  if(data.real&&data.real.obj.visible)realPose(data);
 }
 const ROLE_WARDROBE={
   investor:['alfaiataria','luxo','old-money'], banker:['terno','alfaiataria'],
@@ -2253,7 +2309,7 @@ function workerLook(worker){
 function setPersonLook(group,look){
   const data=group.userData, lod=data.lod;
   releasePersonAsset(data.asset);
-  data.asset=null;data.lod=null;data.look=look;
+  data.asset=null;data.lod=null;data.look=look;realDrop(group);
   group.scale.setScalar(look.height||1);
   personLOD(group,lod);
 }
@@ -2721,10 +2777,13 @@ function updatePersonLODs(){
     if(!g.visible)return;
     const d=camera.position.distanceToSquared(g.position), level=g.userData.lod;
     const close=level===0?8:6, middle=level<2?30:25;
-    personLOD(g,low?2:d<close*close?0:d<middle*middle?1:2);
+    personLOD(g,low&&!g.userData.realOK?2:d<close*close?0:d<middle*middle?1:(g.userData.realOK?1:2));
     g.userData.mesh.castShadow=high&&d<100&&!marked;
   }
-  update(heroMesh);
+  heroMesh.userData.realOK=true;update(heroMesh);
+  const near=[];for(const p of NPC_POOL)if(p.mesh.visible)near.push(p.mesh);for(const p of CROWD)if(p.mesh.visible)near.push(p.mesh);
+  near.sort((a,b)=>camera.position.distanceToSquared(a.position)-camera.position.distanceToSquared(b.position));const N=realBudget();
+  near.forEach((g,i)=>{g.userData.realOK=i<N&&camera.position.distanceToSquared(g.position)<18*18;});
   for(const p of NPC_POOL)update(p.mesh,!!p.icon?.visible);
   for(const p of CROWD)update(p.mesh);
 }
@@ -5264,7 +5323,9 @@ function avatarOptions(){
     avatarTab==='Rosto'?['faceWidth','jaw','nose','eyes','brows']:[];
   const suggestion=avatarTab==='Roupa'&&started
     ?'<button class="chip" type="button" id="pPhaseLook">Aplicar visual da fase '+S.phase+'</button>':'';
-  return suggestion+AVATAR_CHOICES[avatarTab].map(row=>chipRow(...row)).join('')+ranges.map(key=>{
+  const g=genderOf(),rk=Object.keys(REAL_DEFS).filter(k=>REAL_DEFS[k].g===g);
+  const realRow=avatarTab==='Corpo'?chipRow('real','Modelo realista',['auto',...rk],false,['Automático',...rk.map(k=>REAL_DEFS[k].n)]):'';
+  return suggestion+realRow+AVATAR_CHOICES[avatarTab].map(row=>chipRow(...row)).join('')+ranges.map(key=>{
     const [label,min,max]=AVATAR_RANGES[key],id=key==='height'?'pH':'p-'+key;
     return '<div class="rrow"><label class="opt" for="'+id+'">'+label+'</label><button type="button" class="rstep" data-for="'+id+'" data-d="-1" aria-label="Menos">−</button><input class="rng" type="range" id="'+id+'" data-shape="'+key+
       '" min="'+min+'" max="'+max+'" step="0.01" value="'+cl(Number(AVATAR[key])||1,min,max)+'"><button type="button" class="rstep" data-for="'+id+'" data-d="1" aria-label="Mais">+</button></div>';
@@ -5405,7 +5466,7 @@ function pageHTML(page){
     const tog=(k,l,d)=>'<div class="row2"><span>'+l+(d?'<br><span class="small">'+d+'</span>':'')+'</span>'+seg(k,[[true,'Sim'],[false,'Não']])+'</div>';
     return '<div class="ph1">⚙️ Ajustes</div><div class="opt">Qualidade gráfica</div>'+seg('quality',[['baixa','Baixa'],['media','Média'],['alta','Alta']])+'<p class="small" style="margin-top:4px">Baixa = mais leve e menos bateria. Alta = sombras finas e mais gente na rua.</p>'+
       '<div class="opt">Sensibilidade da câmera</div><input class="rng" type="range" id="sSens" min="0.4" max="2" step="0.1" value="'+SETTINGS.sens+'">'+
-      tog('invertY','Inverter câmera vertical')+tog('cycle','Ciclo de dia e noite','As janelas acendem à noite')+tog('traffic','Trânsito','Táxis e carros nas ruas')+tog('fullscreen','Tela cheia ao jogar','No celular, trava na horizontal')+
+      tog('invertY','Inverter câmera vertical')+tog('realistic','Personagens realistas','Pessoas perto da câmera com modelos 3D detalhados. Desligue em aparelhos mais fracos')+tog('cycle','Ciclo de dia e noite','As janelas acendem à noite')+tog('traffic','Trânsito','Táxis e carros nas ruas')+tog('fullscreen','Tela cheia ao jogar','No celular, trava na horizontal')+
       '<div class="mact">'+(isStandalone()?'':'<button class="mbtn" id="sInstall"><b>📲 Instalar app</b><span>Ícone na tela inicial, abre em tela cheia</span></button>')+
       (started?'<button class="mbtn" id="sSave"><b>💾 Salvar agora</b><span>Neste aparelho e na nuvem</span></button>':'')+(ACCOUNT?'<button class="mbtn" id="sOut"><b>🚪 Sair da conta</b><span>'+esc(ACCOUNT.name)+' · '+esc(ACCOUNT.email||'')+'</span></button>':'')+'</div><p class="small" style="margin-top:10px">Multiplayer: '+esc(MP.status)+'</p>';}
   if(page==='help')return '<div class="ph1">❓ Como jogar</div><div class="mb">'+
@@ -5457,7 +5518,7 @@ async function boot(){
   if(!MP.on)await showAuth('login',MP.sb?'':'Sem conexão com o servidor. Confira a internet e tente de novo.');
   await enterAccount();
   window.__townReady=true;
-  window.__game={AVATAR,rebuildHero,get ROUTE(){return ROUTE;},solidAt,bodyFree,setWaypoint,clearWaypoint,openBigMap,closeBigMap,goTo,get S(){return S;},get hero(){return hero;},get companies(){return companies;},get buildings(){return buildings;},canBuild,foundCompany,tryPlace,startPlacing,BUILD,get placing(){return placing;},renderer:()=>renderer,camera:()=>camera,CAM,openMenu,closeMenu,TILE,TS,M,PX,WORLD:()=>WORLD,STATS:()=>renderer.info.render,setDayAcc:v=>{dayAcc=v;},scheduleShiftX:()=>scheduleShift(),contactsX:()=>contacts,addAgenda,CARSX:()=>CARS,heroFree,WP:()=>WAYPOINT,actHire,genPerson,enterInterior,exitInterior,get SPECIAL(){return SPECIAL;},get PCAR(){return PCAR;},get INT(){return INT;},CROWD,setTod:v=>{tod=v;},sede:()=>sede,bFront,doInteract,get interact(){return interactTarget;},trafficStep:updateTraffic,crowdStep:updateCrowd,openBank,RESID,enterHome,mySpace,get REMOTES(){return REMOTES;},get joy(){return joy;},GB,gbEnter,openElevator,get HEROY(){return HEROY;},laneRoute,LANES,INTERS,GROUPS,lightState,get lightT(){return lightT;}};}
+  window.__game={get rinfo(){return renderer&&renderer.info.render;},AVATAR,rebuildHero,get ROUTE(){return ROUTE;},solidAt,bodyFree,setWaypoint,clearWaypoint,openBigMap,closeBigMap,goTo,get S(){return S;},get hero(){return hero;},get companies(){return companies;},get buildings(){return buildings;},canBuild,foundCompany,tryPlace,startPlacing,BUILD,get placing(){return placing;},renderer:()=>renderer,camera:()=>camera,CAM,openMenu,closeMenu,TILE,TS,M,PX,WORLD:()=>WORLD,STATS:()=>renderer.info.render,setDayAcc:v=>{dayAcc=v;},scheduleShiftX:()=>scheduleShift(),contactsX:()=>contacts,addAgenda,CARSX:()=>CARS,heroFree,WP:()=>WAYPOINT,actHire,genPerson,enterInterior,exitInterior,get SPECIAL(){return SPECIAL;},get PCAR(){return PCAR;},get INT(){return INT;},CROWD,setTod:v=>{tod=v;},sede:()=>sede,bFront,doInteract,get interact(){return interactTarget;},trafficStep:updateTraffic,crowdStep:updateCrowd,openBank,RESID,enterHome,mySpace,get REMOTES(){return REMOTES;},get joy(){return joy;},GB,gbEnter,openElevator,get HEROY(){return HEROY;},laneRoute,LANES,INTERS,GROUPS,lightState,get lightT(){return lightT;}};}
 boot().catch(e=>{console.error(e);window.__fail('Erro ao iniciar: '+(e&&e.message||e));});
 </script>
 </body>

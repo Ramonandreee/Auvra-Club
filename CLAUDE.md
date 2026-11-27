@@ -43,6 +43,7 @@ CONTRIBUTING.md        Como colaborar (humanos + IA, via GitHub/PRs)
 
 - **Idioma:** documentação e textos de jogo em **PT-BR**; termos técnicos de indústria em inglês quando for o padrão. Código/comentários técnicos podem ser em inglês.
 - **O jogo:** manter **single-file, sem build, sem dependências locais**. Exceções via CDN (versão fixada, cacheadas pelo `sw.js`, com tela de erro + "Tentar de novo" se não carregarem): Three.js (`three` + `three/addons`) e `@supabase/supabase-js` (sem ele o jogo roda offline com save local).
+  - **Exceção de assets:** `town/models/*.glb` (personagens realistas). São gerados com MakeHuman/MPFB a partir de assets **CC0** (`tools/mh/`, licenças em `town/models/LICENSE.md`) e carregados sob demanda. Se não carregarem, o jogo usa o personagem procedural. Nada de assets com licença não-livre.
 - **Multiplayer:** escrita só no que é do próprio jogador (RLS); transferência entre jogadores só via RPC em `supabase/schema.sql`. Qualquer texto vindo de outro jogador (nome, chat, empresa) passa por `esc()` antes de ir para `innerHTML`.
 - **Economia é data-driven e balanceada por simulação** — ver "Validação" abaixo.
 - **Mundo = Nova York real, começando em Wall Street.** Ruas, marcos e arquitetura fiéis (quarteirões comprimidos); **empresas, bancos-NPC e marcas sempre fictícios** — nunca um logo/nome de empresa real em fachada, letreiro ou economia. Fatos históricos dos marcos só se verificados. Ver [docs/04](docs/04-WORLD-DESIGN.md) §1.

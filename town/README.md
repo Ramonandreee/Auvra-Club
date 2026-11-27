@@ -246,6 +246,15 @@ Ajustes reúne qualidade gráfica, câmera, ciclo dia/noite, trânsito, tela che
 
 ## Interface e personagens
 
+**Personagens realistas (v2.18).** Perto da câmera, você e as pessoas usam modelos 3D realistas: pele com textura, olhos, cabelo, ternos e mãos com dedos.
+
+- **Origem:** `town/models/`, 5 masculinos e 5 femininos, ~1,5–2 MB cada, gerados com MakeHuman e assets CC0 (veja `town/models/LICENSE.md`).
+- **Longe da câmera:** continua o modelo procedural, que é leve.
+- **Animação:** a mesma do procedural. O esqueleto procedural é animado e as rotações são transferidas osso a osso para o rig `game_engine` (`realPose`).
+- **Limite por qualidade:** só as pessoas mais próximas usam o modelo realista (3 em Baixa, 6 em Média, 10 em Alta). Dá para desligar em **Ajustes → Personagens realistas**.
+- **Editor:** "Modelo realista" (Automático ou um dos 5). No automático, o modelo segue gênero, tom de pele, cabelo grisalho e estilo de roupa.
+
+
 O HUD, a barra de ferramentas, o menu e os modais usam superfícies azul-carvão, texto claro e
 dourado para ações e foco. O CSS concentra a grade de 8 px, os raios, a elevação, a tipografia e as
 transições de 140 ms. Os controles principais têm área de toque de pelo menos 44 px e respeitam as
