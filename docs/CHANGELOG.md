@@ -2,6 +2,24 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.9.0 — 2026-11-27
+- **feat(town): interiores vivos.**
+  - **Acabamento comum (`roomTrim`):** rodapé, sanca, quadros procedurais e relógio que marca a hora do jogo.
+  - **Janelas:** skyline noturno com janelas acesas depois das 19h.
+  - **Sentar (`sitSpots`):** pose sentada do herói e descanso de cerca de ⚡+6 por minuto real, até 100.
+  - **Telas vivas:** fita de cotações reaproveitada fora da Bolsa e TV com as manchetes do feed.
+  - **Horário de funcionamento (`HOURS`):** com aviso de "Fechado agora".
+  - **Movimento por hora (`busy`):** no restaurante, lounge, comércio, Bolsa, andares de escritório, museu e igreja.
+  - **Interações novas:**
+    - Em casa: TV, cozinha, banho (+5 de estilo no dia) e janela.
+    - Empresa: painel de KPIs.
+    - Restaurante: almoço com contato (relação +8, $45).
+    - Banco: caixa eletrônico.
+    - Museu: 4 exposições com fatos verificados.
+    - Igreja: vela.
+    - Loja de roupas: espelho.
+    - Comércio: prateleiras.
+
 ## 2.8.0 — 2026-11-27
 - **feat(town): moradia por prédio e andar; fim da "sede".**
   - **Sede:** o prédio de sede saiu do mapa (vira só um ponto de referência interno). Freelas, cursos e metas foram para o home office da casa.
