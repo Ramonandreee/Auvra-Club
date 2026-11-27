@@ -76,6 +76,12 @@ menu ou painel aberto.
 - **Obras de verdade:** fundar uma empresa abre um **canteiro de obras** (tapume, estrutura subindo andar por andar,
   andaime e grua) com prazo de 2 a 9 dias conforme o porte. A empresa só fatura e contrata depois de pronta; dá para
   pagar hora extra e adiantar um dia.
+- **Gente de verdade:** cada estabelecimento tem um atendente com nome, personalidade e relação com você (comida e café
+  que recuperam energia, recados, agenda, sondar concorrentes, falar com a chefia). Na **Manhattan Motors** o vendedor
+  mostra os carros, leva no test drive, negocia desconto e fecha à vista ou financiado. Na rua, cada pessoa tem um
+  arquétipo (turista, golpista, investidora, jornalista, rival…) e um jeito, com escolhas que mexem em caixa,
+  reputação, habilidades, contatos e equipe.
+- **Frota variada:** sedãs, SUVs, hatches, cupês, picapes, vans, limusines, caminhões, ônibus e táxis.
 - **Noite visível:** céu com brilho da cidade, luar mais forte e poças de luz quente sob os postes.
 - **HUD mínimo:** caixa e energia no canto, relógio + 🗺 mapa + ▦ ações + ☰ menu no outro, minimapa redondo. A barra de
   ferramentas só aparece ao tocar em ▦; a missão aparece por alguns segundos quando muda (toque no caixa para revê-la).
