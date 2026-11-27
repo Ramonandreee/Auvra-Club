@@ -355,3 +355,14 @@ begin
 end $$;
 revoke all on function public.claim_residence(int,int,int) from public, anon;
 grant execute on function public.claim_residence(int,int,int) to authenticated;
+
+-- ===== Servidores (cidades): cada servidor tem o seu save; o personagem é o mesmo =====
+alter table public.saves add column if not exists server text not null default 'wallstreet';
+do $$ begin
+  if exists (select 1 from pg_constraint where conrelid='public.saves'::regclass and contype='p' and pg_get_constraintdef(oid)='PRIMARY KEY (user_id)') then
+    alter table public.saves drop constraint saves_pkey;
+    alter table public.saves add constraint saves_pkey primary key (user_id, server);
+  end if;
+end $$;
+alter table public.saves drop constraint if exists saves_server_chk;
+alter table public.saves add constraint saves_server_chk check (server in ('wallstreet','bc'));
