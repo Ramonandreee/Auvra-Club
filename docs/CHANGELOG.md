@@ -2,6 +2,16 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## [1.8.0] — 2026-11-28 — *Gente de verdade e frota variada*
+- Frota com silhuetas próprias: sedã, SUV, hatch, cupê, picape, van, limusine, caminhão-baú, ônibus e táxis (sedã e
+  minivan), com faróis, lanternas, para-choques, rodas com aro e retrovisores; tráfego respeita o tamanho de cada um.
+- Atendente com nome e personalidade fixos em cada estabelecimento (vendedor, garçom, barista, recepções, secretária),
+  relação que cresce com a convivência e várias interações. Concessionária: tour, test drive, negociação de desconto
+  (habilidade + relação + jeito do vendedor) e contrato à vista ou financiado — não se compra mais sozinho.
+- Pedestres com 13 arquétipos (turista, trader, golpista, investidora, recrutadora, jornalista, estudante, vendedor de
+  cachorro-quente, recém-demitido, fofoqueira de concorrente, executivo rival, músico, veterano) × 7 personalidades,
+  falas que mudam com hora, mercado, concorrentes, fama e sua situação, escolhas com consequências.
+
 ## [1.7.0] — 2026-11-28 — *Obras, táxi, ritmo de cidade e menu novo*
 - Dia de 10 min reais. Analógico só anda; botão de correr; câmera no lado direito (corrigido o arrasto com o celular em pé).
 - Táxi pelo AuvraOS com preço/rota/chegada; canteiro de obras com prazo por porte e hora extra (economia: empresa em

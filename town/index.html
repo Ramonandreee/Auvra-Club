@@ -380,6 +380,8 @@
   .avatar-actions{flex:none;display:flex;gap:6px}.avatar-actions button{flex:1;min-height:40px!important;border-radius:10px!important;font-weight:700}
   #menu .pcard>div{max-height:52px;overflow:hidden}#menu .pcard{flex:none}
   @media (max-height:430px){#menu .nb{min-height:34px!important}#menu .nb.play{min-height:42px!important}.mh1 b{font-size:34px}}
+  .quote{font-size:15px;line-height:1.45;color:var(--cream);margin:2px 0 6px}
+  .relbar{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim);margin-top:6px}.relbar i{display:block;height:6px;border-radius:3px;background:linear-gradient(90deg,#c89a3a,#f1cf7a);flex:none;max-width:160px;min-width:4px}
 </style>
 </head>
 <body>
@@ -1888,13 +1890,47 @@ function setPersonLook(group,look){
 }
 
 /* ============================ CARROS (1 draw call cada) ============================ */
-function buildCar(kind){const parts=[];const taxi=kind==='taxi';const col=taxi?0xf2b705:kind==='black'?0x111317:[0x8a8f96,0x2a3a5a,0x5a1e1e,0xd8d8d8,0x2e3a2e][(Math.random()*5)|0];
-  const L=taxi?4.8:4.6;parts.push(paint(xf(new THREE.BoxGeometry(1.84,0.62,L),0,0.62,0),col));parts.push(paint(xf(new THREE.BoxGeometry(1.66,0.58,L*0.52),0,1.2,-0.15),0x1d2731));
-  parts.push(paint(xf(new THREE.BoxGeometry(1.7,0.06,L*0.5),0,1.5,-0.15),col));
-  for(const [x,z] of [[-0.86,L*0.32],[0.86,L*0.32],[-0.86,-L*0.32],[0.86,-L*0.32]])parts.push(paint(xf(new THREE.CylinderGeometry(0.34,0.34,0.24,10),x,0.34,z,0,0,Math.PI/2),0x101010));
-  parts.push(paint(xf(new THREE.BoxGeometry(1.5,0.16,0.05),0,0.7,L/2+0.01),0xfff3d0));parts.push(paint(xf(new THREE.BoxGeometry(1.5,0.14,0.05),0,0.72,-L/2-0.01),0xb01818));
-  if(taxi){parts.push(paint(xf(new THREE.BoxGeometry(0.7,0.24,0.28),0,1.65,-0.2),0xf6f2e6));parts.push(paint(xf(new THREE.BoxGeometry(0.05,0.3,L*0.3),0.93,0.7,0.2),0x1a1a1a));}
-  const g=mergeGeometries(parts,false);parts.forEach(p=>p.dispose());const m=new THREE.Mesh(g,MAT.vcShiny);m.castShadow=SETTINGS.quality!=='baixa';return m;}
+/* ---- frota variada: cada modelo tem silhueta própria (perfil lateral extrudado), não só cor ---- */
+const CAR_TYPES={
+  sedan:{L:4.8,W:1.84,r:0.34,wb:0.3,body:[[-2.4,.32],[2.4,.32],[2.44,.6],[2.3,.84],[1.25,.98],[-1.55,1.0],[-2.32,.96],[-2.46,.62]],cab:[[1.2,.98],[.38,1.44],[-.95,1.46],[-1.6,1.0]],cols:[0x8a8f96,0x2a3a5a,0x5a1e1e,0xd8d8d8,0x2e3a2e,0x101215,0x6e6a62]},
+  suv:{L:4.9,W:1.95,r:0.42,wb:0.31,body:[[-2.45,.45],[2.45,.45],[2.5,.86],[2.32,1.06],[1.35,1.16],[-2.4,1.16],[-2.5,.82]],cab:[[1.3,1.16],[.6,1.78],[-2.28,1.8],[-2.42,1.16]],cols:[0x1b1d21,0xf2f2ee,0x3a4250,0x5b5f57,0x23324a]},
+  hatch:{L:4.1,W:1.78,r:0.32,wb:0.31,body:[[-2.05,.32],[2.05,.32],[2.1,.6],[1.92,.84],[1.0,.95],[-1.95,.98],[-2.08,.6]],cab:[[.95,.95],[.22,1.42],[-1.72,1.44],[-1.98,.98]],cols:[0xb02a22,0x2c6fb0,0xe6e2d6,0x3d3f42,0x7a9a3a]},
+  coupe:{L:4.5,W:1.9,r:0.34,wb:0.3,body:[[-2.25,.28],[2.25,.28],[2.32,.48],[2.12,.68],[.95,.8],[-1.85,.84],[-2.25,.72],[-2.32,.44]],cab:[[.9,.8],[-.05,1.18],[-.95,1.2],[-1.85,.84]],cols:[0xc81e1e,0x111111,0xf2c200,0x1d4fa0,0xdedede]},
+  pickup:{L:5.4,W:1.98,r:0.42,wb:0.33,body:[[-2.7,.5],[2.7,.5],[2.74,.95],[2.56,1.2],[1.5,1.3],[-2.66,1.3],[-2.74,.9]],cab:[[1.45,1.3],[.9,1.92],[-.6,1.94],[-.66,1.3]],bed:[-2.55,-.75],cols:[0x8c1d14,0x26292e,0xc9c4b8,0x2f4a63]},
+  van:{L:5.6,W:2.0,r:0.38,wb:0.36,body:[[-2.8,.42],[2.8,.42],[2.86,.9],[2.7,1.25],[2.2,1.42],[1.7,2.42],[-2.8,2.5],[-2.86,.9]],win:[[2.16,1.46],[1.74,2.3],[1.18,2.32],[1.25,1.46]],cols:[0xf2f2ee,0xf2f2ee,0x9aa0a6,0x24324a]},
+  limo:{L:6.6,W:1.9,r:0.35,wb:0.36,body:[[-3.3,.32],[3.3,.32],[3.34,.6],[3.2,.84],[2.2,.98],[-2.6,1.0],[-3.22,.96],[-3.36,.62]],cab:[[2.15,.98],[1.4,1.42],[-1.95,1.44],[-2.65,1.0]],cols:[0x0c0d0f]},
+  truck:{L:7.2,W:2.3,r:0.48,wb:0.38,body:[[-3.6,.5],[3.6,.5],[3.64,1.0],[3.5,1.5],[3.1,1.62],[2.75,2.55],[1.95,2.6],[1.95,3.1],[-3.6,3.1]],win:[[3.06,1.66],[2.76,2.42],[2.1,2.45],[2.12,1.66]],cols:[0xf4f4f0,0xd9d4c4]},
+  bus:{L:11,W:2.55,r:0.5,wb:0.36,body:[[-5.5,.42],[5.5,.42],[5.56,.8],[5.5,3.02],[5.3,3.16],[-5.5,3.16],[-5.56,.8]],win:[[5.44,1.55],[5.44,2.88],[-5.3,2.88],[-5.3,1.62]],cols:[0xf2f2ee]},
+  super:{L:4.6,W:2.02,r:0.35,wb:0.3,body:[[-2.3,.26],[2.3,.26],[2.38,.42],[2.2,.58],[.7,.74],[-1.7,.8],[-2.3,.72],[-2.36,.4]],cab:[[.75,.74],[-.2,1.08],[-.85,1.1],[-1.7,.8]],cols:[0xf07a12]},
+  minivan:{L:5.0,W:1.95,r:0.36,wb:0.33,body:[[-2.5,.38],[2.5,.38],[2.55,.72],[2.38,.95],[1.6,1.08],[-2.45,1.12],[-2.55,.72]],cab:[[1.55,1.08],[.95,1.72],[-2.3,1.76],[-2.48,1.12]],cols:[0x8a8f96]}};
+const P_=(g,hex)=>paint(g.index?g.toNonIndexed():g,hex);
+function extrudeSide(pts,W,hex){const sh=new THREE.Shape();pts.forEach(([x,y],i)=>i?sh.lineTo(x,y):sh.moveTo(x,y));sh.closePath();
+  const g=new THREE.ExtrudeGeometry(sh,{depth:W,bevelEnabled:true,bevelThickness:0.04,bevelSize:0.04,bevelSegments:1,steps:1,curveSegments:2});g.translate(0,0,-W/2);g.rotateY(-Math.PI/2);return P_(g,hex);}
+function buildCar(kind){const taxi=kind==='taxi'||kind==='taxivan';const type=taxi?(kind==='taxivan'?'minivan':'sedan'):kind==='black'?'limo':(CAR_TYPES[kind]?kind:'sedan');
+  return buildCarModel(type,taxi?0xf2b705:pick(CAR_TYPES[type].cols),taxi);}
+function buildCarModel(type,col,taxi){
+  const T_=CAR_TYPES[type],L=T_.L,W=T_.W,r=T_.r,parts=[];const glass=0x18222c,dark=0x111214,chrome=0xb8bcc2;
+  parts.push(extrudeSide(T_.body,W,col));
+  if(T_.cab){parts.push(extrudeSide(T_.cab,W-0.18,glass));const c=T_.cab;const top=Math.max(...c.map(p=>p[1]));const xs=c.filter(p=>p[1]>top-0.06).map(p=>p[0]);
+    parts.push(P_(xf(new THREE.BoxGeometry(W-0.16,0.07,Math.max(0.4,Math.max(...xs)-Math.min(...xs))),0,top+0.02,(Math.max(...xs)+Math.min(...xs))/2),col));
+    // colunas (B) entre as janelas
+    const mx=(c[1][0]+c[2][0])/2;parts.push(P_(xf(new THREE.BoxGeometry(W-0.15,top-c[0][1],0.1),0,(top+c[0][1])/2,mx),col));}
+  if(T_.win){parts.push(extrudeSide(T_.win,W+0.03,glass));
+    if(type==='bus'){parts.push(P_(xf(new THREE.BoxGeometry(W+0.04,0.32,L-0.4),0,1.15,0),0x1f5fa8));parts.push(P_(xf(new THREE.BoxGeometry(W*0.86,0.34,0.06),0,2.98,L/2+0.02),0x101010));}
+    if(type==='truck')parts.push(P_(xf(new THREE.BoxGeometry(W+0.02,0.4,L*0.66),0,1.1,-L*0.2),0x2f6a3a));}
+  if(T_.bed)parts.push(P_(xf(new THREE.BoxGeometry(W-0.3,0.06,T_.bed[1]-T_.bed[0]),0,1.25,(T_.bed[0]+T_.bed[1])/2),dark));
+  // rodas com aro
+  const wx=W/2-0.1,wz=L*T_.wb;const axles=type==='bus'?[wz*0.95,-wz*0.95]:type==='truck'?[wz,-wz,-wz+1.1]:[wz,-wz];
+  for(const z of axles)for(const s of [-1,1]){parts.push(P_(xf(new THREE.CylinderGeometry(r,r,0.26,14),s*wx,r,z,0,0,Math.PI/2),0x0e0e0e));parts.push(P_(xf(new THREE.CylinderGeometry(r*0.58,r*0.58,0.28,10),s*wx,r,z,0,0,Math.PI/2),chrome));}
+  // para-choques, faróis, lanternas, grade e retrovisores
+  const fy=type==='bus'||type==='van'||type==='truck'?0.85:Math.max(.5,T_.body[2][1]-0.06);
+  parts.push(P_(xf(new THREE.BoxGeometry(W+0.02,0.16,0.14),0,Math.max(0.36,T_.body[0][1]+0.06),L/2+0.04),dark));parts.push(P_(xf(new THREE.BoxGeometry(W+0.02,0.16,0.14),0,Math.max(0.36,T_.body[0][1]+0.06),-L/2-0.04),dark));
+  for(const s of [-1,1]){parts.push(P_(xf(new THREE.BoxGeometry(0.42,0.13,0.06),s*(W/2-0.3),fy,L/2+0.03),0xfff3d0));parts.push(P_(xf(new THREE.BoxGeometry(0.34,0.14,0.06),s*(W/2-0.25),fy+0.04,-L/2-0.03),0xb01818));
+    if(T_.cab)parts.push(P_(xf(new THREE.BoxGeometry(0.2,0.12,0.1),s*(W/2+0.08),T_.cab[0][1]+0.12,T_.cab[0][0]-0.15),col));}
+  parts.push(P_(xf(new THREE.BoxGeometry(W*0.38,0.14,0.05),0,fy,L/2+0.035),type==='coupe'?dark:0x2a2c30));
+  if(taxi){const top=Math.max(...T_.cab.map(p=>p[1]));parts.push(P_(xf(new THREE.BoxGeometry(0.72,0.24,0.3),0,top+0.17,-0.2),0xf6f2e6));parts.push(P_(xf(new THREE.BoxGeometry(0.05,0.28,L*0.28),W/2+0.03,0.72,0.1),0x1a1a1a));parts.push(P_(xf(new THREE.BoxGeometry(0.05,0.28,L*0.28),-W/2-0.03,0.72,0.1),0x1a1a1a));}
+  const g=mergeGeometries(parts,false);parts.forEach(p=>p.dispose());const m=new THREE.Mesh(g,MAT.vcShiny);m.castShadow=SETTINGS.quality!=='baixa';m.userData.half=[W/2,L/2];m.userData.type=type;return m;}
+function trafficKind(i){if(i===3)return 'bus';const r=Math.random();return r<0.28?'taxi':r<0.33?'taxivan':r<0.47?'sedan':r<0.6?'suv':r<0.69?'hatch':r<0.75?'coupe':r<0.82?'pickup':r<0.9?'van':r<0.94?'black':'truck';}
 
 /* ============================ CENA ============================ */
 let groundMesh=null, cityGroup=null, dynGroup=null, heroMesh=null, heroRing=null, ghostMesh=null;
@@ -2025,7 +2061,7 @@ function updateTraffic(dt){lightT+=dt;for(const ax of ['v','h']){const g=lightSt
   if(!SETTINGS.traffic){CARS.forEach(c=>c.mesh.visible=false);return;}
   for(const car of CARS){const L=car.lane;if(!L){spawnCar(car,true);continue;}let target=L.fdr?17:11;
     // carro da frente
-    for(const o of CARS){if(o===car||o.lane!==L)continue;const d=(o.s-car.s)*L.dir;if(d>0&&d<10){target=Math.min(target,(d-6)*1.4);}}
+    for(const o of CARS){if(o===car||o.lane!==L)continue;const d=(o.s-car.s)*L.dir;if(d>0&&d<16){const gap=d-(car.mesh.userData.half||[1,2.5])[1]-(o.mesh.userData.half||[1,2.5])[1]-1.2;if(gap<6)target=Math.min(target,Math.max(0,gap)*1.4);}}
     if(!L.fdr){const ax=L.axis;if(lightState(ax)==='r'){for(const I of INTERS){const inLane=ax==='v'?(L.c>I.x0&&L.c<I.x1):(L.c>I.z0&&L.c<I.z1);if(!inLane)continue;
       const stop=L.dir>0?(ax==='v'?I.z0:I.x0)-2.6:(ax==='v'?I.z1:I.x1)+2.6;const d=(stop-car.s)*L.dir;if(d>-0.5&&d<16)target=Math.min(target,d*0.9);}}}
     const hx=hero?M(hero.x):0,hz=hero?M(hero.y):0;const cx_=L.axis==='v'?L.c:car.s,cz_=L.axis==='v'?car.s:L.c;if(!L.fdr){const ahead=((L.axis==='v'?hz-cz_:hx-cx_)*L.dir),side=Math.abs(L.axis==='v'?hx-cx_:hz-cz_);if((ahead>-1&&ahead<7&&side<1.6)||Math.hypot(hx-cx_,hz-cz_)<2.6)target=0;}
@@ -2051,7 +2087,7 @@ function rebuildPools(){const q=QUAL[SETTINGS.quality];
     for(const c of sides){SIDEWALKS.push({axis:s.axis,c:(c+0.5)*TS,from:s.b0*TS+2,to:(s.b1+1)*TS-2});}}
   for(let i=0;i<q.crowd;i++){const mesh=buildPerson(randomLook(r,i%4===0?'tourist':'street'));dynGroup.add(mesh);const L=SIDEWALKS[(r()*SIDEWALKS.length)|0];
     CROWD.push({mesh,L,s:L.from+r()*(L.to-L.from),dir:r()<.5?1:-1,v:1.1+r()*0.6,lat:(r()-.5)*2.2});mesh.userData.gaitPhase=r();}
-  for(let i=0;i<q.cars;i++){const mesh=buildCar(i%3===2?'black':i%4===3?'car':'taxi');dynGroup.add(mesh);CARS.push({mesh,lane:null,s:0,v:0});}}
+  for(let i=0;i<q.cars;i++){const mesh=buildCar(trafficKind(i));dynGroup.add(mesh);CARS.push({mesh,lane:null,s:0,v:0});}}
 function updateCrowd(dt){for(const c of CROWD){if(c.look>0&&!c.stop){c.look-=dt;c.mesh.rotation.y=turnToward(c.mesh.rotation.y,Math.atan2(M(hero.x)-c.mesh.position.x,M(hero.y)-c.mesh.position.z),dt);animPerson(c.mesh,0,dt);continue;}if(c.stop){if(!modalOpen())c.stop=false;else{c.mesh.rotation.y=turnToward(c.mesh.rotation.y,Math.atan2(M(hero.x)-c.mesh.position.x,M(hero.y)-c.mesh.position.z),dt);animPerson(c.mesh,0,dt,true);continue;}}crowdMove(c,dt);}}
 let poolT=0;
 function updateNPCs(dt){poolT-=dt;const tx=hero?hero.x:WORLD.cxA*TILE,ty=hero?hero.y:WORLD.cyA*TILE;
@@ -2275,6 +2311,7 @@ function updateInteract(){const act=document.getElementById('actBtn'),lbl=docume
   else if(best.kind==='exitcar'){ico='🚪';txt='Sair';sub=Math.abs(PCAR.v)>1.5?'Pare o carro para sair':'Sair do carro';}
   else if(best.kind==='ped'){ico='💬';txt='Abordar';sub=best.c.name?best.c.name:'Puxar conversa com quem passa';}
   else if(best.kind==='prop'){ico=best.p.ico;txt=best.p.txt.length>12?best.p.txt.split(' ')[0]:best.p.txt;sub=best.p.txt+' · '+best.p.sub;}
+  else if(best.kind==='iperson'&&best.p.staff){const p=best.p;ico='🧑‍💼';txt='Falar';sub=p.mem.name+' · '+p.roleName;}
   else if(best.kind==='iperson'){const p=best.p;ico='💬';txt=p.cand?'Entrevistar':'Falar';sub=p.cand?'Candidato(a) · '+p.cand.e.name+' · '+p.cand.e.role:p.e?p.e.name+' · '+p.e.role+(p.e.offer?' · 📞 proposta':''):'Puxar conversa';}
   const key=best.kind+ico+txt+sub;if(act.dataset.k!==key){act.dataset.k=key;act.querySelector('.ai').innerHTML=icon(best.kind==='c'||best.kind==='ped'||best.kind==='iperson'?'chat':(best.kind==='car'||best.kind==='taxi')?'car':'enter');act.querySelector('.al').textContent=txt;lbl.innerHTML=esc(sub);}
   act.classList.add('on');lbl.classList.add('on');}
@@ -2283,7 +2320,7 @@ function doInteract(t){t=t||interactTarget;if(!t)return;
   else if(t.kind==='sp'){const sp=SPECIAL[t.k];if(t.k==='home')enterInterior({kind:'home',title:HOME_DEF[S.assets.home].n,exit:sp.front});else if(t.k==='dealer')enterInterior({kind:'dealer',title:'Manhattan Motors',exit:sp.front});else if(t.k==='rest')enterInterior({kind:'restaurant',title:'The Exchange Grill',exit:sp.front,key:'rest'});else{const j=JOBS.find(x=>'job:'+x.id===t.k);enterInterior({kind:'job',job:j,title:j.co,exit:sp.front,key:t.k});}}
   else if(t.kind==='meet')startMeeting(t.a);
   else if(t.kind==='car')enterCar();else if(t.kind==='taxi')rideTaxi();else if(t.kind==='exitcar')exitCar();else if(t.kind==='ped')talkToPedestrian(t.c);
-  else if(t.kind==='prop')t.p.fn();else if(t.kind==='iperson'){const p=t.p;if(p.cand)interview(p.co,p.cand,p);else if(p.e)openEmployee(p);else{INT.talkP=p;modal('💬','Conversa rápida','<p>"'+pick(['Correria hoje, hein?','Esse café daqui é ótimo.','Ouvi dizer que o mercado vai virar.','Você é o dono daquela empresa nova?'])+'"</p>',[{t:'↩ Ok',fn:closeModal}]);}}
+  else if(t.kind==='prop')t.p.fn();else if(t.kind==='iperson'){const p=t.p;if(p.staff)openStaff(p);else if(p.cand)interview(p.co,p.cand,p);else if(p.e)openEmployee(p);else{INT.talkP=p;modal('💬','Conversa rápida','<p class="quote">"'+ambientLine().replace(/^"|"$/g,'')+'"</p>',[{t:'↩ Ok',fn:closeModal}]);}}
   else if(t.kind==='c')openContact(t.w.contact);else openLandmark(t.L);}
 function openLandmark(L){const I=L.info;const acts=[];if(I.act==='market')acts.push({t:'📈 Entrar no pregão',d:'Mercado, concorrentes e empresas de amigos',fn:()=>{closeModal();onTool('market');}});
   if(I.act==='bank')acts.push({t:'🏦 Falar com o banco',d:'Empréstimos e juros',fn:()=>{closeModal();openBank();}});acts.push({t:'↩ Voltar para a rua',fn:closeModal});
@@ -2361,7 +2398,7 @@ function setSpeed(s){S.speed=1;refreshHUD();} // o tempo corre sempre em 1× (pa
 /* ============================ COLISÃO COM CARROS ============================ */
 function carHalf(c){return c===PCAR?(PCAR.tier===6?[1.05,3.7]:[1.05,2.45]):[1.0,2.5];}
 function carHit(xm,zm,skip){const test=(c,px,pz,yaw,h)=>{const dx=xm-px,dz=zm-pz,cy=Math.cos(-yaw),sy=Math.sin(-yaw);const lx=dx*cy+dz*sy,lz=-dx*sy+dz*cy;return Math.abs(lx)<h[0]+0.28&&Math.abs(lz)<h[1]+0.28;};
-  for(const c of CARS){if(c===skip||!c.mesh.visible||(c.lane&&c.lane.fdr))continue;if(Math.abs(c.mesh.position.x-xm)>5||Math.abs(c.mesh.position.z-zm)>5)continue;if(test(c,c.mesh.position.x,c.mesh.position.z,c.mesh.rotation.y,[1.0,2.5]))return c;}
+  for(const c of CARS){if(c===skip||!c.mesh.visible||(c.lane&&c.lane.fdr))continue;if(Math.abs(c.mesh.position.x-xm)>8||Math.abs(c.mesh.position.z-zm)>8)continue;if(test(c,c.mesh.position.x,c.mesh.position.z,c.mesh.rotation.y,c.mesh.userData.half||[1.0,2.5]))return c;}
   if(PCAR&&PCAR!==skip&&!PCAR.driving&&test(PCAR,PCAR.x,PCAR.z,PCAR.yaw,carHalf(PCAR)))return PCAR;return null;}
 /* ============================ TRÂNSITO: virar na esquina em vez de sumir ============================ */
 function mapEdge(L,endS){return L.fdr||endS<=0.5||endS>=(L.axis==='v'?MAPH:MAPW)*TS-0.5;}
@@ -2633,6 +2670,127 @@ function ensureSeat(x,z,heading){if((INT.seats||[]).some(s=>Math.hypot(s.x-x,s.z
   for(const [a,b] of [[1,1],[1,-1],[-1,1],[-1,-1]]){const lx=a*0.2,lz=b*0.2;add(new THREE.BoxGeometry(0.04,0.45,0.04),I.metal,x+lx*Math.cos(heading)+lz*fx,0.225,z-lx*Math.sin(heading)+lz*fz);}
   (INT.seats=INT.seats||[]).push({x,z});}
 
+/* ============================ GENTE DE VERDADE: personalidades, atendentes e conversas ============================ */
+const TRAITS={
+  simpatico:{n:'Simpático(a)',hi:['Que bom te ver por aqui!','Seja muito bem-vindo(a)!','Chegou na hora certa!'],again:['De volta? Adoro!','Olha quem voltou!'],bye:['Volte sempre!','Foi um prazer.'],deal:0.05},
+  apressado:{n:'Apressado(a)',hi:['Pois não? Fala rápido que hoje tá corrido.','Oi! Só um segundo… pronto, diga.'],again:['De novo? Tá, fala.','Rápido, rápido!'],bye:['Valeu, próximo!'],deal:0},
+  desconfiado:{n:'Desconfiado(a)',hi:['Hm. Posso ajudar em alguma coisa?','Diga. Mas sem rodeios.'],again:['Você de novo…','Ainda por aqui?'],bye:['Certo.'],deal:-0.04},
+  bajulador:{n:'Bajulador(a)',hi:['Que honra receber alguém do seu calibre!','Todo mundo fala de você por aqui!'],again:['Meu cliente favorito voltou!'],bye:['Às ordens, sempre!'],deal:0.03},
+  sincero:{n:'Sincero(a)',hi:['Vou ser direto: em que posso ajudar?','Oi. Sem enrolação: do que você precisa?'],again:['Bom te ver de novo, de verdade.'],bye:['Boa sorte. Sério.'],deal:0.02},
+  piadista:{n:'Piadista',hi:['Chegou o magnata! Brincadeira… ou não?','Bem-vindo! As piadas são de graça, o resto não.'],again:['Saudade já? Eu entendo.'],bye:['Não some, hein!'],deal:0.02},
+  ambicioso:{n:'Ambicioso(a)',hi:['Oi! Um dia vou ter um negócio igual ao seu.','Opa! Quero aprender com quem está subindo.'],again:['Voltou! Me ensina mais uma?'],bye:['Me chama se precisar de gente boa.'],deal:0.01}};
+const TRAIT_KEYS=Object.keys(TRAITS);
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function persona(key){const r=rngSeed(hashStr(key));return {name:FIRST[(r()*FIRST.length)|0]+' '+LAST[(r()*LAST.length)|0],trait:TRAIT_KEYS[(r()*TRAIT_KEYS.length)|0]};}
+function hello(){const h=nowHour();return h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';}
+function fameNote(){const f=S.rep.public;return f>40?' Vi você na capa do jornal financeiro!':f>22?' Já ouvi falar de você.':'';}
+// assuntos que mudam com o mundo: mercado, concorrentes, a cidade, você
+function smallTalk(trait){const m=S.market,rv=rivals.length?pick(rivals):null,lm=pick(LANDMARKS);const T=[
+    '"O mercado está '+m.cycle+' e os juros em '+m.rate.toFixed(1)+'%. '+(m.rate>8?'Quem tem dívida está suando.':'Dinheiro barato — época de crescer.')+'"',
+    rv?'"Ouvi que a '+rv.name+(rv.drift<1?' está perdendo clientes. Se eu fosse você, ficava de olho.':' está contratando sem parar. Estão crescendo rápido.')+'"':'"O distrito está calmo. Calmo demais."',
+    '"Sabia? '+lm.info.txt.split('. ')[0]+'."',
+    companies.length?'"A '+pick(companies).name+' é sua, né? '+(trait==='desconfiado'?'Dizem que é sorte. Eu acho que é sorte.':'O pessoal comenta que o atendimento é bom.')+'"':'"Você ainda não tem empresa? Wall Street não espera ninguém."',
+    S.debt>S.cash?'"Posso dar um conselho? Dívida maior que o caixa tira o sono de qualquer um."':'"Caixa saudável é o melhor travesseiro."',
+    '"'+pick(['O café da Stone Street é o melhor do distrito.','O sino da Bolsa me dá arrepio até hoje.','Hoje o metrô atrasou de novo.','Dizem que o touro dá sorte se você passar a mão.'])+'"'];
+  return pick(T);}
+
+/* ---- atendentes: um por estabelecimento, com nome e jeito fixos ---- */
+function staffKey(spec){return spec.kind+':'+(spec.job?spec.job.id:spec.co?spec.co.id:spec.rv?spec.rv.id:spec.key||'');}
+function staffRole(spec){if(spec.kind==='dealer')return ['vendedor','Consultor(a) de vendas'];if(spec.kind==='restaurant')return ['garcom','Garçom/garçonete'];if(spec.kind==='sede')return ['secretaria','Secretária executiva'];
+  if(spec.kind==='office')return ['recepcao_own','Recepção'];if(spec.kind==='rival')return ['recepcao_rival','Recepção'];
+  if(spec.kind==='job')return spec.job.style==='cafe'?['barista','Barista']:['recepcao_job','Recepção'];return null;}
+function staffMem(spec){S.staff=S.staff||{};const k=staffKey(spec);if(!S.staff[k])S.staff[k]=Object.assign(persona(k),{rel:10,met:0,last:-1,talk:-1});return S.staff[k];}
+function addStaff(spec){const role=staffRole(spec);if(!role)return;const W=INT.W,D=INT.D,ez=D/2-2.6;
+  const free=(x,z)=>x>-W/2+0.7&&x<W/2-0.7&&z>-D/2+0.8&&z<D/2-0.6&&!INT.obst.some(o=>x>o.x0-0.6&&x<o.x1+0.6&&z>o.z0-0.6&&z<o.z1+0.6)&&!INT.people.some(p=>Math.hypot(p.x-x,p.z-z)<0.9)&&!INT.props.some(p=>Math.hypot(p.x-x,p.z-z)<0.9);
+  let spot=null;for(const [dx,dz] of [[1.9,-0.9],[-1.9,-0.9],[2.6,-2.0],[-2.6,-2.0],[1.4,-2.6],[-1.4,-2.6],[3.2,-0.5],[-3.2,-0.5],[0,-3.4]]){if(free(dx,ez+dz)){spot=[dx,ez+dz];break;}}if(!spot)return;
+  const mem=staffMem(spec),look=seededLook(staffKey(spec),spec.kind==='dealer'||spec.kind==='sede'?'banker':'worker');
+  const p=addIntPerson(look,spot[0],spot[1],Math.atan2(0-spot[0],ez-spot[1]),'stand',{staff:role[0],roleName:role[1],mem,spec});INT.staffP=p;return p;}
+function staffSay(mem,lines){return '"'+pick(lines)+'"';}
+function openStaff(p,extra){INT.talkP=p;const mem=p.mem,T=TRAITS[mem.trait],spec=p.spec,first=mem.met===0,again=mem.last===S.day;
+  if(!again){mem.met++;mem.last=S.day;}
+  const greet=first?hello()+'! Eu sou '+mem.name.split(' ')[0]+'. '+pick(T.hi)+fameNote():again?pick(T.again):hello()+', '+esc(S.name.split(' ')[0])+'! '+pick(T.hi);
+  const relBar='<div class="relbar"><span>Relação</span><i style="width:'+cl(mem.rel,0,100)+'%"></i></div>';
+  const acts=staffActions(p).concat([{t:'💬 Conversar',d:mem.talk===S.day?'Já conversaram hoje':'Papo rápido (sem gastar energia)',dis:mem.talk===S.day,fn:()=>{mem.talk=S.day;mem.rel=Math.min(100,mem.rel+4+S.skills.charisma*0.05);gainSkill('charisma',0.15);staffReply(p,smallTalk(mem.trait));}},
+    {t:'↩ '+pick(T.bye).replace(/[!.]$/,''),fn:closeModal}]);
+  modal('🧑‍💼',esc(mem.name)+' · '+p.roleName,'<p class="quote">'+(extra||'"'+greet+'"')+'</p><div class="small">'+T.n+'</div>'+relBar,acts);}
+function staffReply(p,txt,more){modal('🧑‍💼',esc(p.mem.name),'<p class="quote">'+txt+'</p>',(more||[]).concat([{t:'↩ Voltar',fn:()=>openStaff(p,'"Mais alguma coisa?"')},{t:'Tchau',fn:closeModal}]));refreshHUD();}
+function eat(p,name,price,en,line){if(S.cash<price)return staffReply(p,'"Hm… o cartão não passou. Fica pra próxima?"');S.cash-=price;S.energy=Math.min(S.energy+en,120);p.mem.rel=Math.min(100,p.mem.rel+1);staffReply(p,line+'<br><span class="small">'+name+' · −'+money(price)+' · ⚡+'+en+'</span>');}
+function staffActions(p){const s=p.staff,spec=p.spec,mem=p.mem,h=nowHour();
+  if(s==='vendedor')return [{t:'🚗 Me mostra os carros',d:'Modelos, preço e o que combina com você',fn:()=>showroomTour(p)},{t:'🏦 Como funciona o financiamento?',fn:()=>staffReply(p,'"Entrada de 30% e o resto vai para o seu crédito no banco, com os juros do mercado ('+S.market.rate.toFixed(1)+'%). Seu limite livre hoje: '+money(Math.max(0,loanLimit()-S.debt))+'."')}];
+  if(s==='garcom')return [{t:'☕ Café · $6',d:'⚡+4',fn:()=>eat(p,'Café',6,4,'"Café passado agora. Cuidado que tá quente."')},{t:'🍝 Prato executivo · $28',d:'⚡+12',fn:()=>eat(p,'Prato executivo',28,12,'"O de hoje é '+pick(['frango grelhado com purê','risoto de cogumelos','salmão com legumes','massa ao pomodoro'])+'. Excelente escolha."')},
+    {t:'🥩 Jantar completo · $85',d:h<18?'A cozinha do jantar abre às 18:00':'⚡+22',dis:h<18,fn:()=>eat(p,'Jantar completo',85,22,'"O chef caprichou. Fica à vontade, a mesa é sua."')},{t:'👂 O que andam falando no salão?',fn:()=>staffReply(p,smallTalk(mem.trait))}];
+  if(s==='barista'){const j=spec.job,mine=S.job&&S.job.id===j.id;return [{t:'☕ Espresso · $5',d:'⚡+5',fn:()=>eat(p,'Espresso',5,5,'"Um espresso duplo, do jeito que Wall Street gosta."')},{t:'🥐 Lanche · $12',d:'⚡+9',fn:()=>eat(p,'Lanche',12,9,'"Croissant quentinho. O de amêndoas acaba às dez."')},
+    {t:mine?'💼 Falar com a gerência':'💼 Vocês estão contratando?',fn:()=>{closeModal();mine?openBoss(j):applyJob(j);}}];}
+  if(s==='recepcao_job'){const j=spec.job,mine=S.job&&S.job.id===j.id;return [{t:mine?'💼 Falar com a chefia':'💼 Vim pela vaga de '+j.t,fn:()=>{closeModal();mine?openBoss(j):applyJob(j);}},
+    {t:'☕ Aceito um café',d:mem.cafe===S.day?'Já tomou hoje':'Cortesia · ⚡+2',dis:mem.cafe===S.day,fn:()=>{mem.cafe=S.day;S.energy=Math.min(S.energy+2,120);staffReply(p,'"Da máquina mesmo, mas é cortesia. A chefia chega às '+fmtHour(j.hour)+'."');}}];}
+  if(s==='recepcao_own'){const co=spec.co;return [{t:'📊 Como foi o dia?',fn:()=>{const pr=coProfit(co);staffReply(p,'"'+(pr>=0?'Dia bom! ':'Dia difícil… ')+'Lucro de '+money(pr)+'/dia, '+co.employees.length+' pessoas na equipe e operação em '+Math.round(co.ops)+'%.'+(co.ops<50?' A operação precisa de atenção.':'')+'"');}},
+    {t:'🧾 Chamar o RH',fn:()=>{closeModal();openCompany(co);}}];}
+  if(s==='secretaria')return [{t:'📅 Minha agenda',fn:()=>{closeModal();openOS('agenda');}},{t:'✉️ Algum recado?',fn:()=>{const n=(S.inbox||[]).filter(m=>!m.read).length;n?(closeModal(),openOS('msg')):staffReply(p,'"Nenhum recado novo. Silêncio raro por aqui."');}},{t:'🏦 Ligar para o banco',fn:()=>{closeModal();openBank();}}];
+  if(s==='recepcao_rival'){const r=spec.rv;return [{t:'🤝 Quero falar com a diretoria',fn:()=>{closeModal();openRival(r);}},{t:'👂 Sondar a recepção',d:mem.spy===S.day?'Já sondou hoje':'Pode render informação (ou desconfiança)',dis:mem.spy===S.day,fn:()=>{mem.spy=S.day;
+      if(chance(0.35+mem.rel/200+(mem.trait==='bajulador'||mem.trait==='piadista'?0.15:0)-(mem.trait==='desconfiado'?0.25:0))){repUp('market',0.5);staffReply(p,'"Cá entre nós… '+(r.drift<1?'o faturamento caiu e a diretoria está nervosa. Uma proposta agora seria bem recebida.':'estão crescendo rápido e vão contratar mais '+ri(2,6)+' pessoas.')+' Equipe atual: '+r.staff+'."');}
+      else{mem.rel=Math.max(0,mem.rel-5);staffReply(p,'"Não posso falar sobre a empresa. Com licença."');}}}];}
+  return [];}
+/* ---- concessionária: o vendedor apresenta, leva no test drive, negocia e fecha ---- */
+function showroomTour(p){const rows=CAR_DEF.map((d,i)=>i?'<div class="lrow" data-car="'+i+'"><span>🚗 <b>'+esc(d.n)+'</b><br><span class="small">'+money(d.p)+' · '+Math.round(d.v*3.6)+' km/h'+(S.cash>=d.p?'':' · '+(S.cash>=d.p*0.3?'dá para financiar':'fora do orçamento'))+'</span></span><span class="small">ver ›</span></div>':'').join('');
+  const fit=CAR_DEF.map((d,i)=>[d,i]).filter(([d,i])=>i&&S.cash>=d.p*0.3).pop();
+  const m=modal('🚗',esc(p.mem.name)+' · showroom','<p class="quote">"'+(fit?'Com o seu perfil, eu começaria pelo '+fit[0].n+'. Mas olha todos:':'Vou ser honesto: hoje nenhum cabe no seu bolso. Mas sonhar é de graça:')+'"</p>'+rows,[{t:'↩ Voltar',fn:()=>openStaff(p,'"E então?"')}]);
+  m.querySelectorAll('[data-car]').forEach(r=>r.onclick=()=>salesCar(p,+r.dataset.car));}
+function salesCar(p,i){const d=CAR_DEF[i],mem=p.mem,disc=S.carDisc&&S.carDisc.i===i&&S.carDisc.day===S.day?S.carDisc.pct:0,td=(S.td||{})[i]===S.day,neg=(S.neg||{})[i]===S.day;
+  const pitch=['O '+d.n+' é '+d.d.toLowerCase().replace(/\.$/,'')+'.','Esse aqui chama atenção na Wall Street. Pode apostar.','Quem dirige um '+d.n+' é levado a sério nas reuniões.'];
+  modal('🚗',esc(d.n)+' · com '+esc(mem.name.split(' ')[0]),'<div class="kpis">'+kpi('Preço',disc?'<s>'+money(d.p)+'</s> '+money(Math.round(d.p*(1-disc))):money(d.p),'var(--gold)')+kpi('Velocidade',Math.round(d.v*3.6)+' km/h')+kpi('Status','⭐+'+d.rep)+'</div><p class="quote">"'+pick(pitch)+'"</p>'+(disc?'<p class="small">🤝 Desconto de '+Math.round(disc*100)+'% negociado — vale só hoje.</p>':''),
+    [{t:'🛣️ Test drive',d:td?'Já fez hoje':'Uma volta no quarteirão com '+mem.name.split(' ')[0],dis:td,fn:()=>{(S.td=S.td||{})[i]=S.day;const fd=document.getElementById('fade');fd.innerHTML='<div>🛣️</div><b>Test drive no '+esc(d.n)+'</b><span>Broadway → Wall St → Water St</span>';fd.classList.add('on');
+        setTimeout(()=>{fd.classList.remove('on');dayAcc+=DAY_SEC/16*0.4;mem.rel=Math.min(100,mem.rel+3);salesReply(p,i,'"E aí? '+(d.v>40?'Sentiu o motor empurrando as costas?':'Macio, né? Perfeito para o dia a dia.')+' Se gostou, a gente conversa sobre o preço."');},1700);}},
+     {t:'🤝 Negociar desconto',d:!td?'Faça o test drive antes':neg?'Já negociou hoje':'Depende da sua lábia e do humor dele(a)',dis:!td||neg,fn:()=>negotiate(p,i)},
+     {t:'✍️ Fechar negócio',d:'Ver condições de pagamento',fn:()=>{closeModal();openCarOffer(i,disc,p);}},
+     {t:'↩ Ver outros carros',fn:()=>showroomTour(p)}]);}
+function salesReply(p,i,txt){modal('🧑‍💼',esc(p.mem.name),'<p class="quote">'+txt+'</p>',[{t:'↩ Voltar ao carro',fn:()=>salesCar(p,i)}]);refreshHUD();}
+function negotiate(p,i){const mem=p.mem,T=TRAITS[mem.trait];const base=0.3+S.skills.negotiation/160+mem.rel/250+T.deal;const opt=(pct,pen)=>({t:'Pedir '+pct+'% de desconto',d:'Chance ~'+Math.round(cl(base-pen,0.05,0.95)*100)+'%',fn:()=>{(S.neg=S.neg||{})[i]=S.day;gainSkill('negotiation',0.4);
+    if(chance(cl(base-pen,0.05,0.95))){S.carDisc={i,pct:pct/100,day:S.day};mem.rel=Math.min(100,mem.rel+2);salesReply(p,i,'"'+(mem.trait==='desconfiado'?'Tá bom, tá bom. '+pct+'%. Mas não espalha.':mem.trait==='apressado'?'Fechado, '+pct+'%! Bora assinar?':'Você negocia bem. '+pct+'% para você — só hoje.')+'"');}
+    else{mem.rel=Math.max(0,mem.rel-3);salesReply(p,i,'"'+(mem.trait==='piadista'?'Se eu der '+pct+'%, meu gerente me dá demissão. Rs.':'Não dá. Esse preço já está no limite.')+'"');}}});
+  modal('🤝','Negociação · '+esc(mem.name),'<p class="quote">"Quanto você tem em mente?"</p><p class="small">'+T.n+' · relação '+Math.round(mem.rel)+' · sua negociação '+Math.round(S.skills.negotiation)+'</p>',[opt(5,0),opt(10,0.18),opt(15,0.36),{t:'↩ Deixa pra lá',fn:()=>salesCar(p,i)}]);}
+
+/* ---- pessoas na rua: cada uma com jeito e intenção próprios ---- */
+const ARCH={
+  turista:{ico:'📸',t:'Turista',w:()=>3,open:p=>'"Excuse me! '+pick(['Onde fica o touro de bronze?','Essa é a famosa Wall Street?','Pode tirar uma foto minha com a Bolsa atrás?'])+'"',
+    ch:[['🗺️ Ajudar com o caminho',()=>{repUp('public',1);gainSkill('charisma',0.2);return '"Thank you so much! New York is amazing!" · ⭐ +1 reputação pública';}],['📸 Tirar a foto',()=>{repUp('public',0.5);return '"Perfect! Você leva jeito." · ⭐ +0,5';}],['🤷 Fingir que não entende',()=>'"Oh… okay." Ele segue procurando outra pessoa.']]},
+  trader:{ico:'📉',t:'Trader',w:()=>nowHour()<17?3:1,open:p=>'"'+(S.market.cycle==='recessão'?'Tá todo mundo vendendo, cara. Todo mundo.':'Vi um movimento estranho hoje no pregão…')+' Você opera também?"',
+    ch:[['📈 Perguntar o que ele acha',()=>{gainSkill('finance',0.35);return '"Juros em '+S.market.rate.toFixed(1)+'%. '+(S.market.rate>8?'Eu pagaria dívida antes de crescer.':'Eu aproveitaria para crescer agora.')+'" · 📈 +finanças';}],['🧠 Contar sua estratégia',()=>{if(S.skills.charisma>18){repUp('market',1);return '"Interessante… vou lembrar do seu nome." · 🤝 +1 reputação no mercado';}return '"Hm. Boa sorte com isso." Ele já está no celular de novo.';}],['↩ Seguir',()=>'Ele some na multidão, falando sozinho no fone.']]},
+  golpista:{ico:'🕶️',t:'Investidor "garantido"',w:()=>S.cash>2000?2:0.5,open:p=>'"Psiu! Tenho um investimento garantido: '+ri(25,60)+'% ao mês, sem risco. Só hoje. Entra com '+money(500*S.phase)+'?"',
+    ch:[['💸 Investir '+'(arriscado)',()=>{const v=500*S.phase;if(S.cash<v)return '"Volta quando tiver o dinheiro." Ele se afasta rápido.';S.cash-=v;if(chance(0.12)){S.cash+=v*2;return '"Viu? Garantido!" Por sorte, deu certo: +'+money(v);}return 'Ele pega o dinheiro, olha para os lados e some na escada do metrô. −'+money(v);}],['🧐 Pedir detalhes',()=>{gainSkill('negotiation',0.4);return 'Ele gagueja nos detalhes e muda de assunto. Você aprendeu a farejar golpe. · 🤝 +negociação';}],['🚓 Chamar a polícia',()=>{repUp('public',1);return 'Ele corre antes do policial chegar. Quem viu, gostou da sua atitude. · ⭐ +1';}]]},
+  investidor:{ico:'💼',t:'Investidora',w:()=>S.phase>=2||S.rep.market>10?2.5:0.3,open:p=>'"'+(companies.length?'Tenho acompanhado a '+companies[0].name+'. Tem cinco minutos?':'Você parece alguém que vai abrir uma empresa logo. Acertei?')+'"',
+    ch:[['🎤 Fazer o pitch',()=>{const ok=chance(0.25+S.skills.charisma/150+S.rep.market/200);if(ok){const has=contacts.find(c=>c.kind==='investor');if(has){has.rel=Math.min(100,has.rel+12);}else contacts.push(genContact(CONTACT_DEFS[0]));repUp('market',1.5);return '"Gostei. Vamos marcar um café." · 💼 contato fortalecido · +1,5 mercado';}return '"Ainda não estou convencida. Me procura quando os números falarem por você."';}],['🧭 Pedir um conselho',()=>{gainSkill('finance',0.3);gainSkill('leadership',0.2);return '"'+pick(['Cuide do caixa como se fosse oxigênio.','Contrate devagar, demita rápido.','Não se apaixone pela empresa, se apaixone pelo cliente.'])+'"';}],['↩ Agradecer',()=>'"Até a próxima."']]},
+  recrutadora:{ico:'🧑‍💼',t:'Recrutadora',w:()=>companies.length?2:0.5,open:p=>'"Conheço alguém brilhante procurando emprego. Quer o contato?"',
+    ch:[['👤 Quero conhecer',()=>{const co=companies.find(c=>c.employees.length<maxStaff(c)&&!(c.build>0));if(!co)return '"Você não tem vaga aberta agora. Me chama quando expandir."';const e=genPerson(Math.random()<0.4);if(actHire(co,e))return '👤 '+e.name+' (competência '+e.competence+') entrou na '+co.name;return '"Que pena, não deu certo."';}],['↩ Agora não',()=>'"Fica com meu cartão."']]},
+  jornalista:{ico:'🗞️',t:'Jornalista',w:()=>S.rep.public>8?2.5:1,open:p=>'"Estou escrevendo sobre os novos nomes de Wall Street. '+(companies.length?'Posso citar a '+companies[0].name+'?':'Qual é a sua história?')+'"',
+    ch:[['🙂 Responder com humildade',()=>{repUp('public',2);return '"Gente como você faz falta nas manchetes." · ⭐ +2';}],['😎 Prometer dominar o distrito',()=>{if(chance(0.5)){repUp('public',4);repUp('market',1);return 'A frase vira manchete. · ⭐ +4 · 🤝 +1';}repUp('public',-2);return 'A matéria te pinta como arrogante. · ⭐ −2';}],['🤐 Sem comentários',()=>'"Tudo bem. A matéria sai de qualquer jeito."']]},
+  estudante:{ico:'🎓',t:'Estudante',w:()=>2,open:p=>'"Desculpa incomodar… você trabalha aqui em Wall Street? Como você começou?"',
+    ch:[['🧑‍🏫 Dar 15 min de mentoria',()=>{gainSkill('charisma',0.3);repUp('talent',1);return 'Ele anota tudo e agradece três vezes. · ✨ +carisma · +1 talentos';}],['💼 Oferecer um estágio',()=>{const co=companies.find(c=>c.employees.length<maxStaff(c)&&!(c.build>0));if(!co)return '"Quando você tiver vaga, eu topo!"';const e=genPerson(false);e.salary=Math.round((e.salary||800)*0.6);if(actHire(co,e))return '🎓 '+e.name+' começa como estagiário(a) na '+co.name;return '"Ah, não rolou."';}],['↩ Agora não',()=>'"Tudo bem, obrigado mesmo assim!"']]},
+  hotdog:{ico:'🌭',t:'Vendedor de cachorro-quente',w:()=>nowHour()>10&&nowHour()<21?2:0.5,open:p=>'"Vinte anos nesta esquina. Já vi muita gente subir e descer. Vai um?"',
+    ch:[['🌭 Um completo · $4',()=>{if(S.cash<4)return '"Fica pra próxima."';S.cash-=4;S.energy=Math.min(S.energy+6,120);return '"Mostarda e cebola, o clássico." · ⚡ +6';}],['📜 Ouvir uma história',()=>'"'+pick(LANDMARKS).info.txt+'"'],['👋 Só cumprimentar',()=>'"Boa sorte aí em cima, campeão."']]},
+  desempregado:{ico:'🧳',t:'Recém-demitido',w:()=>S.market.cycle==='recessão'?3:1,open:p=>'"Fui demitido hoje de manhã, depois de '+ri(3,12)+' anos. Não sei nem o que dizer em casa…"',
+    ch:[['💼 Oferecer uma vaga',()=>{const co=companies.find(c=>c.employees.length<maxStaff(c)&&!(c.build>0));if(!co)return '"Obrigado pela intenção. De verdade."';const e=genPerson(true);if(actHire(co,e)){repUp('public',1);return '🧳 '+e.name+' entrou na '+co.name+' — e nunca vai esquecer. · ⭐ +1';}return '"Não deu, mas obrigado."';}],['💵 Ajudar com $20',()=>{if(S.cash<20)return 'Você não tem nem isso no bolso.';S.cash-=20;repUp('public',0.5);return '"Você não precisava…" · ⭐ +0,5';}],['🗣️ Dar uma força',()=>{gainSkill('leadership',0.25);return '"Valeu. Amanhã eu recomeço."';}]]},
+  fofoqueira:{ico:'🤫',t:'Assistente de concorrente',w:()=>rivals.length?2:0,open:p=>{p.rv=pick(rivals);return '"Você é da '+(sede?'sede nova':'turma nova')+', né? Eu trabalho na '+p.rv.name+'… e tenho cada história."';},
+    ch:[['👂 Ouvir tudo',p=>{repUp('market',0.5);return '"'+(p.rv.drift<1?'Estão perdendo cliente atrás de cliente. O chefe está desesperado.':'O chefe quer comprar uma empresa até o fim do mês. Toma cuidado.')+' Eles têm '+p.rv.staff+' pessoas." · 🔎 informação valiosa';}],['🙅 Mudar de assunto',()=>'"Tá bom, tá bom. Mas que é verdade, é."']]},
+  rival:{ico:'😏',t:'Executivo rival',w:()=>S.phase>=2?2:0.6,open:p=>{p.rv=rivals.length?pick(rivals):null;return '"Então você é o novato'+(p.rv?' que a '+p.rv.name+' anda comentando':'')+'. Aproveita enquanto dura."';},
+    ch:[['🔥 Responder à altura',()=>{if(S.rep.market>8){repUp('market',2);return 'Ele fica sem resposta. Quem estava perto riu. · 🤝 +2';}repUp('public',-1);return 'Ele ri da sua cara. Não foi o seu melhor momento. · ⭐ −1';}],['🧊 Ignorar com classe',()=>{repUp('public',1);return 'Você só sorri e segue. Elegância conta. · ⭐ +1';}],['🤝 Propor uma parceria',()=>{if(chance(0.25+S.skills.negotiation/200)){repUp('market',1.5);gainSkill('negotiation',0.3);return '"…Interessante. Vou pensar." · 🤝 +1,5';}return '"Parceria? Com você? Boa piada."';}]]},
+  musico:{ico:'🎷',t:'Músico de rua',w:()=>nowHour()>16?3:1,open:p=>'Um saxofonista toca '+pick(['um jazz lento','uma versão de New York, New York','um blues que para o trânsito'])+'. Ele pisca para você.',
+    ch:[['💵 Gorjeta de $5',()=>{if(S.cash<5)return 'Sem trocado hoje.';S.cash-=5;S.energy=Math.min(S.energy+3,120);return '"Essa é pra você!" Ele toca mais alto. · ⚡ +3';}],['🎶 Pedir uma música',()=>{S.energy=Math.min(S.energy+4,120);return 'Por um minuto, Wall Street parece parar. · ⚡ +4';}],['↩ Seguir',()=>'A música vai sumindo atrás de você.']]},
+  veterano:{ico:'👴',t:'Veterano de Wall Street',w:()=>1.5,open:p=>'"Trabalhei '+ri(30,45)+' anos ali na Bolsa. Quer um conselho de graça?"',
+    ch:[['🧭 Quero sim',()=>{gainSkill('finance',0.25);gainSkill('leadership',0.25);return '"'+(S.debt>S.cash?'Paga essa dívida antes que ela te pague.':!companies.length?'Pare de esperar a hora certa. Abra a primeira empresa.':S.cash>20000?'Dinheiro parado perde valor. Põe para trabalhar.':'Cuida da sua gente que ela cuida do seu negócio.')+'"';}],['📜 Como era antigamente?',()=>'"'+pick(LANDMARKS).info.txt+'"'],['↩ Obrigado',()=>'"Vai lá, garoto(a)."']]}};
+const ARCH_KEYS=Object.keys(ARCH);
+function talkToPedestrian(c){c.stop=true;if(!c.pp){const k=(()=>{let tot=0;const ws=ARCH_KEYS.map(k=>{const w=ARCH[k].w();tot+=w;return w;});let r=Math.random()*tot;for(let i=0;i<ws.length;i++){r-=ws[i];if(r<=0)return ARCH_KEYS[i];}return 'turista';})();
+    c.pp={arch:k,trait:pick(TRAIT_KEYS),met:0};c.name=c.name||pick(FIRST)+' '+pick(LAST);}
+  const A=ARCH[c.pp.arch],T=TRAITS[c.pp.trait];
+  if(c.day===S.day){modal(A.ico,esc(c.name),'<p class="quote">"'+pick(T.again)+' '+pick(['A gente se fala amanhã.','Hoje já deu, né?','Corre aí que eu também tô correndo.'])+'"</p>',[{t:'↩ Seguir caminho',fn:closeModal}]);return;}
+  const tone={apressado:'<span class="small">(olhando o relógio)</span> ',desconfiado:'<span class="small">(desconfiado)</span> ',piadista:'<span class="small">(rindo)</span> '}[c.pp.trait]||'';
+  const opener=A.open(c.pp);
+  modal(A.ico,esc(c.name)+' · '+A.t,'<p class="quote">'+tone+opener+'</p><div class="small">'+T.n+'</div>',A.ch.map(([t,fx])=>({t,fn:()=>{c.day=S.day;c.pp.met++;const res=fx(c.pp);modal(A.ico,esc(c.name),'<p class="quote">'+res+'</p>',[{t:'↩ '+pick(T.bye).replace(/[!.]$/,''),fn:closeModal}]);refreshHUD();}})));}
+// conversa rápida com quem está dentro dos lugares (clientes, funcionários de outras empresas)
+function ambientLine(){const k=INT.active?INT.active.kind:'';const L={restaurant:['Esse lugar lota no almoço. Chegou cedo, hein?','Fechei um contrato nessa mesa ano passado. Dá sorte.','O garçom aqui sabe mais de mercado que muito analista.'],
+    job:['Meu chefe chega às '+fmtHour(INT.active&&INT.active.job?INT.active.job.hour:9)+' e quer tudo pronto.','Estou aqui há dois anos e ainda não sei onde fica o arquivo.','Hoje o pregão vai ser pesado.'],
+    dealer:['Estou entre o sedã e o SUV há três semanas.','Minha esposa vai me matar se eu levar o conversível.','Esse vendedor é bom, viu? Cuidado com a carteira.']}[k]||['Correria hoje, hein?'];
+  return pick(L.concat([smallTalk('simpatico')]));}
+
 /* ============================ VIDA: INTERIORES, CASA, CARRO, PEDESTRES ============================
    Interiores são salas 3D construídas na hora, longe da cidade (que fica oculta enquanto você está dentro).
    O herói continua no mesmo sistema de coordenadas (px lógicos); a colisão vira a da sala. */
@@ -2717,7 +2875,7 @@ function enterInterior(spec){if(INT.active)exitInterior();if(PCAR&&PCAR.driving)
   const keep=new Set([sun,sun.target,hemi,camera,heroMesh]);INT.hidden=[];for(const o of scene.children)if(!keep.has(o)&&o.visible){INT.hidden.push(o);o.visible=false;}
   INT.group=new THREE.Group();INT.group.position.set(IORIG.x,0,IORIG.z);scene.add(INT.group);const B=new Batch();
   ({office:buildOffice,sede:buildSedeRoom,rival:buildRivalLobby,home:buildHome,dealer:buildShowroom,job:jobInterior,restaurant:restaurantInterior,garage:garageInterior})[spec.kind](B,spec);
-  if(spec.kind==='office')placeCandidates(B,spec.co);if(spec.kind==='sede')sedeMeetingHook();
+  if(spec.kind==='office')placeCandidates(B,spec.co);if(spec.kind==='sede')sedeMeetingHook();INT.staffP=null;addStaff(spec);
   B.build(INT.group);INT.group.traverse(o=>{if(o.isMesh&&!o.isSkinnedMesh){o.castShadow=false;o.receiveShadow=false;}});intLights(INT.W,INT.D,spec.kind==='home');
   hero.x=PX(IORIG.x);hero.y=PX(IORIG.z+INT.D/2-2.6);hero.heading=Math.PI;hero.auto=false;CAM.yaw=0;CAM.dist=4.6;CAM.pitch=0.34;CAM.init=false;
   sun.castShadow=false;heroRing.visible=false;refreshHUD();}
@@ -2801,7 +2959,7 @@ function sleepHome(){closeModal();if(S.over)return;dayAcc=0;S.slept=true;SLEPT=t
 function buildShowroom(B){const I=imat();const W=26,D=15;buildRoom(B,W,D,I.marbleF,{wall:I.wallDark,H:5});const n=CAR_DEF.length-1;
   for(let i=1;i<=n;i++){const x=-W/2+3+(i-1)*((W-6)/(n-1)),z=-1.5;B.add(I.platform,xf(new THREE.CylinderGeometry(2.4,2.5,0.18,32),x,0.09,z));obst(x,z,4.4,4.4);
     const car=buildPlayerCar(i);car.position.set(x,0.18,z);car.rotation.y=i*0.7;INT.group.add(car);INT.spin.push(car);const def=CAR_DEF[i];
-    prop(x,z+2.8,'🚗',def.n,money(def.p)+' · '+(S.assets&&S.assets.car===i?'é o seu':'toque para ver'),()=>openCarOffer(i),1.6);}
+    prop(x,z+2.8,'🚗',def.n,money(def.p)+' · '+(S.assets&&S.assets.car===i?'é o seu':'ver com o vendedor'),()=>INT.staffP?salesCar(INT.staffP,i):openCarOffer(i),1.6);}
   B.add(I.deskDark,xf(new THREE.BoxGeometry(2.6,1.05,0.8),W/2-3,0.525,D/2-3));obst(W/2-3,D/2-3,2.6,0.8);
   const p=addIntPerson(randomLook(Math.random,'client'),-5,3,0,'walk',{path:[[-8,3],[0,3.2],[8,3]],i:0});p.x=-8;p.z=3;
   const sm=std({map:signTex('Manhattan Motors','#14171c','#e8c060'),roughness:.4});INT.mats.push(sm);B.add(sm,xf(new THREE.PlaneGeometry(7,1.3),0,4.1,-D/2+0.06));}
@@ -2814,13 +2972,8 @@ function openHomeShop(){const a=S.assets;const cur=HOME_DEF[a.home];const acts=[
   if(a.home>0&&a.decor<3){const dc=decorCost(a.home,a.decor+1);acts.unshift({t:'🛋️ Reformar e decorar (nível '+(a.decor+1)+'/3) — '+money(dc),d:'⚡+5/dia · ⭐+1 · deixa a casa mais bonita',dis:S.cash<dc,fn:()=>{if(S.cash<dc)return toast('Caixa insuficiente');S.cash-=dc;a.decor++;S.rep.public+=1;closeModal();refreshHUD();saveLocal();const ex=INT.active.exit;exitInterior();enterInterior({kind:'home',title:cur.n,exit:ex});toast('🛋️ Reforma concluída');}});}
   acts.push({t:'↩ Voltar',fn:closeModal});
   modal('🏠','Imóveis — '+cur.n,'<div class="kpis">'+kpi('Sua casa',cur.n)+kpi('Energia extra/dia','⚡+'+homeEnergy())+kpi('Valor (patrimônio)',money(Math.round(cur.p*0.9+decorSpent(a)*0.5)),'var(--gold)')+'</div><p class="small">Casas melhores dão mais energia por dia e reputação. O valor entra no seu patrimônio.</p>',acts);}
-function buildPlayerCar(tier,color){const parts=[];const st={1:{c:0xb8a888,L:4.5,h:0.62,w:1.8,cab:0.55},2:{c:0x111317,L:4.9,h:0.6,w:1.86,cab:0.55},3:{c:0x2c3a30,L:4.9,h:0.85,w:1.95,cab:0.7},4:{c:0xa3121a,L:4.4,h:0.5,w:1.9,cab:0.42},5:{c:0xf07a12,L:4.6,h:0.45,w:2.0,cab:0.38},6:{c:0x0c0d10,L:7.2,h:0.62,w:1.95,cab:0.55}}[tier];
-  parts.push(paint(xf(new THREE.BoxGeometry(st.w,st.h,st.L),0,0.32+st.h/2,0),color??st.c));parts.push(paint(xf(new THREE.BoxGeometry(st.w*0.88,st.cab,st.L*(tier===6?0.62:0.5)),0,0.32+st.h+st.cab/2,-0.1),0x1b2530));
-  parts.push(paint(xf(new THREE.BoxGeometry(st.w*0.9,0.05,st.L*(tier===6?0.6:0.48)),0,0.32+st.h+st.cab,-0.1),color??st.c));
-  for(const [x,z] of [[-st.w/2+0.05,st.L*0.33],[st.w/2-0.05,st.L*0.33],[-st.w/2+0.05,-st.L*0.33],[st.w/2-0.05,-st.L*0.33]]){parts.push(paint(xf(new THREE.CylinderGeometry(0.36,0.36,0.26,14),x,0.36,z,0,0,Math.PI/2),0x0d0d0d));parts.push(paint(xf(new THREE.CylinderGeometry(0.22,0.22,0.27,10),x,0.36,z,0,0,Math.PI/2),0xc8ccd0));}
-  parts.push(paint(xf(new THREE.BoxGeometry(st.w*0.8,0.12,0.05),0,0.55,st.L/2+0.01),0xfff3d0));parts.push(paint(xf(new THREE.BoxGeometry(st.w*0.8,0.1,0.05),0,0.58,-st.L/2-0.01),0xc01818));
-  if(tier>=4)parts.push(paint(xf(new THREE.BoxGeometry(st.w*0.9,0.05,0.35),0,0.32+st.h+0.12,-st.L/2+0.25),0x111111));
-  const g=mergeGeometries(parts,false);parts.forEach(p=>p.dispose());const m=new THREE.Mesh(g,MAT.vcShiny);m.castShadow=SETTINGS.quality!=='baixa';return m;}
+function buildPlayerCar(tier,color){const st={1:['sedan',0xb8a888],2:['sedan',0x111317],3:['suv',0x2c3a30],4:['coupe',0xa3121a],5:['super',0xf07a12],6:['limo',0x0c0d10]}[tier]||['sedan',0x888888];
+  return buildCarModel(st[0],color??st[1],false);}
 let PCAR=null;
 function carFree(x,z){const gx=Math.floor(x/TS),gy=Math.floor(z/TS);const t=tileAt(gx,gy);if(t<0||t===T.BLD||t===T.WATER)return false;return !buildingAt(gx,gy);}
 function spawnPlayerCar(nearDealer){const a=S.assets;if(!a||!a.car){if(PCAR){dynGroup.remove(PCAR.mesh);PCAR.mesh.geometry.dispose();PCAR=null;}return;}
@@ -2858,20 +3011,6 @@ function setupSpecialPlaces(){const pickF=(tx,ty,not)=>{let best=null,bd=1e9;for
     const sg=new THREE.Mesh(new THREE.PlaneGeometry(7,1.31),sm);sg.position.set(M(cx)+Math.sin(yaw)*dist,5.6,M(cy)+Math.cos(yaw)*dist);sg.rotation.y=yaw;cityGroup.add(sg);
     const ic=new THREE.Sprite(new THREE.SpriteMaterial({map:emojiTex(ico),transparent:true}));ic.scale.set(1.3,1.3,1);ic.position.set(M(front[0]),3.2,M(front[1]));cityGroup.add(ic);SPECIAL[k].icon=ic;}}
 /* ---- pedestres: qualquer pessoa na rua pode ser abordada (1×/dia cada) ---- */
-const ENCOUNTERS=[
-  {w:3,ico:'📸',t:'Turista',txt:'"Pode tirar uma foto minha com a Bolsa atrás?" Você tira — e ganha um sorriso e um "thank you!".',fx:()=>{S.rep.public+=1;return '⭐ +1 reputação pública';}},
-  {w:3,ico:'📉',t:'Trader apressado',txt:()=>'"O mercado está '+S.market.cycle+', juros em '+S.market.rate.toFixed(1)+'% ao ano. Se eu fosse você, '+(S.market.rate>8?'pagaria dívida antes de crescer.':'aproveitaria para crescer agora.')+'"',fx:()=>{gainSkill('finance',0.3);return '📈 +finanças';}},
-  {w:2,ico:'🧑‍💼',t:'Recrutadora',txt:'"Conheço alguém brilhante procurando emprego. Quer o contato?"',fx:()=>{const co=companies.find(c=>c.employees.length<maxStaff(c));if(!co)return 'Você ainda não tem vaga aberta — funde ou expanda uma empresa.';const e=genPerson(Math.random()<0.4);if(actHire(co,e))return '👤 '+e.name+' (competência '+e.competence+') entrou na '+co.name;return 'Não deu para contratar agora.';}},
-  {w:3,ico:'🤝',t:'Empreendedora',txt:'Vocês trocam cartões e falam de negócios por cinco minutos.',fx:()=>{S.rep.market+=1;gainSkill('negotiation',0.25);return '🤝 +1 reputação no mercado';}},
-  {w:2,ico:'🎓',t:'Estudante de economia',txt:'"Como você começou?" Você conta a sua história. Ele anota tudo.',fx:()=>{gainSkill('charisma',0.3);S.rep.talent+=1;return '✨ +carisma · +1 reputação com talentos';}},
-  {w:2,ico:'🗞️',t:'Jornalista',txt:()=>'"Estou fazendo uma matéria sobre novos empresários de Wall Street. Posso citar a '+(companies[0]?companies[0].name:'sua história')+'?"',fx:()=>{S.rep.public+=2;return '📰 +2 reputação pública';}},
-  {w:2,ico:'🌭',t:'Vendedor de cachorro-quente',txt:'"Vinte anos nesta esquina. Já vi muita gente subir e descer — você tem cara de quem vai subir."',fx:()=>{S.energy=Math.min(S.energy+8,150);return '⚡ +8 energia';}},
-];
-function talkToPedestrian(c){c.stop=true;if(!c.name)c.name=pick(FIRST)+' '+pick(LAST);
-  if(c.day===S.day){modal('💬',esc(c.name),'<p>"Oi de novo! Corre aqui, a gente se fala amanhã."</p>',[{t:'↩ Seguir caminho',fn:()=>{closeModal();}}]);return;}
-  let tot=ENCOUNTERS.reduce((s,e)=>s+e.w,0),r=Math.random()*tot,E=ENCOUNTERS[0];for(const e of ENCOUNTERS){r-=e.w;if(r<=0){E=e;break;}}
-  const txt=typeof E.txt==='function'?E.txt():E.txt;modal(E.ico,esc(c.name)+' · '+E.t,'<p>'+txt+'</p>',[{t:'💬 Conversar',d:'Aproveitar o encontro',fn:()=>{c.day=S.day;const res=E.fx();closeModal();toast(res);refreshHUD();}},{t:'↩ Seguir caminho',fn:closeModal}]);}
-
 /* ============================ CARREIRA: RELÓGIO, AGENDA, AUVRAOS, EMPREGOS, ENTREVISTAS, REUNIÕES, GARAGEM, FAMA ============================
    A economia continua por dia (bloco @ECON intacto). O relógio (07:00–23:00) é derivado de dayAcc; com compromisso
    marcado, o tempo desacelera ("modo agenda") para dar tempo de chegar. */
@@ -3030,11 +3169,15 @@ function careerDaily(){ensureCareer();for(const a of S.agenda){if(a.status==='pe
   scheduleShift();headhuntDaily();meetingDaily();const mt=S.assets.cars.reduce((s,c)=>s+CAR_DEF[c.tier].p*0.0004,0);if(mt>0)S.cash-=Math.round(mt);
   if(S.job&&companies.length&&Math.random()<0.04&&!S.job.warned){S.job.warned=true;const j=JOBS.find(x=>x.id===S.job.id);inbox(j.co,'Soubemos que você tem uma empresa própria. Precisamos conversar sobre conflito de interesse.','🧐');S.job.warns=Math.min(2,S.job.warns+1);}}
 
-ENCOUNTERS.push({w:2,ico:'🗣️',t:'Fofoqueiro da esquina',txt:()=>'"Você ouviu? '+(FEED[0]?FEED[0].h.replace(/^[^ ]+ /,''):'Dizem que Wall Street vai ferver esta semana.')+'"',fx:()=>{S.rep.public+=0.5;return '🗣️ A notícia corre — e o seu nome junto';}});
-function openCarOffer(i){const a=S.assets,def=CAR_DEF[i],cars=a.cars;const cap=GARAGE[a.home||0];const owned=cars.some(c=>c.tier===i);const room=cars.length<cap;const act=cars[a.active||0];const trade=act?Math.round(CAR_DEF[act.tier].p*0.7):0;const cost=room?def.p:def.p-trade;
-  modal('🚗',def.n,'<div class="kpis">'+kpi('Preço',money(def.p),'var(--gold)')+kpi('Velocidade',Math.round(def.v*3.6)+' km/h')+kpi('Reputação','⭐+'+def.rep)+kpi('Garagem',cars.length+'/'+cap+' vagas')+'</div><p class="small">'+def.d+(room?'':' · Garagem cheia: o carro em uso entra na troca. Casas maiores têm garagem maior.')+'</p>',
-    owned?[{t:'✔ Já está na sua garagem',fn:closeModal}]:[{t:'💳 Comprar'+(room?'':' (troca: '+money(trade)+')'),d:'Você paga '+money(cost),dis:S.cash<cost,fn:()=>{if(S.cash<cost)return toast('Caixa insuficiente');S.cash-=cost;
-      if(room){cars.push({tier:i,color:null});a.active=cars.length-1;}else cars[a.active||0]={tier:i,color:null};a.car=i;S.rep.public+=def.rep;log('🚗 Você comprou um '+def.n+'.');MP.news(S.name+' comprou um '+def.n);closeModal();refreshHUD();saveLocal();spawnPlayerCar(true);toast('🚗 '+def.n+' é seu! Está na rua, em frente à loja.');}},{t:'↩ Voltar',fn:closeModal}]);}
+function openCarOffer(i,disc,sp){const a=S.assets,def=CAR_DEF[i],cars=a.cars;const cap=GARAGE[a.home||0];const owned=cars.some(c=>c.tier===i);const room=cars.length<cap;const act=cars[a.active||0];const trade=act?Math.round(CAR_DEF[act.tier].p*0.7):0;
+  const price=Math.round(def.p*(1-(disc||0))),cost=room?price:price-trade,entry=Math.round(cost*0.3),fin=cost-entry,credit=Math.max(0,loanLimit()-S.debt);
+  const buy=(pay,debt)=>{S.cash-=pay;S.debt+=debt;if(room){cars.push({tier:i,color:null});a.active=cars.length-1;}else cars[a.active||0]={tier:i,color:null};a.car=i;S.rep.public+=def.rep;if(S.carDisc&&S.carDisc.i===i)S.carDisc=null;
+    log('🚗 Você comprou um '+def.n+(debt?' (financiado)':'')+'.');MP.news(S.name+' comprou um '+def.n);closeModal();refreshHUD();saveLocal();spawnPlayerCar(true);
+    if(sp){sp.mem.rel=Math.min(100,sp.mem.rel+8);modal('🔑','Parabéns!','<p class="quote">"'+(TRAITS[sp.mem.trait].deal>0.02?'Que dia! Aproveita muito, você merece.':'Negócio fechado. As chaves são suas.')+' Ele está na rua, em frente à loja."</p><p class="small">— '+esc(sp.mem.name)+'</p>',[{t:'🚗 Ir ver',fn:closeModal}]);}else toast('🚗 '+def.n+' é seu! Está na rua, em frente à loja.');};
+  modal('✍️','Contrato · '+def.n,'<div class="kpis">'+kpi('Preço',disc?'<s>'+money(def.p)+'</s> '+money(price):money(price),'var(--gold)')+kpi('Velocidade',Math.round(def.v*3.6)+' km/h')+kpi('Reputação','⭐+'+def.rep)+kpi('Garagem',cars.length+'/'+cap+' vagas')+'</div><p class="small">'+def.d+(room?'':' · Garagem cheia: o carro em uso entra na troca ('+money(trade)+').')+(disc?' · Desconto negociado de '+Math.round(disc*100)+'%.':'')+'</p>',
+    owned?[{t:'✔ Já está na sua garagem',fn:closeModal}]:[{t:'💳 À vista · '+money(cost),dis:S.cash<cost,fn:()=>{if(S.cash<cost)return toast('Caixa insuficiente');buy(cost,0);}},
+      {t:'🏦 Financiar · entrada '+money(entry),d:fin>credit?'Crédito insuficiente no banco ('+money(credit)+' livre)':'O resto ('+money(fin)+') vira dívida com juros do mercado',dis:S.cash<entry||fin>credit,fn:()=>buy(entry,fin)},
+      {t:'↩ Voltar',fn:()=>sp?salesCar(sp,i):closeModal()}]);}
 function sedeMeetingHook(){const a=meetingAt('sede');if(!a)return;const c=contacts.find(x=>x.id===a.cid);if(!c)return;const p=addIntPerson(seededLook(c.name,c.kind),-INT.W/2+2,INT.D/2-2.4,Math.PI/2,'sit');prop(-INT.W/2+3,INT.D/2-2.4,c.ico,'Reunião com '+c.name,c.role+' · '+fmtHour(a.hour),()=>startMeeting(a,p),1.7);}
 
 /* ============================ TELA SEMPRE DEITADA (celular em pé = conteúdo girado) ============================ */
