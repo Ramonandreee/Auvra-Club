@@ -382,6 +382,10 @@
   @media (max-height:430px){#menu .nb{min-height:34px!important}#menu .nb.play{min-height:42px!important}.mh1 b{font-size:34px}}
   .quote{font-size:15px;line-height:1.45;color:var(--cream);margin:2px 0 6px}
   .relbar{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim);margin-top:6px}.relbar i{display:block;height:6px;border-radius:3px;background:linear-gradient(90deg,#c89a3a,#f1cf7a);flex:none;max-width:160px;min-width:4px}
+  #runBtn{background:rgba(14,16,20,.38)!important;border:1px solid rgba(255,255,255,.12)!important;width:58px!important;height:58px!important;display:grid;place-content:center;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+  #runBtn svg{width:28px;height:28px;fill:rgba(255,255,255,.62)}#runBtn.on{background:rgba(232,192,96,.28)!important;border-color:rgba(232,192,96,.55)!important}#runBtn.on svg{fill:#f1cf7a}
+  #bigmap.ride .bmzoom{display:none}#bigmap .tbar{height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:8px}#bigmap .tbar i{display:block;height:100%;background:#f2b705}
+  #bigmap .bmgo{background:linear-gradient(#f6d24a,#e2a90a)!important;color:#1a1408!important;border:0!important}#bigmap .bmgo:disabled{opacity:.45}
 </style>
 </head>
 <body>
@@ -397,7 +401,7 @@
   <div class="panel mini"><canvas id="mini" width="224" height="224"></canvas></div>
   <div class="panel obj" id="objPanel"></div>
   <div id="joy"><div id="joyKnob"></div></div>
-  <button id="runBtn" title="Correr">🏃</button>
+  <button id="runBtn" title="Correr" aria-label="Correr"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg></button>
   <div class="panel toolbar" id="toolbar"></div>
   <div id="actLbl"></div>
   <button id="actBtn"><span class="ai"></span><span class="al"></span></button>
@@ -1450,7 +1454,7 @@ function personGeometry(look,lod=0){
   const skin=L.skin??PAL.skin[1], top=L.top??PAL.top[0], pants=L.pants??PAL.pants[0];
   const hair=L.hair??PAL.hair[1];
   const detail=lod===0;
-  const pos=[],rgb=[],uv=[],idx=[],si=[],sw=[];
+  const pos=[],rgb=[],uv=[],idx=[],si=[],sw=[];let scalp=null;
   const colors=new Map();
   function vertex(x,y,z,color,a,b=a,w=0,material='skin'){
     let c=colors.get(color);if(!c){c=new THREE.Color(color);colors.set(color,c);}
@@ -1551,6 +1555,20 @@ function personGeometry(look,lod=0){
       vertex(px,py,pz,color,neck<.99?'neck':'head',neck<.99?'head':'jaw',neck<.99?neck:jawWeight);
     }
     for(const i of indices)idx.push(offset+i);
+    // mapa do crânio: raio da cabeça por altura e ângulo, para o cabelo assentar sem vãos
+    {const NY=30,NA=40,y0=1.55,y1=1.85,cnt=positions.length/3;let top=0,zs=0,zn=0;
+      for(let v=offset;v<offset+cnt;v++){const y=pos[v*3+1];if(y>top)top=y;if(y>1.70){zs+=pos[v*3+2];zn++;}}
+      const cz=zn?zs/zn:0,R=new Float32Array(NY*NA);
+      for(let v=offset;v<offset+cnt;v++){const x=pos[v*3],y=pos[v*3+1],z=pos[v*3+2]-cz;const yi=Math.round((y-y0)/(y1-y0)*(NY-1));if(yi<0||yi>=NY)continue;
+        const ai=((Math.round((Math.atan2(x,z)+Math.PI)/(2*Math.PI)*NA)%NA)+NA)%NA,r=Math.hypot(x,z);if(r>R[yi*NA+ai])R[yi*NA+ai]=r;}
+      for(let pass=0;pass<6;pass++)for(let yi=0;yi<NY;yi++)for(let ai=0;ai<NA;ai++){const k=yi*NA+ai;if(R[k])continue;
+        const n=[R[yi*NA+(ai+1)%NA],R[yi*NA+(ai+NA-1)%NA],yi>0?R[(yi-1)*NA+ai]:0,yi<NY-1?R[(yi+1)*NA+ai]:0].filter(Boolean);if(n.length)R[k]=n.reduce((a,b)=>a+b)/n.length;}
+      const sm=new Float32Array(R);for(let yi=0;yi<NY;yi++)for(let ai=0;ai<NA;ai++){const k=yi*NA+ai;sm[k]=Math.max(R[k],(R[yi*NA+(ai+1)%NA]+R[yi*NA+(ai+NA-1)%NA])/2);}
+      const maxA=new Float32Array(NA);for(let ai=0;ai<NA;ai++)for(let yi=0;yi<NY;yi++)maxA[ai]=Math.max(maxA[ai],sm[yi*NA+ai]);
+      scalp={top,cz,at(y,a){const ya=cl(y,y0,Math.min(y1,top));const fy=(ya-y0)/(y1-y0)*(NY-1),yi=Math.min(NY-2,Math.floor(fy)),ty=fy-yi;
+          const fa=((a+Math.PI)/(2*Math.PI)*NA%NA+NA)%NA,ai=Math.floor(fa),ta=fa-ai,a2=(ai+1)%NA;
+          const g=(yy,aa)=>sm[yy*NA+aa];const r=lerp(lerp(g(yi,ai),g(yi,a2),ta),lerp(g(yi+1,ai),g(yi+1,a2),ta),ty);return r;},
+        max(a){const fa=((a+Math.PI)/(2*Math.PI)*NA%NA+NA)%NA;return maxA[Math.floor(fa)%NA];}};}
     const irisColor={castanho:0x614132,verde:0x526850,azul:0x416778}[L.iris]??0x614132;
     for(const [side,s] of [['L',-1],['R',1]]){
       if(detail){
@@ -1619,6 +1637,12 @@ function personGeometry(look,lod=0){
         const rx=(.089+width*.31+locks)*skull;
         const rz=(.107+width*.33+locks)*skull;
         const tint=1+Math.sin(a*13+f*3)*.19+Math.sin(a*5-f*2)*.13+curl*.14;
+        if(scalp){ // assenta no crânio: raio real da cabeça + volume do corte (afina na borda, sem vão)
+          const crownY=crown-.001,over=y>scalp.top?Math.sqrt(Math.max(0,1-Math.pow((y-scalp.top)/Math.max(.004,crownY-scalp.top+.002),2))):1;
+          const head=scalp.at(Math.min(y,scalp.top),angle)*over;
+          const vol=(.0028+width*.34+locks*.8)*(.35+.65*(1-f*f))+(textured?.004*curl*f:0);
+          let rr=head+vol;if(drop>.06&&back>.25&&y<1.69)rr=Math.max(rr,scalp.max(angle)*.9+vol*.6);
+          return vertex(Math.sin(angle)*rr,y,scalp.cz+Math.cos(angle)*rr-back*drop*.05*f,shade(hair,tint),'head','head',0,'hair');}
         const z=Math.cos(angle)*rz+.004-back*drop*.06*f;
         return vertex(Math.sin(angle)*rx*scalpWidth,y,z,shade(hair,tint),'head','head',0,'hair');
       }).reverse();
@@ -2127,7 +2151,7 @@ function updateLighting(){const a=(tod-0.25)*Math.PI*2,el=Math.sin(a),az=Math.co
   renderer.toneMappingExposure=1+night*0.55;if(LAMPGLOW)LAMPGLOW.material.opacity=0.85*sstep(0.15,0.75,night);
   for(const n of NIGHT_MATS)n.mat.emissiveIntensity=(n.base||0)+night*n.k;
   for(const m of ALL_MATS)m.envMapIntensity=m.userData.env*(0.55+0.45*day);updateEnv();
-  if(INT.active){sun.intensity=0;hemi.intensity=1.05;hemi.color.setHex(0xfff3e4);hemi.groundColor.setHex(0x8c7d6a);renderer.toneMappingExposure=1.0;if(IMAT.view)IMAT.view.emissiveIntensity=0.25+0.85*sstep(-0.08,0.3,Math.sin((tod-0.25)*Math.PI*2));}
+  if(INT.active){sun.intensity=0;hemi.intensity=1.05;hemi.color.setHex(0xfff3e4);hemi.groundColor.setHex(0x8c7d6a);renderer.toneMappingExposure=1.0;if(SLEEPFX&&IMAT.view){IMAT.view.emissiveIntensity=SLEEPFX.win;IMAT.view.color.setRGB(0.25+0.75*SLEEPFX.win,0.28+0.72*SLEEPFX.win,0.4+0.6*SLEEPFX.win);hemi.intensity=1.05*SLEEPFX.lum;for(const l of INT.lights||[])l.intensity=l.userData.base*SLEEPFX.lum;}else if(IMAT.view){IMAT.view.color.setRGB(1,1,1);for(const l of INT.lights||[])l.intensity=l.userData.base;}if(!SLEEPFX&&IMAT.view)IMAT.view.emissiveIntensity=0.25+0.85*sstep(-0.08,0.3,Math.sin((tod-0.25)*Math.PI*2));}
   heroRing&&(heroRing.material.opacity=0.35+0.3*night);}
 
 /* ============================ VOCÊ (personagem configurável) ============================ */
@@ -2241,7 +2265,7 @@ function goTo(x,y,cb){if(!hero)return cb&&cb();if(Math.hypot(hero.x-x,hero.y-y)<
   hero.path=INT.active?null:(planRoute(M(hero.x),M(hero.y),M(x),M(y),'walk')||null);if(hero.path)hero.path.shift();}
 let RUN=false,runIdle=0;
 function setRun(v){RUN=v;const b=document.getElementById('runBtn');if(b)b.classList.toggle('on',v);}
-function updateHero(dt){if(RUN&&!(joy.x||joy.y)&&!(hero&&hero.auto)){runIdle+=dt;if(runIdle>0.8)setRun(false);}if(!hero||!heroMesh)return;if(PCAR&&PCAR.driving){heroRing.visible=false;return;}let vx=0,vz=0,spd=0;const canMove=started&&!menuOpen&&!modalOpen();
+function updateHero(dt){if(SLEEPFX)return;if(RUN&&!(joy.x||joy.y)&&!(hero&&hero.auto)){runIdle+=dt;if(runIdle>0.8)setRun(false);}if(!hero||!heroMesh)return;if(PCAR&&PCAR.driving){heroRing.visible=false;return;}let vx=0,vz=0,spd=0;const canMove=started&&!menuOpen&&!modalOpen();
   const keyX=((keys.d||keys.arrowright)?1:0)-((keys.a||keys.arrowleft)?1:0);
   const keyY=((keys.s||keys.arrowdown)?1:0)-((keys.w||keys.arrowup)?1:0);
   const ix=joy.x+keyX,iy=joy.y+keyY;
@@ -2434,7 +2458,7 @@ function personNear(x,z,r,skip){const r2=r*r;
 // o seu carro quando você dirige (o carHit ignora o carro em que você está)
 function pcarHit(x,z,pad){if(!PCAR||!PCAR.driving)return false;const h=carHalf(PCAR),dx=x-PCAR.x,dz=z-PCAR.z,c=Math.cos(PCAR.yaw),s=Math.sin(PCAR.yaw);
   const lx=dx*c-dz*s,lz=dx*s+dz*c;return Math.abs(lx)<h[0]+(pad||0.3)&&Math.abs(lz)<h[1]+(pad||0.3);}
-function heroFree(px,py){if(INT.active)return walkable(px,py);const x=M(px),z=M(py),hx=M(hero.x),hz=M(hero.y);
+function heroFree(px,py){if(INT.active){if(walkable(px,py))return true;if(walkable(hero.x,hero.y))return false;const x=M(px)-IORIG.x,z=M(py)-IORIG.z;return Math.abs(x)<INT.W/2-0.3&&Math.abs(z)<INT.D/2-0.3;} // preso dentro de algo? deixa sairconst x=M(px),z=M(py),hx=M(hero.x),hz=M(hero.y);
   if(!bodyFree(x,z,0.32)){if(solidAt(x,z)||bodyFree(hx,hz,0.32))return false;} // preso rente a uma parede? deixa sair
   if(carHit(x,z))return false;
   const p=personNear(x,z,0.62);if(p&&Math.hypot(p.x-x,p.z-z)<Math.hypot(p.x-hx,p.z-hz))return false; // não atravessa gente (mas pode se afastar)
@@ -2563,7 +2587,7 @@ function drawMini(dt){if(INT.active)return;miniT-=dt;if(miniT>0)return;miniT=0.1
 /* ---- mapa grande: arrastar, aproximar, tocar para traçar rota ---- */
 const BM={z:1,cx:MAPW/2,cy:MAPH/2,ptr:new Map(),moved:0,pinch:0};
 function openBigMap(){if(!started)return;const el=document.getElementById('bigmap');el.classList.remove('off');if(hero){BM.cx=hero.x/TILE;BM.cy=hero.y/TILE;}BM.z=Math.max(BM.z,1);drawBigMap();}
-function closeBigMap(){document.getElementById('bigmap').classList.add('off');}
+function closeBigMap(){if(BM.mode==='ride')return;if(BM.mode==='taxi')BM.mode=null;document.getElementById('bigmap').classList.add('off');}
 function bmFit(r){const base=Math.min(r.width/MAPW,r.height/MAPH),k=base*BM.z;const hw=r.width/2/k,hh=r.height/2/k;
   BM.cx=MAPW<=hw*2?MAPW/2:cl(BM.cx,hw,MAPW-hw);BM.cy=MAPH<=hh*2?MAPH/2:cl(BM.cy,hh,MAPH-hh);return {k,ox:r.width/2-BM.cx*k,oy:r.height/2-BM.cy*k};}
 function drawBigMap(){const el=document.getElementById('bigmap'),cvm=el.querySelector('canvas'),leg=el.querySelector('.legend');const r={width:cvm.clientWidth,height:cvm.clientHeight};const dpr=Math.min(2,devicePixelRatio||1);
@@ -2577,7 +2601,10 @@ function drawBigMap(){const el=document.getElementById('bigmap'),cvm=el.querySel
     const len=s.b1-s.b0+1,reps=Math.max(1,Math.floor(len*k/420));for(let i=0;i<reps;i++){const along=s.b0+len*(i+0.5)/reps,mid=(s.a0+s.a1+1)/2;const x=s.axis==='v'?tx(mid):tx(along),y=s.axis==='v'?ty(along):ty(mid);
       g.save();g.translate(x,y);if(s.axis==='v')g.rotate(-Math.PI/2);g.strokeStyle='rgba(10,12,16,.85)';g.lineWidth=3.5;g.strokeText(s.name,0,0);g.fillStyle='#f2efe8';g.fillText(s.name,0,0);g.restore();}}
   g.save();g.translate(tx(71),ty(MAPH/2));g.rotate(-Math.PI/2);g.font='italic 600 '+cl(k*0.8,11,22)+'px system-ui,sans-serif';g.fillStyle='#8fc3ea';g.fillText('East River',0,0);g.restore();
-  drawRouteOn(g,tx,ty,k,cl(k*0.32,4,9));
+  if(BM.mode==='ride'&&BM.ride){const R=BM.ride;g.lineJoin='round';g.lineCap='round';for(const [lw,cs] of [[cl(k*0.32,4,9)+3,'rgba(255,255,255,.9)'],[cl(k*0.32,4,9),'#f2b705']]){g.strokeStyle=cs;g.lineWidth=lw;g.beginPath();R.pts.forEach((p,i)=>{const x=tx(p[0]/TS),y=ty(p[1]/TS);i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();}
+    if(R.pos){const x=tx(R.pos[0]/TS),y=ty(R.pos[1]/TS);g.save();g.translate(x,y);g.fillStyle='#f2b705';g.strokeStyle='#1a1a1a';g.lineWidth=2.5;g.beginPath();g.arc(0,0,cl(k*0.7,12,20),0,7);g.fill();g.stroke();g.font=Math.round(cl(k*0.8,14,22))+'px sans-serif';g.fillText('🚕',0,1);g.restore();}}
+  else if(BM.mode==='taxi'&&BM.tdest&&hero){const pr=planRoute(M(hero.x),M(hero.y),M(BM.tdest.x),M(BM.tdest.y),'car');if(pr){g.strokeStyle='#f2b705';g.lineWidth=cl(k*0.28,3,8);g.setLineDash([8,6]);g.beginPath();pr.forEach((p,i)=>{const x=tx(p[0]/TS),y=ty(p[1]/TS);i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();g.setLineDash([]);}}
+  else drawRouteOn(g,tx,ty,k,cl(k*0.32,4,9));
   el._pois=[];const P=mapPOIs();const pr=cl(k*0.62,11,19);g.font=Math.round(pr*1.05)+'px sans-serif';
   for(const p of P){if(!MAPF[p.cat])continue;const x=tx(p.x/TILE),y=ty(p.y/TILE);if(x<-20||y<-20||x>r.width+20||y>r.height+20)continue;
     g.fillStyle='rgba(0,0,0,.35)';g.beginPath();g.arc(x+1.5,y+2,pr,0,7);g.fill();g.fillStyle='#16181c';g.beginPath();g.arc(x,y,pr,0,7);g.fill();g.strokeStyle=p.col;g.lineWidth=2.5;g.stroke();g.fillText(p.ico,x,y+1);
@@ -2589,6 +2616,11 @@ function drawBigMap(){const el=document.getElementById('bigmap'),cvm=el.querySel
   const cats=[['me','➤','Você'],['emp','⭐','Suas empresas'],['rv','🚩','Concorrentes'],['lm','🏛️','Marcos'],['ct','👤','Contatos'],['place','🏠','Casa e lojas'],['job','💼','Vagas'],['meet','📅','Compromissos']];
   const quick=[];if(SPECIAL.home)quick.push(['home','🏠','Casa']);if(sede)quick.push(['sede','⭐','Sede']);if(S.job&&SPECIAL['job:'+S.job.id])quick.push(['job:'+S.job.id,'💼','Trabalho']);if(SPECIAL.dealer)quick.push(['dealer','🚗','Carros']);if(SPECIAL.rest)quick.push(['rest','🍽️','Restaurante']);
   const nx=(S.agenda||[]).filter(a=>a.day>=S.day&&a.status==='pending'&&a.place).sort((a,b)=>a.day-b.day||a.hour-b.hour)[0];if(nx)quick.push(['agenda','📅','Compromisso']);
+  if(BM.mode==='ride'&&BM.ride){const R=BM.ride;leg.innerHTML='<div class="bmh"><b>🚕 Corrida</b><span>Táxi amarelo · tarifa paga '+money(R.price)+'</span></div><div class="bmdest"><div class="bmd1">📍 '+esc(R.d.name)+'</div><div class="bmd2">'+fmtDist(R.len*(1-R.t/R.dur))+' restantes · agora '+fmtHour(nowHour())+'</div><div class="tbar"><i style="width:'+Math.round(R.t/R.dur*100)+'%"></i></div></div><div class="bmtip">O motorista conhece os atalhos. Relaxe.</div>';return;}
+  if(BM.mode==='taxi'){const d=BM.tdest,q=d?taxiQuote(d):null;
+    leg.innerHTML='<div class="bmh"><b>🚕 Chamar táxi</b><span>Toque no mapa ou num lugar para escolher o destino</span></div>'+(d?'<div class="bmdest"><div class="bmd1">📍 '+esc(d.name)+'</div><div class="bmd2">'+fmtDist(q.len)+' · chegada ~'+fmtHour(q.arrive)+'</div><button class="bmbtn bmgo" id="tGo"'+(S.cash<q.price?' disabled':'')+'>Chamar e pagar '+money(q.price)+'</button></div>':'<div class="bmtip">Caixa: '+money(S.cash)+'. O preço sai pela rota de carro.</div>')+
+      '<button class="bmbtn bmback" id="bmClose">↩ Cancelar</button>';
+    const go=document.getElementById('tGo');if(go)go.onclick=()=>{BM.mode=null;callTaxi(d);};document.getElementById('bmClose').onclick=()=>{BM.mode=null;closeBigMap();};return;}
   leg.innerHTML='<div class="bmh"><b>Mapa</b><span>Wall Street · Lower Manhattan</span></div>'+
     (WAYPOINT?'<div class="bmdest"><div class="bmd1">📍 '+esc(WAYPOINT.label)+'</div><div class="bmd2">'+(ROUTE?fmtDist(ROUTE.len)+' · '+(ROUTE.mode==='car'?'🚗 de carro':'🚶 a pé'):'Sem rota')+'</div><button class="bmbtn" id="bmClear">Encerrar rota</button></div>':'<div class="bmtip">Toque num lugar do mapa ou escolha um atalho para traçar a rota.</div>')+
     '<div class="bmsec">Ir para</div><div class="bmquick">'+quick.map(([q,i,n])=>'<button data-q="'+q+'">'+i+'<span>'+n+'</span></button>').join('')+'</div>'+
@@ -2605,9 +2637,10 @@ function bmMove(ev){if(!BM.ptr.has(ev.pointerId))return;const q=lp(ev.clientX,ev
   const dx=q.x-o.x,dy=q.y-o.y;BM.moved+=Math.abs(dx)+Math.abs(dy);BM.ptr.set(ev.pointerId,q);if(BM.moved>8){BM.cx-=dx/t.k;BM.cy-=dy/t.k;drawBigMap();}}
 function bmUp(ev){const had=BM.ptr.has(ev.pointerId);BM.ptr.delete(ev.pointerId);if(BM.ptr.size<2)BM.pinch=0;if(had&&BM.moved<=8&&BM.ptr.size===0)bigMapTap(ev);}
 function bmWheel(ev){ev.preventDefault();BM.z=cl(BM.z*(ev.deltaY<0?1.15:1/1.15),1,5);drawBigMap();}
-function bigMapTap(ev){const el=document.getElementById('bigmap'),t=el._t;if(!t)return;const r=lrect(el.querySelector('canvas'));const q=lp(ev.clientX,ev.clientY),x=q.x-r.left,y=q.y-r.top;
+function bigMapTap(ev){const el=document.getElementById('bigmap'),t=el._t;if(!t||BM.mode==='ride')return;const r=lrect(el.querySelector('canvas'));const q=lp(ev.clientX,ev.clientY),x=q.x-r.left,y=q.y-r.top;
   let best=null,bd=1e9;for(const p of el._pois||[]){const d=Math.hypot(p.sx-x,p.sy-y);if(d<Math.max(22,t.k*1.2)&&d<bd){bd=d;best=p;}}
-  if(best){setWaypoint(best.x,best.y,best.name);}else{const gx=(x-t.ox)/t.k,gy=(y-t.oy)/t.k;if(gx<0||gy<0||gx>=MAPW||gy>=MAPH)return;const st=streetAt(gx*TS,gy*TS);setWaypoint(gx*TILE,gy*TILE,st?'Ponto na '+st:'Ponto marcado');}drawBigMap();}
+  const set=(x_,y_,n_)=>BM.mode==='taxi'?(BM.tdest={x:x_,y:y_,name:n_}):setWaypoint(x_,y_,n_);
+  if(best){set(best.x,best.y,best.name);}else{const gx=(x-t.ox)/t.k,gy=(y-t.oy)/t.k;if(gx<0||gy<0||gx>=MAPW||gy>=MAPH)return;const st=streetAt(gx*TS,gy*TS);set(gx*TILE,gy*TILE,st?'Ponto na '+st:'Ponto marcado');}drawBigMap();}
 
 /* ============================ TÁXI PELO CELULAR ============================ */
 let TAXI=null;
@@ -2624,7 +2657,7 @@ function taxiQuote(d){const r=planRoute(M(hero.x),M(hero.y),M(d.x),M(d.y),'car')
   if(r){len=0;for(let i=1;i<r.length;i++)len+=Math.hypot(r[i][0]-r[i-1][0],r[i][1]-r[i-1][1]);}
   const sec=len/11+DAY_SEC/16*(5/60); // corrida + ~5 min de espera
   return {len,price:Math.round(12+len*0.22),sec,arrive:Math.min(23.99,nowHour()+sec/(DAY_SEC/16))};}
-function taxiTab(){if(INT.active)return '<p class="small">🚕 Saia do prédio para chamar um táxi.</p>';if(PCAR&&PCAR.driving)return '<p class="small">Você está dirigindo.</p>';
+function taxiTab(){if(INT.active)return '<p class="small">🚕 Saia do prédio para chamar um táxi.</p>';if(!TAXI)return '<p class="small">🚕 Abrindo o mapa — toque no destino.</p>';if(PCAR&&PCAR.driving)return '<p class="small">Você está dirigindo.</p>';
   if(TAXI)return '<div class="lrow"><span>🚕 <b>Táxi '+(TAXI.ready?'esperando você':'a caminho')+'</b><br><span class="small">Destino: '+esc(TAXI.d.name)+' · pago '+money(TAXI.q.price)+'</span></span><span class="small" data-taxicancel="1">Cancelar ›</span></div>';
   return '<p class="small">Escolha o destino. O preço sai pela rota de carro; o táxi chega em instantes e você entra nele (ícone 🚕). Caixa: '+money(S.cash)+'</p>'+
     taxiDests().map((d,i)=>{const q=taxiQuote(d);return '<div class="lrow" data-taxi="'+i+'"><span>'+d.ico+' <b>'+esc(d.name)+'</b><br><span class="small">'+fmtDist(q.len)+' · chegada ~'+fmtHour(q.arrive)+'</span></span><span class="small"><b>'+money(q.price)+'</b> ›</span></div>';}).join('');}
@@ -2633,14 +2666,29 @@ function roadNear(x,z){const gx0=Math.floor(x/TS),gy0=Math.floor(z/TS);let best=
   if(!best)return null;const st=STREETS.find(s=>s.kind===T.ROAD&&(s.axis==='v'?(Math.floor(best[0]/TS)>=s.a0&&Math.floor(best[0]/TS)<=s.a1&&Math.floor(best[1]/TS)>=s.b0&&Math.floor(best[1]/TS)<=s.b1):(Math.floor(best[1]/TS)>=s.a0&&Math.floor(best[1]/TS)<=s.a1&&Math.floor(best[0]/TS)>=s.b0&&Math.floor(best[0]/TS)<=s.b1)));
   return {x:best[0],z:best[1],yaw:st&&st.axis==='h'?Math.PI/2:0};}
 function callTaxi(d){const q=taxiQuote(d);if(S.cash<q.price)return toast('Caixa insuficiente para o táxi ('+money(q.price)+')');const r=roadNear(M(hero.x),M(hero.y));if(!r)return toast('Nenhuma rua por perto para o táxi parar.');
-  S.cash-=q.price;refreshHUD();const mesh=buildCar('taxi');mesh.position.set(r.x,0,r.z);mesh.rotation.y=r.yaw;mesh.visible=false;dynGroup.add(mesh);
-  TAXI={d,q,mesh,x:r.x,z:r.z,ready:false,t:performance.now()+3500};closeModal();toast('🚕 Táxi chamado ('+money(q.price)+') — chega em instantes');}
+  S.cash-=q.price;refreshHUD();const mesh=buildCar('taxi');dynGroup.add(mesh);
+  let path=null;for(let k=0;k<10&&!path;k++){const a=Math.random()*6.283,d0=70+Math.random()*50;const s0=roadNear(r.x+Math.cos(a)*d0,r.z+Math.sin(a)*d0);if(!s0)continue;const pp=planRoute(s0.x,s0.z,r.x,r.z,'car');if(pp&&pp.length>1)path=pp;}
+  if(!path)path=[[r.x-Math.sin(r.yaw)*40,r.z-Math.cos(r.yaw)*40],[r.x,r.z]];
+  mesh.position.set(path[0][0],0,path[0][1]);TAXI={d,q,mesh,x:r.x,z:r.z,ready:false,path,seg:0,v:9};closeModal();closeBigMap();toast('🚕 Táxi a caminho ('+money(q.price)+')');}
 function cancelTaxi(refund){if(!TAXI)return;if(refund){S.cash+=TAXI.q.price;toast('🚕 Corrida cancelada, valor devolvido');}dynGroup.remove(TAXI.mesh);TAXI.mesh.traverse(o=>{if(o.geometry)o.geometry.dispose();});TAXI=null;refreshHUD();}
-function updateTaxi(){if(!TAXI||TAXI.ready)return;if(performance.now()>TAXI.t){TAXI.ready=true;TAXI.mesh.visible=true;showHint('🚕 Seu táxi chegou — vá até ele e toque em Entrar',4500);}}
-function rideTaxi(){if(!TAXI)return;const T_=TAXI,fd=document.getElementById('fade');fd.innerHTML='<div>🚕</div><b>A caminho de '+esc(T_.d.name)+'…</b><span>'+fmtDist(T_.q.len)+'</span>';fd.classList.add('on');
-  setTimeout(()=>{hero.auto=false;hero.path=null;hero.x=T_.d.x;hero.y=T_.d.y;if(heroMesh)heroMesh.position.set(M(hero.x),0,M(hero.y));dayAcc+=T_.q.sec;
-    if(WAYPOINT&&Math.hypot(WAYPOINT.x-hero.x,WAYPOINT.y-hero.y)<TILE*2)clearWaypoint();cancelTaxi(false);refreshHUD();
-    setTimeout(()=>{fd.classList.remove('on');toast('🚕 Você chegou: '+T_.d.name+' · '+fmtHour(nowHour()));},350);},1700);}
+function updateTaxi(dt){const T_=TAXI;if(!T_||T_.ready||T_.riding)return;dt=Math.min(dt||0.016,0.1);const P=T_.path;T_.t0=T_.t0||performance.now();
+  if(performance.now()-T_.t0>25000){const e=P[P.length-1];T_.mesh.position.set(e[0],0,e[1]);T_.seg=P.length-1;} // garantia: chega em até 25 s
+  let rest=0;for(let i=T_.seg+1;i<P.length;i++)rest+=Math.hypot(P[i][0]-(i===T_.seg+1?T_.mesh.position.x:P[i-1][0]),P[i][1]-(i===T_.seg+1?T_.mesh.position.z:P[i-1][1]));
+  const want=Math.min(10,Math.max(1.2,rest*0.7));T_.v+=(want-T_.v)*Math.min(1,dt*2);let step=T_.v*dt;
+  while(step>0&&T_.seg<P.length-1){const m=T_.mesh.position,b=P[T_.seg+1],dx=b[0]-m.x,dz=b[1]-m.z,d=Math.hypot(dx,dz);
+    if(d<=step){m.x=b[0];m.z=b[1];T_.seg++;step-=d;continue;}m.x+=dx/d*step;m.z+=dz/d*step;step=0;const yaw=Math.atan2(dx,dz);T_.mesh.rotation.y=T_.yaw==null?yaw:turnToward(T_.mesh.rotation.y,yaw,dt*0.6);T_.yaw=yaw;}
+  if(T_.seg>=P.length-1){T_.ready=true;T_.x=T_.mesh.position.x;T_.z=T_.mesh.position.z;toast('🚕 Seu táxi chegou');}}
+function rideTaxi(){if(!TAXI||!TAXI.ready)return;const T_=TAXI;T_.riding=true;hero.auto=false;hero.path=null;if(heroMesh)heroMesh.visible=false;
+  const pts=planRoute(T_.x,T_.z,M(T_.d.x),M(T_.d.y),'car')||[[T_.x,T_.z],[M(T_.d.x),M(T_.d.y)]];let len=0;for(let i=1;i<pts.length;i++)len+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);
+  BM.ride={pts,len,t:0,dur:cl(len/30,4,9),sec:T_.q.sec,d:T_.d,price:T_.q.price,last:performance.now()};BM.mode='ride';const el=document.getElementById('bigmap');el.classList.remove('off');el.classList.add('ride');BM.z=Math.max(BM.z,1.6);rideLoop();}
+function rideLoop(){const R=BM.ride;if(!R)return;const now=performance.now(),dt=Math.min(0.1,(now-R.last)/1000);R.last=now;const k0=R.t/R.dur;R.t+=dt;const k=Math.min(1,R.t/R.dur);dayAcc+=R.sec*(k-k0);
+  let want=k*R.len,acc=0,pos=R.pts[0],yaw=0;for(let i=1;i<R.pts.length;i++){const a=R.pts[i-1],b=R.pts[i],l=Math.hypot(b[0]-a[0],b[1]-a[1]);yaw=Math.atan2(b[0]-a[0],b[1]-a[1]);if(acc+l>=want){const f=(want-acc)/(l||1);pos=[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f];break;}acc+=l;pos=b;}
+  R.pos=pos;R.yaw=yaw;BM.cx=pos[0]/TS;BM.cy=pos[1]/TS;if(TAXI){TAXI.mesh.position.set(pos[0],0,pos[1]);TAXI.mesh.rotation.y=yaw;}drawBigMap();
+  if(k>=1){const T_=TAXI,d=R.d;BM.ride=null;BM.mode=null;const el=document.getElementById('bigmap');el.classList.remove('ride');closeBigMap();
+    hero.x=d.x;hero.y=d.y;if(heroMesh){heroMesh.visible=true;heroMesh.position.set(M(hero.x),0,M(hero.y));}if(WAYPOINT&&Math.hypot(WAYPOINT.x-hero.x,WAYPOINT.y-hero.y)<TILE*2)clearWaypoint();
+    if(T_){const sp=roadNear(M(d.x),M(d.y));if(sp){T_.mesh.position.set(sp.x,0,sp.z);}setTimeout(()=>cancelTaxi(false),2500);}refreshHUD();toast('🚕 Você chegou: '+d.name+' · '+fmtHour(nowHour()));return;}
+  requestAnimationFrame(rideLoop);}
+function openTaxiMap(){BM.mode='taxi';BM.tdest=null;openBigMap();}
 
 /* ============================ CANTEIRO DE OBRAS ============================ */
 function buildProgress(co){if(!co||!co.build)return 1;return cl(1-(co.build-dayAcc/DAY_SEC)/(co.buildTot||co.build),0.02,0.99);}
@@ -2850,7 +2898,7 @@ function buildRoom(B,W,D,floorMat,opts){const I=imat();opts=opts||{};const H=opt
   // porta de saída (+z)
   B.add(I.black,xf(new THREE.BoxGeometry(1.6,2.4,0.08),0,1.2,D/2-0.04));B.add(I.glass,xf(new THREE.PlaneGeometry(1.4,2.2),0,1.15,D/2-0.09,Math.PI));B.add(I.gold,xf(new THREE.BoxGeometry(0.04,0.5,0.05),0.45,1.1,D/2-0.12));
   prop(0,D/2-0.9,'🚪','Sair','Voltar para a rua',exitInterior,1.3);return H;}
-function intLights(W,D,warm){const g=INT.group;const n=Math.min(3,Math.max(1,Math.round(W*D/90)));for(let i=0;i<n;i++){const l=new THREE.PointLight(warm?0xffe2c0:0xfff6ea,warm?14:18,Math.max(W,D)*1.2,1.6);l.position.set(-W/2+W*(i+0.5)/n,3.0,0);g.add(l);}}
+function intLights(W,D,warm){const g=INT.group;INT.lights=[];const n=Math.min(3,Math.max(1,Math.round(W*D/90)));for(let i=0;i<n;i++){const l=new THREE.PointLight(warm?0xffe2c0:0xfff6ea,warm?14:18,Math.max(W,D)*1.2,1.6);l.position.set(-W/2+W*(i+0.5)/n,3.0,0);l.userData.base=l.intensity;INT.lights.push(l);g.add(l);}}
 /* ---- NPCs dentro ---- */
 function seededLook(id,kind){let h=17;for(const ch of String(id))h=(Math.imul(h,31)+ch.codePointAt(0))|0;return randomLook(rngSeed((h>>>0)||7),kind||'worker');}
 function addIntPerson(look,x,z,heading,mode,extra){const g=buildPerson(look);personLOD(g,SETTINGS.quality==='baixa'?2:0);g.position.set(x,0,z);g.rotation.y=heading;INT.group.add(g);
@@ -2877,9 +2925,10 @@ function enterInterior(spec){if(INT.active)exitInterior();if(PCAR&&PCAR.driving)
   ({office:buildOffice,sede:buildSedeRoom,rival:buildRivalLobby,home:buildHome,dealer:buildShowroom,job:jobInterior,restaurant:restaurantInterior,garage:garageInterior})[spec.kind](B,spec);
   if(spec.kind==='office')placeCandidates(B,spec.co);if(spec.kind==='sede')sedeMeetingHook();INT.staffP=null;addStaff(spec);
   B.build(INT.group);INT.group.traverse(o=>{if(o.isMesh&&!o.isSkinnedMesh){o.castShadow=false;o.receiveShadow=false;}});intLights(INT.W,INT.D,spec.kind==='home');
-  hero.x=PX(IORIG.x);hero.y=PX(IORIG.z+INT.D/2-2.6);hero.heading=Math.PI;hero.auto=false;CAM.yaw=0;CAM.dist=4.6;CAM.pitch=0.34;CAM.init=false;
+  {let sx=0,sz=INT.D/2-2.6;const ok=(x,z)=>intWalkable(PX(IORIG.x+x),PX(IORIG.z+z));if(!ok(sx,sz)){outer:for(let r=0.4;r<4;r+=0.4)for(let k=0;k<12;k++){const x=Math.cos(k/12*6.283)*r,z=sz+Math.sin(k/12*6.283)*r;if(ok(x,z)){sx=x;sz=z;break outer;}}}
+  hero.x=PX(IORIG.x+sx);hero.y=PX(IORIG.z+sz);}hero.heading=Math.PI;hero.auto=false;CAM.yaw=0;CAM.dist=4.6;CAM.pitch=0.34;CAM.init=false;
   sun.castShadow=false;heroRing.visible=false;refreshHUD();}
-function exitInterior(){if(!INT.active)return;closeModal();const spec=INT.active;INT.active=null;
+function exitInterior(){if(!INT.active)return;if(SLEEPFX){SLEEPFX=null;if(heroMesh)heroMesh.rotation.set(0,0,0);}closeModal();const spec=INT.active;INT.active=null;
   for(const p of INT.people)disposePerson(p.g);INT.group.traverse(o=>{if(o.geometry&&!o.isSkinnedMesh)o.geometry.dispose();});scene.remove(INT.group);INT.group=null;INT.people=[];INT.props=[];INT.obst=[];
   for(const o of INT.hidden)o.visible=true;INT.hidden=[];const b=INT.back;hero.x=spec.exit?spec.exit[0]:b.x;hero.y=spec.exit?spec.exit[1]:b.y;hero.heading=Math.PI;CAM.yaw=b.yaw;CAM.dist=b.dist;CAM.pitch=b.pitch;CAM.init=false;
   sun.castShadow=QUAL[SETTINGS.quality].shadow>0;if(PCAR)PCAR.mesh.visible=true;refreshHUD();}
@@ -2944,8 +2993,9 @@ function buildHome(B){const I=imat(),a=S.assets||{},t=a.home||0,lv=a.decor||0;co
   // notebook / escrivaninha
   fDesk(B,W/2-1.6,D/2-2.4,Math.PI/2);prop(W/2-2.6,D/2-2.4,'💻','Notebook','Fazer freela de casa (⚡30)',()=>{const pay=actFreelance();if(pay){toast('💻 Freela feito em casa · +'+money(pay));refreshHUD();}});
   // tablet de imóveis (corretor)
-  B.add(I.black,xf(new THREE.BoxGeometry(0.3,0.02,0.2),0,0.79,0));B.add(I.deskDark,xf(new THREE.BoxGeometry(1.2,0.04,0.7),0,0.76,0));B.add(I.metal,xf(new THREE.CylinderGeometry(0.05,0.05,0.74,6),0,0.37,0));obst(0,0,1.2,0.7);
-  prop(0,0.7,'🏠','Tablet de imóveis','Mudar de casa · reformar e decorar',openHomeShop,1.4);
+  {const tx=W/2-1.2,tz=-D/2+(t>=2?2.6:3.0);B.add(I.black,xf(new THREE.BoxGeometry(0.3,0.02,0.2),tx,0.79,tz));B.add(I.deskDark,xf(new THREE.BoxGeometry(0.7,0.04,1.0),tx,0.76,tz));B.add(I.metal,xf(new THREE.CylinderGeometry(0.05,0.05,0.74,6),tx,0.37,tz));obst(tx,tz,0.7,1.0);
+  prop(tx-0.9,tz,'🏠','Tablet de imóveis','Mudar de casa · reformar e decorar',openHomeShop,1.4);}
+  INT.bed={x:bx,z:bz};
   prop(-W/2+0.9,D/2-1.2,'🚗','Garagem',GARAGE[t]+' vaga(s) · '+(S.assets.cars||[]).length+' carro(s)',()=>{const ex=INT.active.exit;exitInterior();enterInterior({kind:'garage',title:'Garagem',exit:ex});},1.3);
   if(t>=1)fSofa(B,-W/2+1.3,D/2-2.6,Math.PI/2,2.4);if(t>=1){B.add(I.black,xf(new THREE.BoxGeometry(1.6,0.9,0.06),-W/2+0.05+2.8,1.3,D/2-0.06));}
   if(t>=2){fShelf(B,0,-D/2+0.35,0,2.6);B.add(I.kitchen,xf(new THREE.BoxGeometry(3,0.95,0.7),W/2-2,0.475,-D/2+0.4));B.add(I.counter,xf(new THREE.BoxGeometry(3.05,0.05,0.75),W/2-2,0.97,-D/2+0.4));obst(W/2-2,-D/2+0.4,3,0.7);}
@@ -2954,7 +3004,18 @@ function buildHome(B){const I=imat(),a=S.assets||{},t=a.home||0,lv=a.decor||0;co
   for(let i=0;i<lv*2+(t>=2?2:0);i++)fPlant(B,(i%2?W/2-0.7:-W/2+0.7),-D/2+3+i*1.2,1.1+lv*0.1);
   if(lv>=1)B.add(I.rug,xf(new THREE.BoxGeometry(3,0.01,2),0,0.01,D/2-3));
   if(lv>=2)for(let i=0;i<lv;i++){const pm=std({color:[0x8a3a2a,0x2a4a6a,0xc9a24a][i%3],roughness:.6});INT.mats.push(pm);B.add(pm,xf(new THREE.BoxGeometry(1.2,0.9,0.04),-W/2+0.03,1.7,-1+i*1.8,Math.PI/2));}}
-function sleepHome(){closeModal();if(S.over)return;dayAcc=0;S.slept=true;SLEPT=true;endDay();afterDay3d();toast('🛏️ Bom dia! Energia renovada (⚡'+Math.round(S.energy)+')');refreshHUD();}
+let SLEEPFX=null;
+function sleepHome(){closeModal();if(S.over||SLEEPFX)return;const b=INT.bed;if(!b||!heroMesh){dayAcc=0;S.slept=true;SLEPT=true;endDay();afterDay3d();refreshHUD();return;}
+  hero.auto=false;SLEEPFX={t:0,dur:7.5,done:false,cam:{yaw:CAM.yaw,dist:CAM.dist,pitch:CAM.pitch}};
+  hero.x=PX(IORIG.x+b.x+0.3);hero.y=PX(IORIG.z+b.z+0.2);CAM.yaw=-0.9;CAM.dist=4.2;CAM.pitch=0.62;
+  heroMesh.rotation.set(-Math.PI/2,0,0);heroMesh.position.set(IORIG.x+b.x,0.7,IORIG.z+b.z+0.88);
+  const z=document.getElementById('fade');z.innerHTML='';z.classList.remove('on');}
+function updateSleep(dt){const F=SLEEPFX;if(!F)return;F.t+=dt;const k=F.t/F.dur;
+  // 0–35%: anoitece · 35–60%: madrugada (vira o dia) · 60–100%: amanhece
+  const dark=k<0.35?sstep(0,0.35,k):k<0.6?1:1-sstep(0.6,1,k);F.win=0.95-0.9*dark;F.lum=1-0.82*dark;
+  if(!F.done&&k>=0.47){F.done=true;dayAcc=0;S.slept=true;SLEPT=true;endDay();afterDay3d();refreshHUD();}
+  const b=INT.bed;if(b&&heroMesh){heroMesh.rotation.set(-Math.PI/2,0,0);heroMesh.position.set(IORIG.x+b.x,0.7,IORIG.z+b.z+0.88);}
+  if(k>=1){SLEEPFX=null;if(heroMesh){heroMesh.rotation.set(0,0,0);}if(b){hero.x=PX(IORIG.x+b.x+1.25);hero.y=PX(IORIG.z+b.z+0.4);}toast('🛏️ Bom dia! '+fmtHour(nowHour())+' · energia ⚡'+Math.round(S.energy));}}
 /* ---- concessionária: carros girando em plataformas ---- */
 function buildShowroom(B){const I=imat();const W=26,D=15;buildRoom(B,W,D,I.marbleF,{wall:I.wallDark,H:5});const n=CAR_DEF.length-1;
   for(let i=1;i<=n;i++){const x=-W/2+3+(i-1)*((W-6)/(n-1)),z=-1.5;B.add(I.platform,xf(new THREE.CylinderGeometry(2.4,2.5,0.18,32),x,0.09,z));obst(x,z,4.4,4.4);
@@ -3030,6 +3091,7 @@ function openOS(tab){osTab=tab||osTab;const unread=S.inbox.filter(m=>!m.read).le
   if(osTab==='agenda'){const it=S.agenda.filter(a=>a.day>=S.day).sort((a,b)=>a.day-b.day||a.hour-b.hour);
     body+='<p class="small">Agora: dia '+S.day+' · '+fmtHour(nowHour())+(timeScale()<1?' · ⏱ modo agenda (tempo mais lento)':'')+'</p>'+(it.length?it.map(a=>'<div class="lrow" data-wp="'+a.id+'"><span>'+(a.status==='done'?'✅':'📍')+' <b>'+esc(a.title)+'</b><br><span class="small">Dia '+a.day+' · '+fmtHour(a.hour)+' · '+esc(a.place?a.place.name:'')+'</span></span><span class="small">'+(a.status==='pending'?'Ir ›':a.status==='done'?'feito':'perdido')+'</span></div>').join(''):'<p class="small">Nenhum compromisso. Arrume um emprego ou aceite convites de reunião.</p>');}
   else if(osTab==='msg')body+=S.inbox.length?S.inbox.map(m=>{m.read=true;return '<div class="lrow"><span>'+m.ico+' <b>'+esc(m.from)+'</b><br><span class="small">'+esc(m.txt)+'</span></span><span class="small">dia '+m.d+'</span></div>';}).join(''):'<p class="small">Sem mensagens.</p>';
+  else if(osTab==='taxi'&&!TAXI&&!INT.active&&!(PCAR&&PCAR.driving)){osTab='agenda';closeModal();openTaxiMap();return;}
   else if(osTab==='taxi')body+=taxiTab();
   else if(osTab==='jobs')body+=JOBS.map(j=>{const sp=SPECIAL['job:'+j.id];const ok=S.phase>=j.phase;const mine=S.job&&S.job.id===j.id;return '<div class="lrow" data-job="'+j.id+'"><span>'+j.ico+' <b>'+esc(j.t)+'</b> · '+esc(j.co)+'<br><span class="small">'+money(jobPay(j,0))+'/turno · turno às '+fmtHour(j.hour)+' · '+(ok?esc(j.req):'🔒 fase '+j.phase+'+')+'</span></span><span class="small">'+(mine?'seu emprego':'ver no mapa ›')+'</span></div>';}).join('');
   else body+=FEED.slice(0,14).map(f=>'<div class="small" style="padding:4px 0">Dia '+f.d+' · '+esc(f.h)+'</div>').join('');
@@ -3282,7 +3344,7 @@ function frame(now){const dt=Math.min((now-last)/1000,0.05);last=now;
     if(started){const dtx=document.getElementById('dayTxt'),tt='Dia '+S.day+' · '+fmtHour(nowHour())+(timeScale()<1?' ⏱':'');if(dtx&&dtx.dataset.t!==tt){dtx.dataset.t=tt;dtx.textContent=tt;}}
     tod=SETTINGS.cycle?nowHour()/24:0.45;
     const dp=document.getElementById('dayProg');if(dp)dp.style.width=(dayAcc/DAY_SEC*100)+'%';
-    if(INT.active){updateHero(dt);updateInterior(dt);}else{updateDelivery();updateFame(dt);updateWorkers(dt);updateDriving(dt);updateTaxi();updateHero(dt);updateTraffic(dt);updateCrowd(dt);updateNPCs(dt);updateSteam(dt);syncBuildings();updateGhost();}updateCamera(dt);updateLighting();updateInteract();updateGuide(dt);
+    if(INT.active){updateSleep(dt);updateHero(dt);updateInterior(dt);}else{updateDelivery();updateFame(dt);updateWorkers(dt);updateDriving(dt);updateTaxi(dt);updateHero(dt);updateTraffic(dt);updateCrowd(dt);updateNPCs(dt);updateSteam(dt);syncBuildings();updateGhost();}updateCamera(dt);updateLighting();updateInteract();updateGuide(dt);
     if(started&&now-(frame.saved||0)>30000){frame.saved=now;saveLocal();}
     if(SETTINGS.quality==='media'&&now-lastShadow>=125){sun.shadow.needsUpdate=true;lastShadow=now;}
     if(!INT.active)updatePersonLODs();renderer.render(scene,camera);
