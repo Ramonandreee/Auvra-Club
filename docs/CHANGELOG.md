@@ -2,6 +2,10 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.3.2 — 2026-11-27
+- **feat(town):** mapa mais limpo. O painel lateral virou duas listas em abas, **Ir para** (atalhos, incluindo sua corretora e a Bolsa) e **Mostrar** (camadas com cor, contagem e interruptor, que também servem de legenda). Tudo cabe na tela sem rolar.
+- Pinos próximos da mesma categoria viram **um pino com número**, e tocar nele aproxima o mapa. Concorrentes começam ocultos. Nomes dos pontos turísticos só aparecem com mais zoom.
+
 ## 2.3.1 — 2026-11-27
 - **fix(town):** o herói voltou a andar na rua. Um comentário de uma linha engolia o código de colisão ao ar livre (`heroFree`), e o joystick não movia o boneco. Mesmo defeito corrigido no ajuste do trench coat.
 

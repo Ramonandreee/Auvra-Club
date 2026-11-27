@@ -403,6 +403,20 @@
   #bigmap .bmquick{gap:5px!important}#bigmap .bmquick button{padding:4px 2px!important;font-size:15px!important}
   #bigmap .bmfbtn{background:none;border:0;text-align:left;padding:2px 0;cursor:pointer}
   #bigmap .bmchips button{padding:4px 8px!important;font-size:11px!important}
+  #bigmap .bmx{width:32px!important;height:32px!important;font-size:14px!important}
+  #bigmap .bmtabs{display:grid;grid-template-columns:1fr 1fr;background:#1c1f24;border-radius:10px;padding:3px;gap:3px;flex:none}
+  #bigmap .bmtabs button{border:0;background:none;color:var(--dim);font-weight:800;font-size:12.5px;padding:5px 0;border-radius:8px}
+  #bigmap .bmtabs button.on{background:#2e3239;color:var(--cream)}
+  #bigmap .bmlist{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;margin:0 -4px}
+  #bigmap .bmrow{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;border-bottom:1px solid rgba(255,255,255,.06);padding:0 6px;min-height:28px;flex:1 0 28px;max-height:40px;color:var(--cream);text-align:left;font-size:13px}
+  #bigmap .bmrow:last-child{border-bottom:0}#bigmap .bmrow:active{background:rgba(255,255,255,.05)}
+  #bigmap .bmi{width:20px;text-align:center;font-size:14px;flex:none}#bigmap .bmn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+  #bigmap .bmgo2{color:var(--dim);font-size:18px}#bigmap .bmc{font-size:11px;color:var(--dim);min-width:16px;text-align:right}
+  #bigmap .bmdot{width:8px;height:8px;border-radius:50%;flex:none;opacity:.35}#bigmap .bmrow.on .bmdot{opacity:1}
+  #bigmap .bmrow:not(.on)[data-c] .bmn,#bigmap .bmrow:not(.on)[data-c] .bmi{opacity:.45}
+  #bigmap .bmsw{width:30px;height:17px;border-radius:9px;background:#3a3e45;position:relative;flex:none;transition:background .15s}
+  #bigmap .bmsw i{position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#cfd3da;transition:left .15s}
+  #bigmap .bmrow.on .bmsw{background:#c89a3a}#bigmap .bmrow.on .bmsw i{left:15px;background:#fff}
   .modal .mact{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:6px!important}
   .modal .mbtn{padding:7px 10px!important;min-height:0!important}.modal .mbtn span{font-size:11.5px!important}
   .modal{max-height:calc(100 * var(--uh) - 16px - var(--st) - var(--sb))!important;width:min(720px,calc(96 * var(--uw)))!important}
@@ -2618,7 +2632,7 @@ function planRoute(x,z,tx,tz,mode){const p=findPath(Math.floor(x/TS),Math.floor(
   pts.push([tx,tz]);pts=simplifyPath(pts);return mode==='walk'?smoothPath(pts):pts;}
 
 /* ---- GPS: rota até o destino marcado (setas no chão, minimapa, mapa e instrução de curva) ---- */
-let WAYPOINT=null, wpMesh=null, ROUTE=null, routeT=0, arrowMesh=null;const MAPF={me:true,emp:true,rv:true,lm:true,ct:true,place:true,job:true,meet:true};
+let WAYPOINT=null, wpMesh=null, ROUTE=null, routeT=0, arrowMesh=null;const MAPF={me:true,emp:true,rv:false,lm:true,ct:true,place:true,job:true,meet:true};
 function routeMode(){return PCAR&&PCAR.driving?'car':'walk';}
 function computeRoute(){if(!WAYPOINT||!hero||INT.active){ROUTE=null;return;}const mode=routeMode();const pts=planRoute(M(hero.x),M(hero.y),M(WAYPOINT.x),M(WAYPOINT.y),mode)||planRoute(M(hero.x),M(hero.y),M(WAYPOINT.x),M(WAYPOINT.y),'walk');
   if(!pts){ROUTE=null;return;}let len=0;for(let i=1;i<pts.length;i++)len+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);ROUTE={pts,mode,len};}
@@ -2720,27 +2734,34 @@ function drawBigMap(){const el=document.getElementById('bigmap'),cvm=el.querySel
   else if(BM.mode==='taxi'&&BM.tdest&&hero){const pr=planRoute(M(hero.x),M(hero.y),M(BM.tdest.x),M(BM.tdest.y),'car');if(pr){g.strokeStyle='#f2b705';g.lineWidth=cl(k*0.28,3,8);g.setLineDash([8,6]);g.beginPath();pr.forEach((p,i)=>{const x=tx(p[0]/TS),y=ty(p[1]/TS);i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();g.setLineDash([]);}}
   else drawRouteOn(g,tx,ty,k,cl(k*0.32,4,9));
   el._pois=[];const P=mapPOIs();const pr=cl(k*0.62,11,19);g.font=Math.round(pr*1.05)+'px sans-serif';
-  for(const p of P){if(!MAPF[p.cat])continue;const x=tx(p.x/TILE),y=ty(p.y/TILE);if(x<-20||y<-20||x>r.width+20||y>r.height+20)continue;
+  const vis=[];for(const p of P){if(!MAPF[p.cat])continue;const x=tx(p.x/TILE),y=ty(p.y/TILE);if(x<-20||y<-20||x>r.width+20||y>r.height+20)continue;
+    const near=vis.find(c=>c.cat===p.cat&&Math.hypot(c.sx-x,c.sy-y)<pr*2.3);if(near){near.n++;near.list.push(p);continue;}vis.push(Object.assign({sx:x,sy:y,n:1,list:[p]},p));}
+  for(const p of vis){const x=p.sx,y=p.sy;
     g.fillStyle='rgba(0,0,0,.35)';g.beginPath();g.arc(x+1.5,y+2,pr,0,7);g.fill();g.fillStyle='#16181c';g.beginPath();g.arc(x,y,pr,0,7);g.fill();g.strokeStyle=p.col;g.lineWidth=2.5;g.stroke();g.fillText(p.ico,x,y+1);
-    if(p.cat==='lm'&&BM.z>=1.6){g.font='600 '+cl(k*0.42,9,14)+'px system-ui,sans-serif';g.strokeStyle='rgba(10,12,16,.85)';g.lineWidth=3;g.strokeText(p.name,x,y+pr+9);g.fillStyle='#e8d9b0';g.fillText(p.name,x,y+pr+9);g.font=Math.round(pr*1.05)+'px sans-serif';}
-    el._pois.push(Object.assign({sx:x,sy:y},p));}
+    if(p.n>1){const bx=x+pr*0.8,by=y-pr*0.8,br=Math.max(8,pr*0.55);g.fillStyle=p.col;g.beginPath();g.arc(bx,by,br,0,7);g.fill();g.strokeStyle='#16181c';g.lineWidth=2;g.stroke();
+      g.fillStyle='#111';g.font='800 '+Math.round(br*1.15)+'px system-ui,sans-serif';g.fillText(p.n,bx,by+1);g.font=Math.round(pr*1.05)+'px sans-serif';}
+    else if(p.cat==='lm'&&BM.z>=2.2){g.font='600 '+cl(k*0.42,9,14)+'px system-ui,sans-serif';g.strokeStyle='rgba(10,12,16,.85)';g.lineWidth=3;g.strokeText(p.name,x,y+pr+9);g.fillStyle='#e8d9b0';g.fillText(p.name,x,y+pr+9);g.font=Math.round(pr*1.05)+'px sans-serif';}
+    el._pois.push(p);}
   if(WAYPOINT){const x=tx(WAYPOINT.x/TILE),y=ty(WAYPOINT.y/TILE);g.fillStyle='#2f8fff';g.strokeStyle='#fff';g.lineWidth=3;g.beginPath();g.moveTo(x,y);g.arc(x,y-pr*1.6,pr*0.85,Math.PI*0.75,Math.PI*0.25);g.closePath();g.fill();g.stroke();g.fillStyle='#fff';g.beginPath();g.arc(x,y-pr*1.6,pr*0.32,0,7);g.fill();}
   if(MAPF.me&&hero)drawPlayerArrow(g,tx(hero.x/TILE),ty(hero.y/TILE),cl(k*0.55,9,16));
   // painel lateral: destino, atalhos, filtros
-  const cats=[['me','➤','Você'],['emp','⭐','Suas empresas'],['rv','🚩','Concorrentes'],['lm','🏛️','Marcos'],['ct','👤','Contatos'],['place','🏠','Casa e lojas'],['job','💼','Vagas'],['meet','📅','Compromissos']];
-  const quick=[];if(SPECIAL.home)quick.push(['home','🏠','Casa']);if(sede)quick.push(['sede','⭐','Sede']);if(S.job&&SPECIAL['job:'+S.job.id])quick.push(['job:'+S.job.id,'💼','Trabalho']);if(SPECIAL.dealer)quick.push(['dealer','🚗','Carros']);if(SPECIAL.rest)quick.push(['rest','🍽️','Restaurante']);
+  const cats=[['me','➤','Você','#2f8fff'],['emp','⭐','Suas empresas','#ffe27a'],['job','💼','Trabalho e vagas','#8fd07a'],['place','🛍️','Lojas e serviços','#8fc8ff'],['meet','📅','Compromissos','#c79cff'],['ct','👤','Contatos','#ffd34a'],['lm','🏛️','Pontos turísticos','#e8d9b0'],['rv','🚩','Concorrentes','#d0503a']];
+  const cnt={};for(const p of P)cnt[p.cat]=(cnt[p.cat]||0)+1;cnt.me=1;
+  const quick=[];if(SPECIAL.home)quick.push(['home','🏠','Casa']);if(sede)quick.push(['sede','⭐','Sede']);if(S.job&&SPECIAL['job:'+S.job.id])quick.push(['job:'+S.job.id,'💼','Trabalho']);if(SPECIAL.dealer)quick.push(['dealer','🚗','Carros']);if(SPECIAL.rest)quick.push(['rest','🍽️','Restaurante']);if(S.inv&&S.inv.b&&SPECIAL['broker:'+S.inv.b])quick.push(['broker:'+S.inv.b,SPECIAL['broker:'+S.inv.b].ico,'Sua corretora']);{const ny=LANDMARKS.find(l=>l.kind==='nyse');if(ny)quick.push(['lm:nyse','🏛️','Bolsa de Nova York']);}
   const nx=(S.agenda||[]).filter(a=>a.day>=S.day&&a.status==='pending'&&a.place).sort((a,b)=>a.day-b.day||a.hour-b.hour)[0];if(nx)quick.push(['agenda','📅','Compromisso']);
   if(BM.mode==='ride'&&BM.ride){const R=BM.ride;leg.innerHTML='<div class="bmh"><b>🚕 Corrida</b></div><div class="bmtip">Tarifa paga: '+money(R.price)+'</div><div class="bmdest"><div class="bmd1">📍 '+esc(R.d.name)+'</div><div class="bmd2">'+fmtDist(R.len*(1-R.t/R.dur))+' restantes · agora '+fmtHour(nowHour())+'</div><div class="tbar"><i style="width:'+Math.round(R.t/R.dur*100)+'%"></i></div></div><div class="bmtip">O motorista conhece os atalhos. Relaxe.</div>';return;}
   if(BM.mode==='taxi'){const d=BM.tdest,q=d?taxiQuote(d):null;
     leg.innerHTML='<div class="bmh"><b>🚕 Táxi</b><button class="bmx" id="bmClose" aria-label="Cancelar">✕</button></div><div class="bmtip">Toque no destino no mapa.</div>'+(d?'<div class="bmdest"><div class="bmd1">📍 '+esc(d.name)+'</div><div class="bmd2">'+fmtDist(q.len)+' · chegada ~'+fmtHour(q.arrive)+'</div><button class="bmbtn bmgo" id="tGo"'+(S.cash<q.price?' disabled':'')+'>Chamar e pagar '+money(q.price)+'</button></div>':'<div class="bmtip">Caixa: '+money(S.cash)+'. O preço sai pela rota de carro.</div>')+'';
     const go=document.getElementById('tGo');if(go)go.onclick=()=>{BM.mode=null;callTaxi(d);};document.getElementById('bmClose').onclick=()=>{BM.mode=null;closeBigMap();};return;}
+  const tab=BM.tab||'go';
   leg.innerHTML='<div class="bmh"><b>Mapa</b><button class="bmx" id="bmClose" aria-label="Fechar">✕</button></div>'+
-    (WAYPOINT?'<div class="bmdest"><div class="bmd1">📍 '+esc(WAYPOINT.label)+'</div><div class="bmd2">'+(ROUTE?fmtDist(ROUTE.len)+' · '+(ROUTE.mode==='car'?'🚗 de carro':'🚶 a pé'):'Sem rota')+'</div><button class="bmbtn" id="bmClear">Encerrar rota</button></div>':'<div class="bmtip">Toque num lugar do mapa ou escolha um atalho para traçar a rota.</div>')+
-    '<div class="bmsec">Ir para</div><div class="bmquick">'+quick.map(([q,i,n])=>'<button data-q="'+q+'">'+i+'<span>'+n+'</span></button>').join('')+'</div>'+
-    '<button class="bmsec bmfbtn" id="bmF">Filtros '+(BM.filt?'▴':'▾')+'</button>'+(BM.filt?'<div class="bmchips">'+cats.map(([c,i,n])=>'<button data-c="'+c+'" class="'+(MAPF[c]?'on':'')+'">'+i+' '+n+'</button>').join('')+'</div>':'');
-  document.getElementById('bmF').onclick=()=>{BM.filt=!BM.filt;drawBigMap();};
+    (WAYPOINT?'<div class="bmdest"><div class="bmd1">📍 '+esc(WAYPOINT.label)+'</div><div class="bmd2">'+(ROUTE?fmtDist(ROUTE.len)+' · '+(ROUTE.mode==='car'?'de carro':'a pé'):'Sem rota')+'</div><button class="bmbtn" id="bmClear">Encerrar rota</button></div>':'<div class="bmtip">Toque no mapa para traçar a rota.</div>')+
+    '<div class="bmtabs"><button data-t="go" class="'+(tab==='go'?'on':'')+'">Ir para</button><button data-t="show" class="'+(tab==='show'?'on':'')+'">Mostrar</button></div>'+
+    '<div class="bmlist">'+(tab==='go'?(quick.length?quick.map(([q,i,n])=>'<button class="bmrow" data-q="'+q+'"><span class="bmi">'+i+'</span><span class="bmn">'+n+'</span><span class="bmgo2">›</span></button>').join(''):'<div class="bmtip">Nenhum atalho ainda.</div>'):
+      cats.map(([c,i,n,col])=>'<button class="bmrow'+(MAPF[c]?' on':'')+'" data-c="'+c+'"><span class="bmdot" style="background:'+col+'"></span><span class="bmi">'+i+'</span><span class="bmn">'+n+'</span><span class="bmc">'+(cnt[c]||0)+'</span><span class="bmsw"><i></i></span></button>').join(''))+'</div>';
+  leg.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{BM.tab=b.dataset.t;drawBigMap();});
   leg.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{MAPF[b.dataset.c]=!MAPF[b.dataset.c];drawBigMap();});
-  leg.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const q=b.dataset.q;if(q==='sede'){const f=bFront(sede);setWaypoint(f[0],f[1],'Sua sede');}else if(q==='agenda'){setWaypoint(nx.place.x,nx.place.y,nx.title);}else{const s_=SPECIAL[q];setWaypoint(s_.front[0],s_.front[1],s_.name);}drawBigMap();});
+  leg.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const q=b.dataset.q;if(q==='sede'){const f=bFront(sede);setWaypoint(f[0],f[1],'Sua sede');}else if(q==='agenda'){setWaypoint(nx.place.x,nx.place.y,nx.title);}else if(q==='lm:nyse'){const f=landmarkFront(LANDMARKS.find(l=>l.kind==='nyse'));setWaypoint(f[0],f[1],'Bolsa de Nova York');}else{const s_=SPECIAL[q];setWaypoint(s_.front[0],s_.front[1],s_.name);}drawBigMap();});
   const bc=document.getElementById('bmClear');if(bc)bc.onclick=()=>{clearWaypoint();drawBigMap();};document.getElementById('bmClose').onclick=closeBigMap;
   if(!el._z){el._z=1;const zb=document.createElement('div');zb.className='bmzoom';zb.innerHTML='<button data-z="1">＋</button><button data-z="-1">－</button><button data-z="0">◎</button>';el.appendChild(zb);
     zb.querySelectorAll('button').forEach(b=>b.onclick=()=>{const z=+b.dataset.z;if(z===0){if(hero){BM.cx=hero.x/TILE;BM.cy=hero.y/TILE;}BM.z=Math.max(BM.z,1.8);}else BM.z=cl(BM.z*(z>0?1.5:1/1.5),1,5);drawBigMap();});}}
@@ -2753,6 +2774,7 @@ function bmWheel(ev){ev.preventDefault();BM.z=cl(BM.z*(ev.deltaY<0?1.15:1/1.15),
 function bigMapTap(ev){const el=document.getElementById('bigmap'),t=el._t;if(!t||BM.mode==='ride')return;const r=lrect(el.querySelector('canvas'));const q=lp(ev.clientX,ev.clientY),x=q.x-r.left,y=q.y-r.top;
   let best=null,bd=1e9;for(const p of el._pois||[]){const d=Math.hypot(p.sx-x,p.sy-y);if(d<Math.max(22,t.k*1.2)&&d<bd){bd=d;best=p;}}
   const set=(x_,y_,n_)=>BM.mode==='taxi'?(BM.tdest={x:x_,y:y_,name:n_}):setWaypoint(x_,y_,n_);
+  if(best&&best.n>1&&BM.mode!=='taxi'&&BM.z<5){BM.cx=(best.sx-t.ox)/t.k;BM.cy=(best.sy-t.oy)/t.k;BM.z=cl(BM.z*2,1,5);drawBigMap();return;}
   if(best){set(best.x,best.y,best.name);}else{const gx=(x-t.ox)/t.k,gy=(y-t.oy)/t.k;if(gx<0||gy<0||gx>=MAPW||gy>=MAPH)return;const st=streetAt(gx*TS,gy*TS);set(gx*TILE,gy*TILE,st?'Ponto na '+st:'Ponto marcado');}drawBigMap();}
 
 /* ============================ TÁXI PELO CELULAR ============================ */
