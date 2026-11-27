@@ -53,7 +53,10 @@ menu ou painel aberto.
 
 ## Vida em Wall Street (estilo mundo aberto)
 
-- **App do banco** (botão Banco ou 🏦 no celular, e no caixa eletrônico do 23 Wall):
+- **Celular = central de apps:** Agenda, Mensagens, Contatos, Amigos, **J.P. Halloway & Co.** (banco: conta, extrato, futuros, investimentos, crédito), Investir, **Rydr** (corridas), Vagas e Notícias. As datas são de calendário (o dia 1 é a data em que você começou).
+- **Rydr** (no lugar do táxi): RydrX, Comfort e Black (este dá ⭐ +0,3), tarifa dinâmica 1,3× no rush (8–9:30 e 17–19:30), motorista com nota e avaliação/gorjeta no fim da corrida.
+- **Bolsa:** 21 ações fictícias inspiradas nas gigantes (Aurora Devices, Seekr, Parcelo, Circlet, Harbor Pay, Fizzco, Berkwell, J.P. Halloway, Rydr…) mais o fundo NX 500.
+- **App do banco** (botão Banco ou 🏛️ no celular, e no caixa eletrônico do 23 Wall):
   - **Saldo:** conta, investimentos, dívida e patrimônio.
   - **Extrato:** cada entrada e saída com categoria, hora e saldo.
   - **Futuros:** o que cai no fechamento das 23h (aluguel/condomínio e contas, juros, alvarás, resultado de cada empresa e salário se fizer o turno), com a projeção de 7 dias e um alerta de saldo negativo.

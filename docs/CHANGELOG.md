@@ -2,6 +2,15 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.11.0 — 2026-11-27
+- **feat(town): datas de calendário** em vez de "Dia N": HUD, celular, agenda, mensagens, notícias, contatos, propostas, extrato e menu. O dia 1 é a data em que o jogador começou; saves antigos contam para trás a partir de hoje.
+- **feat(town): celular como central de apps.**
+  - **Banco J.P. Halloway & Co.:** fictício, decisão do dono do projeto para manter as marcas fictícias do CLAUDE.md. Tem aba de investimentos e corretora própria (0,05% por ordem).
+  - **Rydr no lugar do táxi:** categorias, tarifa dinâmica, motorista e avaliação.
+- **feat(town): 9 novas ações** fictícias inspiradas em empresas famosas. Saves antigos recebem o histórico de preços das novas.
+- **feat(town): trava do analógico** em qualquer direção, invisível até o dedo passar da borda.
+- **fix(town): fachadas livres.** As escadas de incêndio foram para os fundos, e postes, árvores de calçada e placas saíram da frente das entradas.
+
 ## 2.10.0 — 2026-11-27
 - **feat(town): app do banco.**
   - **Abas:** Saldo, Extrato, Futuros e Crédito.
