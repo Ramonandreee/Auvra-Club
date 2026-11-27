@@ -197,3 +197,42 @@ grant execute on function public.mark_deal_done(bigint)        to authenticated;
 do $$ begin
   alter publication supabase_realtime add table public.deals;
 exception when duplicate_object then null; end $$;
+
+-- Contas com e-mail e nome de usuário único -------------------------------
+-- Uma conta por e-mail: garantido pelo próprio Supabase Auth.
+-- Nome de usuário único (sem diferenciar maiúsculas/minúsculas): índice único em players.name.
+-- Ao criar a conta, o trigger cria o jogador com o nome escolhido; nome repetido = cadastro recusado.
+create unique index if not exists players_name_unique on public.players (lower(name));
+
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer set search_path = '' as $$
+declare uname text := trim(coalesce(new.raw_user_meta_data->>'username',''));
+begin
+  if coalesce(new.is_anonymous,false) then return new; end if;
+  if uname !~ '^[A-Za-z0-9_.]{3,20}$' then raise exception 'username_invalid'; end if;
+  if exists (select 1 from public.players where lower(name) = lower(uname)) then raise exception 'username_taken'; end if;
+  insert into public.players(id, name) values (new.id, uname);
+  return new;
+end $$;
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created after insert on auth.users for each row execute function public.handle_new_user();
+
+-- Checagem de disponibilidade para a tela de cadastro (pode ser chamada antes do login)
+create or replace function public.username_available(p_name text)
+returns boolean language sql security definer set search_path = '' stable as $$
+  select trim(p_name) ~ '^[A-Za-z0-9_.]{3,20}$'
+     and not exists (select 1 from public.players where lower(name) = lower(trim(p_name)));
+$$;
+revoke all on function public.username_available(text) from public;
+grant execute on function public.username_available(text) to anon, authenticated;
+revoke all on function public.handle_new_user() from public, anon, authenticated;
+
+-- O nome do jogador não pode ser trocado pelo cliente (só o patrimônio, fase etc.)
+create or replace function public.players_keep_name()
+returns trigger language plpgsql set search_path = '' as $$
+begin
+  if new.name is distinct from old.name then new.name := old.name; end if;
+  return new;
+end $$;
+drop trigger if exists players_keep_name on public.players;
+create trigger players_keep_name before update on public.players for each row execute function public.players_keep_name();
