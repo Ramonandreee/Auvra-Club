@@ -2,6 +2,16 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## [2.3.0] — 2026-11-28 — *Do básico ao bilionário*
+- 5 lojas em escada: Bowling Green Basics (básicos), Front Street (casual/couro), Maiden Lane (social/alfaiataria),
+  Maison Verlaine (luxo) e Atelier Ravelle (alta-costura, só com patrimônio a partir de $1M ou fase 4).
+- Peças novas: regata, cardigã, colete e gravata, trench coat, terno três peças, dinner jacket, terno bespoke,
+  alta-costura; mocassim, sapatilha, sapato artesanal; óculos aviador, pasta italiana, bolsa de couro exótico.
+- Novo espaço de joias/relógio (usado junto com o acessório): relógio clássico, suíço ($45k) e de bilionário ($380k),
+  colar de pérolas, brincos de diamante, abotoaduras, anel de sinete.
+- Estilo 0–100 com 6 níveis (Básico → Bilionário) somando roupa, calçado, acessório e joia; visual Magnata/Bilionário
+  rende reputação pública todo dia.
+
 ## [2.2.0] — 2026-11-28 — *Personagens semi-realistas (1ª etapa)*
 - Materiais físicos separados nos personagens próximos: pele (brilho e luz "por baixo"), lã/algodão (veludo da
   trama), couro (verniz) e cabelo (brilho de fio); malha mais suave de perto. Distantes seguem leves.
