@@ -2028,7 +2028,16 @@ const CAR_TYPES={
 const P_=(g,hex)=>paint(g.index?g.toNonIndexed():g,hex);
 function extrudeSide(pts,W,hex){const sh=new THREE.Shape();pts.forEach(([x,y],i)=>i?sh.lineTo(x,y):sh.moveTo(x,y));sh.closePath();
   const g=new THREE.ExtrudeGeometry(sh,{depth:W,bevelEnabled:true,bevelThickness:0.04,bevelSize:0.04,bevelSegments:1,steps:1,curveSegments:2});g.translate(0,0,-W/2);g.rotateY(-Math.PI/2);return P_(g,hex);}
-function buildCar(kind){const taxi=kind==='taxi'||kind==='taxivan';const type=taxi?(kind==='taxivan'?'minivan':'sedan'):kind==='black'?'limo':(CAR_TYPES[kind]?kind:'sedan');
+function buildMoto(){const parts=[],col=pick([0x111111,0xb01818,0x1d4fa0,0xe8e8e8,0x2b5a2b,0xf07a12]),tire=0x0e0e0e,chrome=0xb8bcc2,jk=pick([0x1b1d21,0x3a2a1a,0x23324a,0x4a1e1e]),pants=pick([0x1d2430,0x2a2a2a,0x3b3f46]);
+  for(const z of [0.7,-0.66]){parts.push(P_(xf(new THREE.TorusGeometry(0.29,0.085,8,18),0,0.33,z,Math.PI/2),tire));parts.push(P_(xf(new THREE.CylinderGeometry(0.13,0.13,0.1,10),0,0.33,z,0,0,Math.PI/2),chrome));}
+  parts.push(P_(xf(new THREE.BoxGeometry(0.2,0.26,1.05),0,0.55,0),0x26282c));parts.push(P_(xf(new THREE.BoxGeometry(0.36,0.24,0.5),0,0.84,0.22),col));parts.push(P_(xf(new THREE.BoxGeometry(0.3,0.1,0.6),0,0.86,-0.32),0x141414));
+  parts.push(P_(xf(new THREE.BoxGeometry(0.3,0.08,0.42),0,0.66,-0.78),col));parts.push(P_(xf(new THREE.BoxGeometry(0.06,0.62,0.06),0,0.68,0.6,0,-0.32),chrome));parts.push(P_(xf(new THREE.BoxGeometry(0.72,0.05,0.05),0,1.0,0.5),0x1a1a1a));
+  parts.push(P_(xf(new THREE.SphereGeometry(0.09,8,6),0,0.88,0.78),0xfff3d0));parts.push(P_(xf(new THREE.BoxGeometry(0.16,0.07,0.04),0,0.72,-1.0),0xb01818));parts.push(P_(xf(new THREE.CylinderGeometry(0.05,0.06,0.5,8),0.16,0.42,-0.45,0,1.45),chrome));
+  // piloto
+  for(const s of [-1,1]){parts.push(P_(xf(new THREE.BoxGeometry(0.15,0.15,0.5),s*0.13,0.92,-0.1),pants));parts.push(P_(xf(new THREE.BoxGeometry(0.13,0.42,0.14),s*0.17,0.66,0.14,0,0.25),pants));parts.push(P_(xf(new THREE.BoxGeometry(0.1,0.1,0.52),s*0.22,1.22,0.24,0,0.35),jk));}
+  parts.push(P_(xf(new THREE.BoxGeometry(0.4,0.56,0.26),0,1.26,-0.12,0,0.38),jk));parts.push(P_(xf(new THREE.SphereGeometry(0.16,12,10),0,1.66,0.02),col));parts.push(P_(xf(new THREE.BoxGeometry(0.22,0.08,0.06),0,1.65,0.16),0x101418));
+  const g=mergeGeometries(parts,false);parts.forEach(p=>p.dispose());const m=new THREE.Mesh(g,MAT.vcShiny);m.castShadow=SETTINGS.quality!=='baixa';m.userData.half=[0.42,1.08];m.userData.type='moto';m.userData.moto=true;return m;}
+function buildCar(kind){if(kind==='moto')return buildMoto();const taxi=kind==='taxi'||kind==='taxivan';const type=taxi?(kind==='taxivan'?'minivan':'sedan'):kind==='black'?'limo':(CAR_TYPES[kind]?kind:'sedan');
   return buildCarModel(type,taxi?0xf2b705:pick(CAR_TYPES[type].cols),taxi);}
 function buildCarModel(type,col,taxi){
   const T_=CAR_TYPES[type],L=T_.L,W=T_.W,r=T_.r,parts=[];const glass=0x18222c,dark=0x111214,chrome=0xb8bcc2;
@@ -2052,7 +2061,7 @@ function buildCarModel(type,col,taxi){
   parts.push(P_(xf(new THREE.BoxGeometry(W*0.38,0.14,0.05),0,fy,L/2+0.035),type==='coupe'?dark:0x2a2c30));
   if(taxi){const top=Math.max(...T_.cab.map(p=>p[1]));parts.push(P_(xf(new THREE.BoxGeometry(0.72,0.24,0.3),0,top+0.17,-0.2),0xf6f2e6));parts.push(P_(xf(new THREE.BoxGeometry(0.05,0.28,L*0.28),W/2+0.03,0.72,0.1),0x1a1a1a));parts.push(P_(xf(new THREE.BoxGeometry(0.05,0.28,L*0.28),-W/2-0.03,0.72,0.1),0x1a1a1a));}
   const g=mergeGeometries(parts,false);parts.forEach(p=>p.dispose());const m=new THREE.Mesh(g,MAT.vcShiny);m.castShadow=SETTINGS.quality!=='baixa';m.userData.half=[W/2,L/2];m.userData.type=type;return m;}
-function trafficKind(i){if(i===3)return 'bus';const r=Math.random();return r<0.28?'taxi':r<0.33?'taxivan':r<0.47?'sedan':r<0.6?'suv':r<0.69?'hatch':r<0.75?'coupe':r<0.82?'pickup':r<0.9?'van':r<0.94?'black':'truck';}
+function trafficKind(i){if(i===3)return 'bus';if(i%6===5)return 'moto';const r=Math.random();return r<0.28?'taxi':r<0.33?'taxivan':r<0.47?'sedan':r<0.6?'suv':r<0.69?'hatch':r<0.75?'coupe':r<0.82?'pickup':r<0.9?'van':r<0.94?'black':'truck';}
 
 /* ============================ CENA ============================ */
 let groundMesh=null, cityGroup=null, dynGroup=null, heroMesh=null, heroRing=null, ghostMesh=null;
@@ -2164,35 +2173,132 @@ function buildSteam(){const tex=softTex();for(const d of decor){if(d.kind!=='ste
     sp.userData={x:d.gx*TS,z:d.gy*TS,t:i/7};cityGroup.add(sp);STEAM.push(sp);}}}
 function updateSteam(dt){for(const sp of STEAM){const u=sp.userData;u.t=(u.t+dt*0.22)%1;const k=u.t;sp.position.set(u.x+Math.sin(k*5+u.x)*0.6*k,2.3+k*9,u.z+k*1.2);const sc=1+k*5;sp.scale.set(sc,sc,1);sp.material.opacity=0.55*(1-k)*(k<0.08?k/0.08:1);}}
 
-/* ---- trânsito: táxis amarelos, semáforos que alternam, FDR ---- */
-function buildTraffic(){LANES.length=0;INTERS.length=0;
-  const V=STREETS.filter(s=>s.axis==='v'&&s.kind===T.ROAD),H=STREETS.filter(s=>s.axis==='h'&&s.kind===T.ROAD);
-  for(const v of V)for(const h of H){if(h.b0<=v.a1&&h.b1>=v.a0&&v.b0<=h.a1&&v.b1>=h.a0&&(v.dirs||h.dirs))INTERS.push({x0:Math.max(v.a0,h.b0)*TS,x1:(Math.min(v.a1,h.b1)+1)*TS,z0:Math.max(h.a0,v.b0)*TS,z1:(Math.min(h.a1,v.b1)+1)*TS});}
-  for(const s of STREETS){if(s.kind!==T.ROAD||!s.dirs)continue;const n=s.a1-s.a0+1;
-    for(let i=0;i<n;i++){let dir=s.dirs===2?(i<n/2?1:-1):s.dirs; // mão inglesa? não: EUA, mão direita
-      const c=(s.a0+i+0.5)*TS;LANES.push({axis:s.axis,c,dir,from:s.b0*TS,to:(s.b1+1)*TS,y:0});}}
+/* ---- trânsito: faixas por sentido (mão direita), cruzamentos, curvas suaves, semáforo com amarelo, setas ---- */
+const GROUPS=[];let blinkT=0,BLINK_G=null,BLINK_M=null;
+function laneXZ(L,s){return L.axis==='v'?[L.c,s]:[s,L.c];}
+function laneYaw(L){return L.axis==='v'?(L.dir>0?0:Math.PI):(L.dir>0?Math.PI/2:-Math.PI/2);}
+function bez(a,b,c,t){const u=1-t;return [u*u*a[0]+2*u*t*b[0]+t*t*c[0],u*u*a[1]+2*u*t*b[1]+t*t*c[1]];}
+function buildTraffic(){LANES.length=0;INTERS.length=0;GROUPS.length=0;
+  const R=STREETS.filter(s=>s.kind===T.ROAD),V=R.filter(s=>s.axis==='v'),H=R.filter(s=>s.axis==='h');
+  for(const v of V)for(const h of H){if(!(v.dirs||h.dirs))continue;if(h.b0<=v.a1+1&&h.b1>=v.a0-1&&v.b0<=h.a1+1&&v.b1>=h.a0-1)INTERS.push({x0:v.a0*TS,x1:(v.a1+1)*TS,z0:h.a0*TS,z1:(h.a1+1)*TS,v,h});}
+  for(const s of R){if(!s.dirs)continue;const n=s.a1-s.a0+1,by={};
+    for(let i=0;i<n;i++){const dir=s.dirs===2?(s.axis==='v'?(i<n/2?1:-1):(i<n/2?-1:1)):s.dirs; // EUA: mão direita nos dois eixos
+      const L={axis:s.axis,c:(s.a0+i+0.5)*TS,dir,from:s.b0*TS,to:(s.b1+1)*TS,y:0,st:s};LANES.push(L);(by[dir]=by[dir]||[]).push(L);}
+    for(const d in by){const ls=by[d],rightLow=(s.axis==='v')===(+d>0);ls.sort((a,b)=>rightLow?a.c-b.c:b.c-a.c); // [0] = faixa da direita
+      const G={id:GROUPS.length,axis:s.axis,dir:+d,lanes:ls,from:s.b0*TS,to:(s.b1+1)*TS,st:s,boxes:[]};GROUPS.push(G);ls.forEach((L,i)=>{L.idx=i;L.n=ls.length;L.G=G;});}}
+  for(const G of GROUPS){for(const I of INTERS){if((G.axis==='v'?I.v:I.h)!==G.st)continue;const lo=G.axis==='v'?I.z0:I.x0,hi=G.axis==='v'?I.z1:I.x1;G.boxes.push({I,enter:G.dir>0?lo:hi,exit:G.dir>0?hi:lo});}
+    G.boxes.sort((a,b)=>(a.enter-b.enter)*G.dir);}
   const fx=67*TS;LANES.push({axis:'v',c:fx-3,dir:1,from:-300,to:MAPH*TS+300,y:8.5,fdr:true});LANES.push({axis:'v',c:fx+3,dir:-1,from:-300,to:MAPH*TS+300,y:8.5,fdr:true});
-  // semáforos (cabeças voltadas para cada eixo; as lâmpadas acendem pelo ciclo)
-  for(const ax of ['v','h']){SIG[ax+'r']=std({color:0x3a0a0a,emissive:new THREE.Color(0xff2a1a),emissiveIntensity:0});SIG[ax+'g']=std({color:0x0a2a12,emissive:new THREE.Color(0x30ff7a),emissiveIntensity:0});}
+  // semáforos: vermelho, amarelo e verde para cada eixo
+  for(const ax of ['v','h']){SIG[ax+'r']=std({color:0x3a0a0a,emissive:new THREE.Color(0xff2a1a),emissiveIntensity:0});SIG[ax+'y']=std({color:0x3a2a0a,emissive:new THREE.Color(0xffb21a),emissiveIntensity:0});SIG[ax+'g']=std({color:0x0a2a12,emissive:new THREE.Color(0x30ff7a),emissiveIntensity:0});}
   const B=new Batch();for(const I of INTERS){for(const [x,z,ax] of [[I.x0-1.2,I.z0-1.2,'v'],[I.x1+1.2,I.z1+1.2,'v'],[I.x1+1.2,I.z0-1.2,'h'],[I.x0-1.2,I.z1+1.2,'h']]){
-    cyl(B,MAT.dark,x,0,z,0.07,0.09,4.2,8);sbox(B,MAT.dark,x,4.2,z,0.36,1.0,0.36);B.add(SIG[ax+'r'],xf(new THREE.SphereGeometry(0.12,8,6),x,4.95,z));B.add(SIG[ax+'g'],xf(new THREE.SphereGeometry(0.12,8,6),x,4.45,z));}}
+    cyl(B,MAT.dark,x,0,z,0.07,0.09,4.2,8);sbox(B,MAT.dark,x,4.2,z,0.36,1.0,0.36);B.add(SIG[ax+'r'],xf(new THREE.SphereGeometry(0.12,8,6),x,4.98,z));B.add(SIG[ax+'y'],xf(new THREE.SphereGeometry(0.12,8,6),x,4.71,z));B.add(SIG[ax+'g'],xf(new THREE.SphereGeometry(0.12,8,6),x,4.44,z));}}
   B.build(cityGroup);}
-function lightState(ax){const t=lightT%20;if(ax==='v')return t<8.5?'g':'r';return (t>=10&&t<18.5)?'g':'r';}
-function spawnCar(car,initial){car.off=null;car.yaw=null;if(!initial&&camera){const fs=farStart();if(fs){car.lane=fs[0];car.s=fs[1];car.v=fs[0].fdr?16:8;car.mesh.visible=true;return;}}const L=LANES[(Math.random()*LANES.length)|0];car.lane=L;car.v=L.fdr?16:10;car.s=initial?L.from+Math.random()*(L.to-L.from):(L.dir>0?L.from:L.to);car.mesh.visible=true;}
-function updateTraffic(dt){lightT+=dt;for(const ax of ['v','h']){const g=lightState(ax)==='g';SIG[ax+'g'].emissiveIntensity=g?2.2:0;SIG[ax+'r'].emissiveIntensity=g?0:2.2;}
+// ciclo de 20 s: verde 7 s → amarelo 1,5 s → vermelho geral 1,5 s → o outro eixo
+function lightState(ax){const t=lightT%20;if(ax==='v')return t<7?'g':t<8.5?'y':'r';return t>=10&&t<17?'g':t>=17&&t<18.5?'y':'r';}
+// sinal de pedestre: atravessa junto com o verde do eixo paralelo, se ainda sobram 2,5 s
+function yellowLeft(ax){const t=lightT%20;return ax==='v'?8.5-t:18.5-t;}
+function walkSignal(ax){const t=lightT%20;return ax==='v'?t<4.5:(t>=10&&t<14.5);}
+function continues(G,c){return G.dir>0?G.to>c+3:G.from<c-3;}
+function boxOpts(G,bx){if(bx.opts)return bx.opts;const o=[];if(continues(G,bx.exit))o.push({k:'s',G2:G,b2:bx});
+  const hx=G.axis==='v'?0:G.dir,hz=G.axis==='v'?G.dir:0,rx=-hz,rz=hx; // vetor "à direita"
+  for(const G2 of GROUPS){if(G2.axis===G.axis)continue;const b2=G2.boxes.find(b=>b.I===bx.I);if(!b2||!continues(G2,b2.exit))continue;
+    const gx=G2.axis==='v'?0:G2.dir,gz=G2.axis==='v'?G2.dir:0;const k=gx===rx&&gz===rz?'r':gx===-rx&&gz===-rz?'l':null;if(k)o.push({k,G2,b2});}
+  return bx.opts=o;}
+// escolhe a manobra no próximo cruzamento: direita só da faixa da direita, esquerda só da faixa da esquerda
+function pickMove(L,bx){const all=boxOpts(L.G,bx);let ok=all.filter(o=>o.k==='s'||(o.k==='r'&&L.idx===0)||(o.k==='l'&&L.idx===L.n-1));if(!ok.length)ok=all;if(!ok.length)return null;
+  const w=ok.map(o=>o.k==='s'?0.6:o.k==='r'?0.25:0.2);let r=Math.random()*w.reduce((a,b)=>a+b,0);for(let i=0;i<ok.length;i++){r-=w[i];if(r<=0)return ok[i];}return ok[0];}
+function turnLane(L,o){const ls=o.G2.lanes,n2=ls.length;return o.k==='r'?ls[Math.min(n2-1,L.idx)]:ls[Math.max(0,n2-1-(L.n-1-L.idx))];} // curva dupla: cada faixa na sua
+function turnExt(car){return Math.max(0,(car.mesh.userData.half||[1,2.5])[1]-2.5);} // ônibus e caminhões abrem mais a curva
+function startTurn(car,L,bx,o){const L2=turnLane(L,o),ext=turnExt(car);const P0=laneXZ(L,bx.enter-L.dir*ext),P2=laneXZ(L2,o.b2.exit+L2.dir*ext),P1=L.axis==='v'?[L.c,L2.c]:[L2.c,L.c];
+  let len=0,pr=P0;for(let i=1;i<=8;i++){const p=bez(P0,P1,P2,i/8);len+=Math.hypot(p[0]-pr[0],p[1]-pr[1]);pr=p;}car.turn={P0,P1,P2,t:Math.max(0,(car.s-bx.enter)*L.dir+ext)/Math.max(1,len),len,L2,s2:o.b2.exit+L2.dir*ext,k:o.k};}
+function carAxis(o){const y=o.yaw||0;return Math.abs(Math.sin(y))>Math.abs(Math.cos(y))?'h':'v';}
+function boxBusy(I,ax,me){for(const o of CARS){if(o===me||!o.lane||o.lane.fdr||!o.mesh.visible)continue;const q=o.mesh.position;if(q.x<I.x0-0.6||q.x>I.x1+0.6||q.z<I.z0-0.6||q.z>I.z1+0.6)continue;if(carAxis(o)!==ax)return true;}return false;}
+// conversão à esquerda espera quem vem de frente
+function oncoming(L,bx,me){for(const o of CARS){const L2=o.lane;if(!L2||L2.fdr||L2.st!==L.st||L2.dir===L.dir||o.turn||!o.mesh.visible)continue;if(o.next&&o.next.o&&o.next.o.k==='l')continue;
+  const b2=L2.G.boxes.find(b=>b.I===bx.I);if(!b2)continue;const d=(b2.enter-o.s)*L2.dir,w=Math.abs(b2.exit-b2.enter);if(d>-w&&d<22&&(o.v>0.8||d<0))return true;}return false;}
+// não bloqueia o cruzamento: só entra se houver espaço depois dele
+function roomAfter(L,sx,need,me){for(const o of CARS){if(o===me||o.lane!==L||o.turn||!o.mesh.visible)continue;const d=(o.s-sx)*L.dir-(o.mesh.userData.half||[1,2.5])[1];if(d>-1&&d<need&&o.v<3)return false;}
+  for(const o of CARS)if(o!==me&&o.turn&&o.turn.L2===L)return false;return true;}
+function laneFreeAt(L,s,skip){const p=laneXZ(L,s);for(const o of CARS)if(o!==skip&&o.lane&&o.mesh.visible&&!!o.lane.fdr===!!L.fdr&&Math.hypot(o.mesh.position.x-p[0],o.mesh.position.z-p[1])<11)return false;for(const o of CARS)if(o!==skip&&o.lane===L&&!o.turn&&Math.abs(o.s-s)<11)return false;return true;}
+function inBoxS(G,s){return !!G&&G.boxes.some(b=>(s-b.enter)*G.dir>-4&&(s-b.exit)*G.dir<3);}
+function spawnCar(car,initial){car.turn=null;car.next=null;car.blink=0;car.yaw=null;car.still=0;car.wait=0;
+  for(let k=0;k<20;k++){const L=LANES[(Math.random()*LANES.length)|0];let s;
+    if(initial)s=L.fdr?L.from+300+Math.random()*(L.to-L.from-600):L.from+4+Math.random()*Math.max(1,L.to-L.from-8);
+    else{s=L.dir>0?L.from:L.to;if(camera){const p=laneXZ(L,s);if(Math.hypot(p[0]-camera.position.x,p[1]-camera.position.z)<75)continue;}}
+    if(!L.fdr&&inBoxS(L.G,s))continue;if(!laneFreeAt(L,s,car))continue;car.lane=L;car.s=s;car.v=L.fdr?16:7;car.yaw=laneYaw(L);const p0=laneXZ(L,s);car.mesh.position.set(p0[0],L.y,p0[1]);car.mesh.rotation.y=car.yaw;car.mesh.visible=true;return;}
+  car.mesh.visible=false;car.lane=null;}
+function addBlinkers(mesh){if(!BLINK_G){BLINK_G=new THREE.BoxGeometry(0.16,0.1,0.06);BLINK_M=new THREE.MeshBasicMaterial({color:0xffa21a});}
+  const h=mesh.userData.half||[1,2.5],y=mesh.userData.moto?0.92:0.74,bl=[];
+  for(const s of [1,-1]){const g=new THREE.Group();for(const z of [h[1]+0.03,-h[1]-0.03]){const b=new THREE.Mesh(BLINK_G,BLINK_M);b.position.set(s*(h[0]-(mesh.userData.moto?0.05:0.12)),y,z);g.add(b);}g.visible=false;mesh.add(g);bl.push(g);}
+  mesh.userData.blink=bl;} // [0] = esquerda (+x local), [1] = direita
+function updateTraffic(dt){lightT+=dt;blinkT+=dt;
+  for(const ax of ['v','h']){const st=lightState(ax);SIG[ax+'g'].emissiveIntensity=st==='g'?2.2:0;SIG[ax+'y'].emissiveIntensity=st==='y'?2.4:0;SIG[ax+'r'].emissiveIntensity=st==='r'?2.2:0;}
   if(!SETTINGS.traffic){CARS.forEach(c=>c.mesh.visible=false);return;}
-  for(const car of CARS){const L=car.lane;if(!L){spawnCar(car,true);continue;}let target=L.fdr?17:11;
-    // carro da frente
-    for(const o of CARS){if(o===car||o.lane!==L)continue;const d=(o.s-car.s)*L.dir;if(d>0&&d<16){const gap=d-(car.mesh.userData.half||[1,2.5])[1]-(o.mesh.userData.half||[1,2.5])[1]-1.2;if(gap<6)target=Math.min(target,Math.max(0,gap)*1.4);}}
-    if(!L.fdr){const ax=L.axis;if(lightState(ax)==='r'){for(const I of INTERS){const inLane=ax==='v'?(L.c>I.x0&&L.c<I.x1):(L.c>I.z0&&L.c<I.z1);if(!inLane)continue;
-      const stop=L.dir>0?(ax==='v'?I.z0:I.x0)-2.6:(ax==='v'?I.z1:I.x1)+2.6;const d=(stop-car.s)*L.dir;if(d>-0.5&&d<16)target=Math.min(target,d*0.9);}}}
-    const hx=hero?M(hero.x):0,hz=hero?M(hero.y):0;const cx_=L.axis==='v'?L.c:car.s,cz_=L.axis==='v'?car.s:L.c;if(!L.fdr){const ahead=((L.axis==='v'?hz-cz_:hx-cx_)*L.dir),side=Math.abs(L.axis==='v'?hx-cx_:hz-cz_);if((ahead>-1&&ahead<7&&side<1.6)||Math.hypot(hx-cx_,hz-cz_)<2.6)target=0;}
-    if(!L.fdr&&target>0)for(const p of CROWD){const q=p.mesh.position,ah=((L.axis==='v'?q.z-cz_:q.x-cx_)*L.dir),sd=Math.abs(L.axis==='v'?q.x-cx_:q.z-cz_);if(ah>-1&&ah<6.5&&sd<1.5){target=0;break;}} // não atropela ninguém
-    target=Math.max(0,target);car.v+=(target-car.v)*Math.min(1,dt*(target<car.v?4:1.2));car.s+=car.v*L.dir*dt;
-    if(car.s<L.from-1||car.s>L.to+1)laneEnd(car);const Lc=car.lane;
-    if(car.off){const k=Math.exp(-dt*2.2);car.off[0]*=k;car.off[1]*=k;if(Math.abs(car.off[0])+Math.abs(car.off[1])<0.05)car.off=null;}
-    const x=(Lc.axis==='v'?Lc.c:car.s)+(car.off?car.off[0]:0),z=(Lc.axis==='v'?car.s:Lc.c)+(car.off?car.off[1]:0);const want=Lc.axis==='v'?(Lc.dir>0?0:Math.PI):(Lc.dir>0?Math.PI/2:-Math.PI/2);
-    car.yaw=car.yaw==null?want:turnToward(car.yaw,want,dt*0.45);car.mesh.position.set(x,Lc.y,z);car.mesh.rotation.y=car.yaw;}}
+  const hx=hero?M(hero.x):-1e4,hz=hero?M(hero.y):-1e4,blinkOn=(blinkT%0.8)<0.42,cam=camera?camera.position:null;
+  for(const car of CARS){if(!car.lane){spawnCar(car,!car.init);car.init=1;continue;}
+    const L=car.lane,m=car.mesh,ud=m.userData,half=(ud.half||[1,2.5])[1],hw=(ud.half||[1,2.5])[0];
+    let target=L.fdr?17:ud.moto?12:11;
+    const px=m.position.x,pz=m.position.z,yaw=car.yaw??laneYaw(L),fx=Math.sin(yaw),fz=Math.cos(yaw);
+    // quem está à frente (no mesmo sentido ou cruzando): mantém distância
+    let blocked=false;
+    for(const o of CARS){if(o===car||!o.lane||!o.mesh.visible||!!o.lane.fdr!==!!L.fdr)continue;const q=o.mesh.position,rx=q.x-px,rz=q.z-pz;if(Math.abs(rx)>22||Math.abs(rz)>22)continue;
+      const ah=rx*fx+rz*fz;if(ah<=0||ah>20)continue;const oy=o.yaw||0,c=Math.abs(fx*Math.cos(oy)-fz*Math.sin(oy)),oh=o.mesh.userData.half||[1,2.5];
+      const lat=Math.abs(rx*fz-rz*fx);if(lat>hw+0.35+oh[0]*(1-c)+oh[1]*c)continue;
+      const gap=ah-half-(oh[1]*(1-c)+oh[0]*c)-1.5;const t2=Math.max(0,gap)*1.3;if(t2<target){target=t2;blocked=c>0.5?'x':'s';car.why='fila';}}
+    let inBox=false;
+    if(!L.fdr&&!car.turn){const G=L.G;let nb=null;for(const b of G.boxes)if((b.exit-car.s)*L.dir>0.01){nb=b;break;}
+      if(nb){const dE=(nb.enter-car.s)*L.dir;inBox=dE<0;
+        if(!car.next||car.next.b!==nb)car.next={b:nb,o:pickMove(L,nb)};
+        const o=car.next.o;car.blink=o&&o.k!=='s'&&dE<34?(o.k==='r'?1:-1):0;
+        if(dE>-0.3){const stopD=dE-half-1.4,st=lightState(L.axis);
+          if(st==='y'&&car.commit!==nb){const left=yellowLeft(L.axis);if(car.v>1.5&&(stopD<1||stopD/car.v<left-0.2))car.commit=nb;} // dá tempo de passar no amarelo
+          if(st==='r'&&car.commit===nb&&stopD>car.v*car.v/10+0.3)car.commit=null; // no vermelho só segue quem já não consegue parar
+          if((st==='r'||st==='y')&&car.commit!==nb){if(stopD>-0.8){target=Math.min(target,Math.max(0,stopD)*0.9);car.why='sinal';}}
+          else if(stopD<4){const why=boxBusy(nb.I,L.axis,car)?'cruz-ocupado':(o&&o.k==='l'&&oncoming(L,nb,car))?'cruz-frente':(o&&!roomAfter(o.k==='s'?L:turnLane(L,o),o.b2.exit,half*2+2.5,car))?'cruz-sem-espaco':null;if(why){target=Math.min(target,Math.max(0,stopD)*0.9);car.why=why;}}
+          if(!o)target=Math.min(target,Math.max(0,stopD)*0.9); // sem saída: espera (raro)
+          else if(o.k!=='s')target=Math.min(target,Math.max(o.k==='r'?4:5,dE*0.7));}
+        if(o&&o.k!=='s'&&dE<=turnExt(car))startTurn(car,L,nb,o);}}
+    if(car.turn){target=Math.min(target,car.turn.k==='r'?4.2:5.4);inBox=true;}
+    // pedestres e o herói: freia
+    if(!L.fdr){const ah=(hx-px)*fx+(hz-pz)*fz,sd=Math.abs((hx-px)*fz-(hz-pz)*fx);if((ah>-1&&ah<half+5&&sd<hw+0.7)||Math.hypot(hx-px,hz-pz)<2.6){target=0;car.why='heroi';}
+      if(target>0)for(const p of CROWD){const q=p.mesh.position,a2=(q.x-px)*fx+(q.z-pz)*fz,s2=Math.abs((q.x-px)*fz-(q.z-pz)*fx);if(a2>-1&&a2<half+4.5&&s2<hw+0.55){target=0;car.why='pedestre';break;}}}
+    // destrava: quem já está no cruzamento e esperou demais segue devagar
+    car.wait=blocked==='x'&&target<0.5?car.wait+dt:0;if(inBox&&car.wait>5)target=Math.max(target,2.5); // só fura a espera de quem cruza, nunca de quem está na frente na mesma direção
+    target=Math.max(0,target);car.v+=(target-car.v)*Math.min(1,dt*(target<car.v?4.5:1.3));if(target===0&&car.v<0.25)car.v=0;
+    car.still=car.v<0.2?car.still+dt:0;
+    if(car.turn){const T_=car.turn;T_.t+=car.v*dt/T_.len;if(T_.t>=1){car.lane=T_.L2;car.s=T_.s2+(T_.t-1)*T_.len*T_.L2.dir;car.turn=null;car.next=null;car.blink=0;}}
+    else car.s+=car.v*L.dir*dt;
+    const Lc=car.lane,far=!cam||Math.hypot(px-cam.x,pz-cam.z)>70;
+    if(!car.turn){const endS=Lc.dir>0?Lc.to:Lc.from;if((car.s-endS)*Lc.dir>0&&(!mapEdge(Lc,endS)||(car.s-endS)*Lc.dir>45)){spawnCar(car,false);continue;}}
+    if(car.still>35&&far){spawnCar(car,false);continue;}
+    let x,z,yw;if(car.turn){const T_=car.turn,t=Math.min(1,T_.t),u=1-t;[x,z]=bez(T_.P0,T_.P1,T_.P2,t);yw=Math.atan2(2*u*(T_.P1[0]-T_.P0[0])+2*t*(T_.P2[0]-T_.P1[0]),2*u*(T_.P1[1]-T_.P0[1])+2*t*(T_.P2[1]-T_.P1[1]));}
+    else{[x,z]=laneXZ(Lc,car.s);yw=laneYaw(Lc);}
+    car.yaw=yw;m.position.set(x,Lc.y,z);m.rotation.y=yw;
+    if(ud.blink){ud.blink[0].visible=car.blink===-1&&blinkOn;ud.blink[1].visible=car.blink===1&&blinkOn;}}}
+// rota de carro pelas faixas (respeita a mão, vira nos cruzamentos): para GPS dirigindo, táxi e corrida
+function laneRoute(x,z,tx,tz){if(!GROUPS.length)return null;
+  const prj=(G,px,pz)=>[G.axis==='v'?pz:px,Math.min(...G.lanes.map(L=>Math.abs((G.axis==='v'?px:pz)-L.c)))];
+  const starts=[],ends=[];for(const G of GROUPS){const [s,lat]=prj(G,x,z);if(lat<9&&s>=G.from-2&&s<=G.to+2)starts.push([G,cl(s,G.from+0.5,G.to-0.5),lat]);
+    const [s2,l2]=prj(G,tx,tz);if(l2<16&&s2>=G.from-2&&s2<=G.to+2)ends.push([G,cl(s2,G.from+0.5,G.to-0.5),l2]);}
+  if(!starts.length||!ends.length)return null;
+  const Q=starts.map(([G,s,lat])=>({cost:lat*2,G,s,prev:null,turn:null})),seen=new Set();let fin=null,guard=0;
+  while(Q.length&&guard++<3000){let bi=0;for(let i=1;i<Q.length;i++)if(Q[i].cost<Q[bi].cost)bi=i;const n=Q.splice(bi,1)[0];if(fin&&n.cost>=fin.cost)break;
+    const key=n.G.id+':'+Math.round(n.s);if(seen.has(key))continue;seen.add(key);
+    for(const [G,s,lat] of ends)if(G===n.G&&(s-n.s)*G.dir>=-0.5){const c=n.cost+Math.abs(s-n.s)+lat*2;if(!fin||c<fin.cost)fin={cost:c,n,s};}
+    for(const bx of n.G.boxes){if((bx.enter-n.s)*n.G.dir<-0.5)continue;const base=n.cost+Math.abs(bx.enter-n.s);
+      for(const o of boxOpts(n.G,bx))if(o.k!=='s')Q.push({cost:base+Math.abs(o.b2.exit-o.b2.enter)+(o.k==='l'?14:7),G:o.G2,s:o.b2.exit,prev:n,turn:{o,bx}});}}
+  if(!fin)return null;const chain=[];for(let n=fin.n;n;n=n.prev)chain.unshift(n);
+  const pts=[[x,z]];const add=p=>{const l=pts[pts.length-1];if(Math.hypot(p[0]-l[0],p[1]-l[1])>0.3)pts.push(p);};
+  let lane=null;
+  for(let i=0;i<chain.length;i++){const n=chain[i],G=n.G,nx=chain[i+1],endS=nx?nx.turn.bx.enter:fin.s,k=nx?nx.turn.o.k:'end';
+    if(!lane){lane=G.lanes.reduce((a,b)=>Math.abs((G.axis==='v'?x:z)-b.c)<Math.abs((G.axis==='v'?x:z)-a.c)?b:a);}
+    const want=k==='l'?G.lanes[G.lanes.length-1]:G.lanes[0];add(laneXZ(lane,n.s));
+    if(want!==lane){const len=Math.abs(endS-n.s),a=Math.min(4,len*0.25),ch=Math.min(10,len*0.5);add(laneXZ(lane,n.s+G.dir*a));add(laneXZ(want,n.s+G.dir*Math.min(len,a+ch)));lane=want;}
+    add(laneXZ(lane,endS));
+    if(nx){const o=nx.turn.o,L2=o.k==='r'?o.G2.lanes[0]:o.G2.lanes[o.G2.lanes.length-1],P0=laneXZ(lane,endS),P2=laneXZ(L2,o.b2.exit),P1=lane.axis==='v'?[lane.c,L2.c]:[L2.c,lane.c];
+      for(let t=1;t<=6;t++)add(bez(P0,P1,P2,t/6));lane=L2;}}
+  add([tx,tz]);return pts;}
 
 /* ---- pools de pessoas (NPCs da economia + multidão de Wall Street) ---- */
 const SIDEWALKS=[];
@@ -2209,7 +2315,7 @@ function rebuildPools(){const q=QUAL[SETTINGS.quality];
     for(const c of sides){SIDEWALKS.push({axis:s.axis,c:(c+0.5)*TS,from:s.b0*TS+2,to:(s.b1+1)*TS-2});}}
   for(let i=0;i<q.crowd;i++){const mesh=buildPerson(randomLook(r,i%4===0?'tourist':'street'));dynGroup.add(mesh);const L=SIDEWALKS[(r()*SIDEWALKS.length)|0];
     CROWD.push({mesh,L,s:L.from+r()*(L.to-L.from),dir:r()<.5?1:-1,v:1.1+r()*0.6,lat:(r()-.5)*2.2});mesh.userData.gaitPhase=r();}
-  for(let i=0;i<q.cars;i++){const mesh=buildCar(trafficKind(i));dynGroup.add(mesh);CARS.push({mesh,lane:null,s:0,v:0});}}
+  for(let i=0;i<q.cars;i++){const mesh=buildCar(trafficKind(i));addBlinkers(mesh);dynGroup.add(mesh);CARS.push({mesh,lane:null,s:0,v:0});}}
 function updateCrowd(dt){for(const c of CROWD){if(c.look>0&&!c.stop){c.look-=dt;c.mesh.rotation.y=turnToward(c.mesh.rotation.y,Math.atan2(M(hero.x)-c.mesh.position.x,M(hero.y)-c.mesh.position.z),dt);animPerson(c.mesh,0,dt);continue;}if(c.stop){if(!modalOpen())c.stop=false;else{c.mesh.rotation.y=turnToward(c.mesh.rotation.y,Math.atan2(M(hero.x)-c.mesh.position.x,M(hero.y)-c.mesh.position.z),dt);animPerson(c.mesh,0,dt,true);continue;}}crowdMove(c,dt);}}
 let poolT=0;
 function updateNPCs(dt){poolT-=dt;const tx=hero?hero.x:WORLD.cxA*TILE,ty=hero?hero.y:WORLD.cyA*TILE;
@@ -2554,13 +2660,6 @@ function carHit(xm,zm,skip){const test=(c,px,pz,yaw,h)=>{const dx=xm-px,dz=zm-pz
   if(PCAR&&PCAR!==skip&&!PCAR.driving&&test(PCAR,PCAR.x,PCAR.z,PCAR.yaw,carHalf(PCAR)))return PCAR;return null;}
 /* ============================ TRÂNSITO: virar na esquina em vez de sumir ============================ */
 function mapEdge(L,endS){return L.fdr||endS<=0.5||endS>=(L.axis==='v'?MAPH:MAPW)*TS-0.5;}
-function laneEnd(car){const L=car.lane,endS=L.dir>0?L.to:L.from;const ex=L.axis==='v'?L.c:endS,ez=L.axis==='v'?endS:L.c;
-  if(!mapEdge(L,endS)){const opts=LANES.filter(L2=>!L2.fdr&&L2.axis!==L.axis&&Math.abs(L2.c-(L2.axis==='v'?ex:ez))<13&&(L2.axis==='v'?ez:ex)>L2.from+4&&(L2.axis==='v'?ez:ex)<L2.to-4);
-    if(opts.length){const L2=opts[(Math.random()*opts.length)|0];car.lane=L2;car.s=L2.axis==='v'?ez:ex;const nx=L2.axis==='v'?L2.c:car.s,nz=L2.axis==='v'?car.s:L2.c;car.off=[(car.off?car.off[0]:0)+ex-nx,(car.off?car.off[1]:0)+ez-nz];car.v=Math.min(car.v,5);return;}
-    const back=LANES.filter(L2=>!L2.fdr&&L2.axis===L.axis&&L2.dir===-L.dir&&Math.abs(L2.c-L.c)<13);if(back.length){car.lane=back[0];car.s=endS;car.v=1.5;return;}}
-  // saiu pela borda do mapa (ou do elevado): só reaparece numa faixa longe da câmera
-  if(Math.abs(car.s-endS)<45)return;spawnCar(car,false);}
-function farStart(){const cp=camera.position;for(let i=0;i<14;i++){const L=LANES[(Math.random()*LANES.length)|0];const s=L.dir>0?L.from:L.to;const x=L.axis==='v'?L.c:s,z=L.axis==='v'?s:L.c;if(Math.hypot(x-cp.x,z-cp.z)>70)return [L,s];}return null;}
 /* ============================ MAPA EM TELA CHEIA + DESTINOS ============================ */
 /* ============================ MUNDO SÓLIDO: prédios, objetos, carros e pessoas têm corpo ============================ */
 const PGRID=new Map();
@@ -2598,6 +2697,8 @@ function crowdMove(c,dt){const L=c.L,V=L.axis==='v',pos=(s,lat)=>V?[L.c+lat,s]:[
   const inside=solidAt(...pos(c.s,c.lat)),sol=(x,z)=>!inside&&solidAt(x,z); // nasceu dentro de algo? sai andando
   const blocked=(s,lat)=>{const [x,z]=pos(s,lat);return sol(x,z)||!!personNear(x,z,0.6,c)||Math.hypot(hx-x,hz-z)<0.75||!!carHit(x,z)||pcarHit(x,z);};
   const look=c.s+c.dir*1.15;let spd=c.v;
+  { const road=s_=>{const [x,z]=pos(s_,c.lat);return tileAt(Math.floor(x/TS),Math.floor(z/TS))===T.ROAD;};
+    if(!road(c.s)&&road(look)&&!walkSignal(L.axis)){c.mesh.rotation.y=turnToward(c.mesh.rotation.y,V?(c.dir>0?0:Math.PI):(c.dir>0?Math.PI/2:-Math.PI/2),dt);animPerson(c.mesh,0,dt);c.wait=0;return;} }
   if(blocked(look,c.lat)){let alt=null;for(const dl of [0.8,-0.8,1.5,-1.5]){const nl=cl(c.lat+dl,-1.75,1.75);if(Math.abs(nl-c.lat)<0.3)continue;const [x,z]=pos(c.s,nl);if(!sol(x,z)&&!blocked(look,nl)){alt=nl;break;}}
     if(alt!==null){c.tlat=alt;spd=c.v*0.45;c.wait=0;}else{spd=0;c.wait=(c.wait||0)+dt;if(c.wait>3.5+Math.random()*2){c.dir*=-1;c.wait=0;}}}
   else c.wait=0;
@@ -2627,7 +2728,7 @@ function lineFree(a,b,r){const d=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.ceil(d/0
 function simplifyPath(P){const o=[P[0]];for(let i=1;i<P.length-1;i++){const a=o[o.length-1],b=P[i],c=P[i+1];const cr=(b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]);if(Math.abs(cr)>0.01)o.push(b);}o.push(P[P.length-1]);return o;}
 function smoothPath(P){if(P.length<3)return P;const o=[P[0]];let i=0;while(i<P.length-1){let j=Math.min(P.length-1,i+8);while(j>i+1&&!lineFree(P[i],P[j],0.3))j--;o.push(P[j]);i=j;}return o;}
 // rota em metros, do ponto (x,z) até (tx,tz)
-function planRoute(x,z,tx,tz,mode){const p=findPath(Math.floor(x/TS),Math.floor(z/TS),Math.floor(tx/TS),Math.floor(tz/TS),mode);if(!p)return null;
+function planRoute(x,z,tx,tz,mode){if(mode==='car'){const lr=laneRoute(x,z,tx,tz);if(lr)return lr;}const p=findPath(Math.floor(x/TS),Math.floor(z/TS),Math.floor(tx/TS),Math.floor(tz/TS),mode);if(!p)return null;
   let pts=p.map(([gx,gy])=>[(gx+0.5)*TS,(gy+0.5)*TS]);pts[0]=[x,z];if(pts.length>1&&Math.hypot(pts[1][0]-x,pts[1][1]-z)<TS*0.75&&lineFree([x,z],pts[1],0.25))pts.splice(0,1,[x,z]);
   pts.push([tx,tz]);pts=simplifyPath(pts);return mode==='walk'?smoothPath(pts):pts;}
 
@@ -4300,7 +4401,7 @@ async function boot(){
   if(!MP.on)await showAuth('login',MP.sb?'':'Sem conexão com o servidor. Confira a internet e tente de novo.');
   await enterAccount();
   window.__townReady=true;
-  window.__game={AVATAR,rebuildHero,get ROUTE(){return ROUTE;},solidAt,bodyFree,setWaypoint,clearWaypoint,openBigMap,closeBigMap,goTo,get S(){return S;},get hero(){return hero;},get companies(){return companies;},get buildings(){return buildings;},canBuild,foundCompany,tryPlace,startPlacing,BUILD,get placing(){return placing;},renderer:()=>renderer,camera:()=>camera,CAM,openMenu,closeMenu,TILE,TS,M,PX,WORLD:()=>WORLD,STATS:()=>renderer.info.render,setDayAcc:v=>{dayAcc=v;},scheduleShiftX:()=>scheduleShift(),contactsX:()=>contacts,addAgenda,CARSX:()=>CARS,heroFree,WP:()=>WAYPOINT,actHire,genPerson,enterInterior,exitInterior,get SPECIAL(){return SPECIAL;},get PCAR(){return PCAR;},get INT(){return INT;},CROWD,setTod:v=>{tod=v;},sede:()=>sede,bFront,doInteract,get interact(){return interactTarget;}};}
+  window.__game={AVATAR,rebuildHero,get ROUTE(){return ROUTE;},solidAt,bodyFree,setWaypoint,clearWaypoint,openBigMap,closeBigMap,goTo,get S(){return S;},get hero(){return hero;},get companies(){return companies;},get buildings(){return buildings;},canBuild,foundCompany,tryPlace,startPlacing,BUILD,get placing(){return placing;},renderer:()=>renderer,camera:()=>camera,CAM,openMenu,closeMenu,TILE,TS,M,PX,WORLD:()=>WORLD,STATS:()=>renderer.info.render,setDayAcc:v=>{dayAcc=v;},scheduleShiftX:()=>scheduleShift(),contactsX:()=>contacts,addAgenda,CARSX:()=>CARS,heroFree,WP:()=>WAYPOINT,actHire,genPerson,enterInterior,exitInterior,get SPECIAL(){return SPECIAL;},get PCAR(){return PCAR;},get INT(){return INT;},CROWD,setTod:v=>{tod=v;},sede:()=>sede,bFront,doInteract,get interact(){return interactTarget;},trafficStep:updateTraffic,crowdStep:updateCrowd,laneRoute,LANES,INTERS,GROUPS,lightState,get lightT(){return lightT;}};}
 boot().catch(e=>{console.error(e);window.__fail('Erro ao iniciar: '+(e&&e.message||e));});
 </script>
 </body>

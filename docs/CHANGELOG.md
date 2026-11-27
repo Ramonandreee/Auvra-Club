@@ -2,6 +2,13 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.4.0 — 2026-11-27
+- **feat(town): trânsito com regras.** Rede de faixas por sentido, com a mão direita corrigida nas ruas horizontais de mão dupla (estava invertida) e cruzamentos detectados também onde a rua termina na outra.
+  - **Veículos:** curvas suaves (Bézier) em vez de pulo de faixa; os longos abrem mais a curva. Semáforo com **amarelo** e regra de decisão no amarelo. Parada antes da faixa. Distância do veículo da frente, inclusive de quem cruza. Não bloqueiam o cruzamento. Conversão à esquerda espera quem vem de frente, e na curva dupla cada um vai para a sua faixa. **Setas** piscando. **Motos** com piloto.
+  - **Pedestres:** atravessam na faixa, só com o sinal.
+  - **Táxi, corrida e GPS de carro:** rota pelas faixas (fim do zigue-zague em escadinha).
+  - **Teste:** 50 veículos por 5 minutos de jogo, com 0 batidas, 0 sinais vermelhos furados, 0 contramão e 0 carros presos.
+
 ## 2.3.2 — 2026-11-27
 - **feat(town):** mapa mais limpo. O painel lateral virou duas listas em abas, **Ir para** (atalhos, incluindo sua corretora e a Bolsa) e **Mostrar** (camadas com cor, contagem e interruptor, que também servem de legenda). Tudo cabe na tela sem rolar.
 - Pinos próximos da mesma categoria viram **um pino com número**, e tocar nele aproxima o mapa. Concorrentes começam ocultos. Nomes dos pontos turísticos só aparecem com mais zoom.
