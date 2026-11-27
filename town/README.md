@@ -59,6 +59,13 @@ menu ou painel aberto.
   - **Balsa de Staten Island:** você no convés, passando perto da Estátua.
   - **Elevador:** cabine com portas, painel de andares e "ding".
   - **Portas:** transição ao entrar e sair dos lugares.
+- **Nos passeios:**
+  - **🎥 Câmera:** "Ver de dentro" mostra a rua pela janela do Rydr (com painel e volante), a cidade pela cabine do helicóptero ou a baía do convés da balsa.
+  - **Rydr:** o motorista conversa e comenta a rua, a bolsa e os juros (dados reais do jogo).
+  - **Helicóptero:** o piloto aponta os marcos à esquerda e à direita.
+  - **Balsa:** passageiros no convés.
+  - **🌅 Pôr do sol (17:20–19:45):** voo ao pôr do sol sobre o Hudson ($650, ⭐+1). A balsa ao entardecer dá ⚡+6 e ⭐+0,3.
+- **Portas de verdade:** você caminha até a porta, ela se abre e você entra; ao sair, ela se abre e fecha atrás de você.
 - **Logos das empresas da bolsa:** originais, no estilo de cada setor (as marcas são fictícias).
 - **Celular = central de apps:** Agenda, Mensagens, Contatos, Amigos, **J.P. Halloway & Co.** (banco: conta, extrato, futuros, investimentos, crédito), Investir, **Rydr** (corridas), Vagas e Notícias. As datas são de calendário (o dia 1 é a data em que você começou).
 - **Rydr** (no lugar do táxi): RydrX, Comfort e Black (este dá ⭐ +0,3), tarifa dinâmica 1,3× no rush (8–9:30 e 17–19:30), motorista com nota e avaliação/gorjeta no fim da corrida.

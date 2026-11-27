@@ -2,6 +2,19 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.13.0 — 2026-11-27
+- **feat(town): câmera de dentro nos passeios** (`insideCam`). Painel e volante no Rydr, console na cabine do helicóptero e olhar do convés na balsa. Dá para olhar em volta arrastando.
+- **feat(town): vida nos trajetos.**
+  - O motorista do Rydr fala a cada 10–15 s: a rua atual, a ação que mais sobe e a que mais cai, os juros e o ciclo da economia.
+  - O piloto anuncia os marcos ao passar perto, de que lado estão e o primeiro fato do texto de cada um.
+  - A balsa leva 9 passageiros no convés, com falas.
+- **feat(town): pôr do sol.**
+  - **Voo ao pôr do sol:** rota a oeste sobre o Hudson, das 17:20 às 19:45.
+  - **Balsa ao entardecer:** recompensa maior.
+- **feat(town): portas que abrem de verdade.**
+  - **Entrada:** o herói caminha até a porta, as folhas de vidro deslizam e ele entra.
+  - **Saída:** a porta abre, o herói sai para a calçada e a porta fecha.
+
 ## 2.12.0 — 2026-11-27
 - **feat(town): passeios em 3D.** O motor `RIDE` percorre o trajeto com aceleração e frenagem, e a câmera segue o veículo (`CAMFOLLOW`). O tempo do jogo passa proporcionalmente, e dá para pular.
   - **Rydr:** rota pelas faixas; reduz nas curvas e freia para carros à frente.
