@@ -2,6 +2,20 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## [2.0.0] — 2026-11-28 — *Wall Street de verdade: Bolsa, corretoras e investimentos*
+- **Bolsa de Nova York por dentro:** pregão gigante (colunas, galeria, bandeira, 6 postos de negociação com telas,
+  fita de cotações ao vivo nas paredes, traders circulando), especialista do pregão e o sino de abertura (9:30,
+  reputação de mercado 10+).
+- **Mercado de ações:** 11 grandes empresas americanas fictícias + um fundo índice (regra do projeto: marcas
+  fictícias), preços diários com tendência por setor, ciclo da economia e juros; cotação anda durante o dia.
+- **Corretoras concorrentes:** Liberty Square (corretagem zero, spread), Hudson & Pell (taxa fixa + relatórios de
+  analistas, escritório na Pine St) e Bowline Capital (0,1% e saldo rende 4% a.a.). Conta, depósito, saque, compra e
+  venda pelo **AuvraOS → Investir** ou no balcão das corretoras. A carteira entra no patrimônio.
+- **Contatos:** sem emoji na cabeça; ninguém começa como contato — qualquer pessoa pode virar ("Trocar contato" na
+  conversa). Contatos agem sozinhos: dicas de ações que mexem de verdade nos preços, pedidos para suas empresas,
+  matérias no jornal, mentorias e recados.
+- Menu: voo de câmera mais lento e sem cintilação.
+
 ## [1.9.0] — 2026-11-28 — *Animações de verdade*
 - Dormir: o personagem deita na cama, a janela escurece, a madrugada passa e amanhece (o dia vira no meio).
 - Táxi: destino escolhido no mapa (com rota e preço), o táxi vem dirigindo pela rua até você e a corrida é

@@ -81,6 +81,12 @@ menu ou painel aberto.
   mostra os carros, leva no test drive, negocia desconto e fecha à vista ou financiado. Na rua, cada pessoa tem um
   arquétipo (turista, golpista, investidora, jornalista, rival…) e um jeito, com escolhas que mexem em caixa,
   reputação, habilidades, contatos e equipe.
+- **Investimentos:** a Bolsa de Nova York tem pregão por dentro (cotações ao vivo, especialista, sino de abertura).
+  Abra conta numa das três corretoras fictícias (AuvraOS → 📈 Investir ou no balcão delas), deposite e compre ações de
+  11 grandes empresas americanas fictícias + um fundo índice. Preços seguem setor, ciclo e juros; a carteira conta no
+  patrimônio.
+- **Contatos de verdade:** qualquer pessoa da rua pode virar contato ("Trocar contato"); eles mandam dicas de ações
+  que mexem nos preços, trazem pedidos, publicam matérias e dão conselhos.
 - **Frota variada:** sedãs, SUVs, hatches, cupês, picapes, vans, limusines, caminhões, ônibus e táxis.
 - **Noite visível:** céu com brilho da cidade, luar mais forte e poças de luz quente sob os postes.
 - **HUD mínimo:** caixa e energia no canto, relógio + 🗺 mapa + ▦ ações + ☰ menu no outro, minimapa redondo. A barra de
