@@ -53,6 +53,11 @@ menu ou painel aberto.
 
 ## Vida em Wall Street (estilo mundo aberto)
 
+- **App do banco** (botão Banco ou 🏦 no celular, e no caixa eletrônico do 23 Wall):
+  - **Saldo:** conta, investimentos, dívida e patrimônio.
+  - **Extrato:** cada entrada e saída com categoria, hora e saldo.
+  - **Futuros:** o que cai no fechamento das 23h (aluguel/condomínio e contas, juros, alvarás, resultado de cada empresa e salário se fizer o turno), com a projeção de 7 dias e um alerta de saldo negativo.
+  - **Crédito:** empréstimos.
 - **Interiores vivos (todos os lugares):**
   - **Acabamento:** rodapé, sanca, quadros e um relógio de parede com a hora do jogo.
   - **Janelas:** mostram o skyline de dia e, à noite, com as janelas acesas.
