@@ -2,6 +2,17 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## [2.1.0] — 2026-11-28 — *Guarda-roupa e estilo*
+- Começa com o básico (camiseta, jeans e tênis). Roupas, calçados e acessórios são comprados em três lojas fictícias
+  com interior (araras, manequins vestindo a coleção, espelho, consultor(a) de estilo): Front Street Outfitters
+  (casual/couro), Maiden Lane Tailors (social/alfaiataria) e Maison Verlaine (luxo/gala).
+- Peças novas: camiseta básica, polo, suéter de tricô, jaqueta de couro, blazer, smoking; oxford italiano; boné,
+  chapéu fedora e cachecol. Detalhes: golas, botões, zíper, punhos, gravata-borboleta, solado branco e cadarço,
+  biqueira do oxford, relógio com mostrador.
+- Estilo (0–100): pesa na troca de contatos, no pitch para investidores, na negociação de carros e na relação com
+  atendentes; dress code executivo para tocar o sino da Bolsa; pessoas comentam o seu visual. No editor, peças não
+  compradas aparecem com 🔒 e preço — tocar marca a loja no mapa.
+
 ## [2.0.1] — 2026-11-28 — *Correções: progresso, travamento, tela cheia*
 - Login baixa o save da nuvem e usa o mais recente (aparelho × nuvem); nuvem salva a cada minuto e ao sair do app —
   antes, ao entrar em outro armazenamento, o jogo recomeçava.
