@@ -2,6 +2,16 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.12.0 — 2026-11-27
+- **feat(town): passeios em 3D.** O motor `RIDE` percorre o trajeto com aceleração e frenagem, e a câmera segue o veículo (`CAMFOLLOW`). O tempo do jogo passa proporcionalmente, e dá para pular.
+  - **Rydr:** rota pelas faixas; reduz nas curvas e freia para carros à frente.
+  - **Helicóptero:** curva Catmull-Rom com inclinação nas curvas e rotor girando. Voo panorâmico com volta à plataforma ou voo particular com pouso em outro heliponto.
+  - **Balsa:** laranja, com o herói no convés, passando perto da Estátua da Liberdade (modelo novo na baía).
+  - **Elevador:** cabine de aço com espelho, corrimão, portas que abrem e fecham, painel com contagem de andares e "ding".
+  - **Portas:** transição escura ao entrar da rua e ao sair.
+- **feat(town): logos originais** das 21 ações e do fundo, no home broker e na carteira do banco.
+- **fix(town):** o botão Heliponto do elevador era confundido com "seu apartamento" (código começando com "h"). Agora funciona.
+
 ## 2.11.0 — 2026-11-27
 - **feat(town): datas de calendário** em vez de "Dia N": HUD, celular, agenda, mensagens, notícias, contatos, propostas, extrato e menu. O dia 1 é a data em que o jogador começou; saves antigos contam para trás a partir de hoje.
 - **feat(town): celular como central de apps.**
