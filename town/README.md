@@ -55,7 +55,10 @@ menu ou painel aberto.
 
 - **Jogar junto (multiplayer em tempo real):** quem está online aparece no mapa com o próprio visual e o nome em cima, na rua ou dentro do mesmo prédio e andar. Casa, sede e empresas são privadas de cada um.
   - **De perto, toque em Falar:** dá para mandar mensagem, adicionar aos contatos, acenar, pagar um café ou drink (dá energia a quem recebe), dar dinheiro (até $10 mil por vez e $25 mil por dia) ou dar uma peça de roupa.
-  - **No celular**, a aba 👥 Contatos tem os contatos, as conversas e quem está online. O chat é privado e fica guardado no servidor, mesmo offline.
+  - **No celular, contatos e amigos ficam separados:**
+    - **📇 Contatos:** sua rede de network, as pessoas do jogo que você conheceu na cidade. Mostra a relação e o último encontro, e dá para ligar ou ver onde a pessoa está.
+    - **👥 Amigos:** outros jogadores. Mostra onde estão agora (com "📍 Ir até lá" pelo GPS) e, para quem está offline, quando foram vistos por último. Também tem as conversas e quem está online. O chat é privado e fica guardado no servidor.
+  - **Avisos:** quando um amigo entra ou sai do jogo, aparece um aviso com "📍 Ir até lá" e 💬. Ao abrir o jogo, você recebe um resumo de quem já está online.
   - **Segurança:** posição e visual trafegam pelo Supabase Realtime. Mensagens (`dms`) e presentes (`gifts`) têm RLS. Presentes só passam pelas RPCs `send_gift` (com limites) e `claim_gifts` (cada presente é resgatado uma única vez).
 - **Distrito Financeiro ampliado:** o mapa cobre do Hudson ao East River e da Fulton St ao Battery Park (104 × 98 quadras-unidade). O núcleo da Wall Street continua igual no centro.
   - **Ruas reais:** West St, Greenwich, Church St/Trinity Pl, Fulton (com o calçadão do Seaport), Maiden Ln, Liberty, Cedar, Rector e State St.

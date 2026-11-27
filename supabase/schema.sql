@@ -237,6 +237,9 @@ end $$;
 drop trigger if exists players_keep_name on public.players;
 create trigger players_keep_name before update on public.players for each row execute function public.players_keep_name();
 
+-- "Visto por último" (atualizado pelo próprio jogador enquanto joga; RLS players_update)
+alter table public.players add column if not exists last_seen timestamptz not null default now();
+
 -- Social em tempo real: mensagens privadas (chat do celular) e presentes entre jogadores ----------
 -- Posição e visual dos jogadores trafegam pelo Realtime (presence/broadcast), sem tabela.
 create table if not exists public.dms (
