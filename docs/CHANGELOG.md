@@ -2,6 +2,13 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.10.0 — 2026-11-27
+- **feat(town): app do banco.**
+  - **Abas:** Saldo, Extrato, Futuros e Crédito.
+  - **Extrato automático (`S.ledger`):** o caixa passa a ser observado e cada mudança vira lançamento. O rótulo vem de `tx()` nos pontos principais (freela, salário, empréstimo, táxi, presentes, fundação de empresa, comida) ou do título da janela aberta na compra.
+  - **Fechamento do dia detalhado (`bankDay`):** mesmo total que a economia (`sim-town` igual). Fora do jogo, a simulação usa o caminho original.
+  - **Lançamentos futuros:** com projeção de 7 dias.
+
 ## 2.9.0 — 2026-11-27
 - **feat(town): interiores vivos.**
   - **Acabamento comum (`roomTrim`):** rodapé, sanca, quadros procedurais e relógio que marca a hora do jogo.

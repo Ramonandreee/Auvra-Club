@@ -2988,7 +2988,7 @@ function roadNear(x,z){const gx0=Math.floor(x/TS),gy0=Math.floor(z/TS);let best=
   if(!best)return null;const st=STREETS.find(s=>s.kind===T.ROAD&&(s.axis==='v'?(Math.floor(best[0]/TS)>=s.a0&&Math.floor(best[0]/TS)<=s.a1&&Math.floor(best[1]/TS)>=s.b0&&Math.floor(best[1]/TS)<=s.b1):(Math.floor(best[1]/TS)>=s.a0&&Math.floor(best[1]/TS)<=s.a1&&Math.floor(best[0]/TS)>=s.b0&&Math.floor(best[0]/TS)<=s.b1)));
   return {x:best[0],z:best[1],yaw:st&&st.axis==='h'?Math.PI/2:0};}
 function callTaxi(d){const q=taxiQuote(d);if(S.cash<q.price)return toast('Caixa insuficiente para o táxi ('+money(q.price)+')');const r=roadNear(M(hero.x),M(hero.y));if(!r)return toast('Nenhuma rua por perto para o táxi parar.');
-  S.cash-=q.price;refreshHUD();const mesh=buildCar('taxi');dynGroup.add(mesh);
+  tx('Corrida de táxi','transporte');S.cash-=q.price;refreshHUD();const mesh=buildCar('taxi');dynGroup.add(mesh);
   let path=null;for(let k=0;k<10&&!path;k++){const a=Math.random()*6.283,d0=70+Math.random()*50;const s0=roadNear(r.x+Math.cos(a)*d0,r.z+Math.sin(a)*d0);if(!s0)continue;const pp=planRoute(s0.x,s0.z,r.x,r.z,'car');if(pp&&pp.length>1)path=pp;}
   if(!path)path=[[r.x-Math.sin(r.yaw)*40,r.z-Math.cos(r.yaw)*40],[r.x,r.z]];
   mesh.position.set(path[0][0],0,path[0][1]);TAXI={d,q,mesh,x:r.x,z:r.z,ready:false,path,seg:0,v:9};closeModal();closeBigMap();toast('🚕 Táxi a caminho ('+money(q.price)+')');}
@@ -3084,7 +3084,7 @@ function openStaff(p,extra){INT.talkP=p;const mem=p.mem,T=TRAITS[mem.trait],spec
     {t:'↩ '+pick(T.bye).replace(/[!.]$/,''),fn:closeModal}]);
   modal('🧑‍💼',esc(mem.name)+' · '+p.roleName,'<p class="quote">'+(extra||'"'+greet+'"')+'</p><div class="small">'+T.n+'</div>'+relBar,acts);}
 function staffReply(p,txt,more){modal('🧑‍💼',esc(p.mem.name),'<p class="quote">'+txt+'</p>',(more||[]).concat([{t:'↩ Voltar',fn:()=>openStaff(p,'"Mais alguma coisa?"')},{t:'Tchau',fn:closeModal}]));refreshHUD();}
-function eat(p,name,price,en,line){if(S.cash<price)return staffReply(p,'"Hm… o cartão não passou. Fica pra próxima?"');S.cash-=price;S.energy=Math.min(S.energy+en,120);p.mem.rel=Math.min(100,p.mem.rel+1);staffReply(p,line+'<br><span class="small">'+name+' · −'+money(price)+' · ⚡+'+en+'</span>');}
+function eat(p,name,price,en,line){if(S.cash<price)return staffReply(p,'"Hm… o cartão não passou. Fica pra próxima?"');tx(name,'comida');S.cash-=price;S.energy=Math.min(S.energy+en,120);p.mem.rel=Math.min(100,p.mem.rel+1);staffReply(p,line+'<br><span class="small">'+name+' · −'+money(price)+' · ⚡+'+en+'</span>');}
 function staffActions(p){{const ex=gbStaffActions(p);if(ex)return ex;}const s=p.staff,spec=p.spec,mem=p.mem,h=nowHour();
   if(s==='estilo'){const sh=spec.shop;return [{t:'👔 Ver a coleção',d:SHOPS[sh].txt,fn:()=>openShop(sh,p)},{t:'🪞 Como estou?',fn:()=>{const v=lookScore(),nx=WARD.filter(w=>w[4]===sh&&fits(w)&&!owned(w[0],w[1])).sort((a,b)=>a[2]-b[2]).find(w=>w[2]<=S.cash*1.5);
       staffReply(p,'"'+(v>=60?'Impecável. Você entra numa sala e as pessoas param.':v>=40?'Elegante! Só falta um detalhe para impressionar de verdade.':v>=20?'Confortável… mas Wall Street julga pela roupa, sabia?':'Sendo sincero(a)? Assim ninguém te leva a sério numa reunião.')+(nx?' Eu levaria o '+itemName(nx[0],nx[1]).toLowerCase()+' ('+money(nx[2])+').':'')+'" <span class="small">Estilo '+v+'/100 · '+lookLabel(v)+'</span>');}}];}
@@ -3690,7 +3690,7 @@ function restExtras(){const ok=()=>{const h=nowHour();return (h>=11.5&&h<15)||(h
     if(!L.length)return toast('📇 Você ainda não tem contatos de network. Puxe conversa na rua.');
     modal('🤝','Convidar para almoçar','<p class="small">A conta é sua ($45). Relação +8 e uma boa conversa.</p>',L.map(c=>({t:(c.ico||'👤')+' '+c.name,d:c.role+' · relação '+Math.round(c.rel),fn:()=>{if(S.cash<45)return toast('Caixa insuficiente');S.cash-=45;S.lunch=S.day;c.rel=clamp(c.rel+8,0,100);c.last=S.day;remember(c,'almoçamos no Exchange Grill');S.energy=Math.min(S.energy+8,120);dayAcc+=DAY_SEC/16;gainSkill('charisma',0.3);closeModal();refreshHUD();toast('🤝 Almoço com '+c.name.split(' ')[0]+': relação '+Math.round(c.rel)+' · ⚡+8');}})).concat([{t:'↩ Voltar',fn:closeModal}]));},1.5);}
 function bancoExtras(B,W,D){const I=imat(),ax=W/2-1.2,az=D/2-3.6;B.add(I.metal,xf(new THREE.BoxGeometry(0.9,1.7,0.6),ax,0.85,az));fScreen(B,ax-0.32,1.3,az,-Math.PI/2,0.5,0.35,tickerMat());obst(ax,az,0.9,0.6);
-  prop(ax-1,az,'🏧','Caixa eletrônico','Extrato e limite de crédito',()=>modal('🏧','Extrato','<div class="kpis">'+kpi('Caixa',money(S.cash),'var(--gold)')+kpi('Dívida',money(S.debt||0))+kpi('Crédito livre',money(Math.max(0,loanLimit()-(S.debt||0))))+kpi('Juros',S.market.rate.toFixed(1)+'%')+'</div>',[{t:'🏦 Falar com o gerente',fn:()=>{closeModal();openBank();}},{t:'Fechar',fn:closeModal}]),1.2);
+  prop(ax-1,az,'🏧','Caixa eletrônico','Saldo, extrato e lançamentos',()=>openBank('extrato'),1.2);
   fScreen(B,0,3.9,-D/2+0.08,0,8,0.5,tickerMat());}
 function storeExtras(){prop(-2.2,-0.3,'🛒','Prateleiras','Escolher e pagar no caixa',()=>{if(INT.staffP)openStaff(INT.staffP);},1.6);}
 
@@ -3750,7 +3750,7 @@ function openEmployee(p){const e=p.e,co=p.co;if(!co||!co.employees.includes(e))r
     {t:'↩ Voltar ao trabalho',fn:closeModal}]);}
 /* ---- sua sede (coworking): computador = freela, estante = cursos, telefone = banco, quadro = metas ---- */
 function buildSedeRoom(B){const I=imat();const W=13,D=11;buildRoom(B,W,D,I.wood);
-  const d=fDesk(B,0,-D/2+2.8,Math.PI,true);prop(0,-D/2+3.6,'💻','Seu computador','Fazer freela (⚡30)',()=>{const pay=actFreelance();if(pay){toast('💻 Freela entregue · +'+money(pay));refreshHUD();}});
+  const d=fDesk(B,0,-D/2+2.8,Math.PI,true);prop(0,-D/2+3.6,'💻','Seu computador','Fazer freela (⚡30)',()=>{tx('Freela','freela');const pay=actFreelance();if(pay){toast('💻 Freela entregue · +'+money(pay));refreshHUD();}});
   fShelf(B,-W/2+0.3,-1,Math.PI/2,2.4);prop(-W/2+1.2,-1,'📚','Estante','Cursos e treinamentos',openSede);
   B.add(I.black,xf(new THREE.BoxGeometry(0.5,1.1,0.4),W/2-0.5,0.55,-2));prop(W/2-1.2,-2,'☎️','Telefone','Falar com o banco',openBank);
   B.add(I.wall,xf(new THREE.BoxGeometry(2.2,1.3,0.05),W/2-0.04,1.6,1.2,Math.PI/2));prop(W/2-1.1,1.2,'📋','Quadro de metas','Objetivos da fase',openObjectives);
@@ -3772,7 +3772,7 @@ function buildHome0(B,spec){const I=imat(),a=S.assets||{},guest=!!(spec&&spec.gu
   // closet
   B.add(I.deskDark,xf(new THREE.BoxGeometry(1.6,2.2,0.6),W/2-0.4,1.1,-D/2+1.4,Math.PI/2));obst(W/2-0.4,-D/2+1.4,0.6,1.6);prop(W/2-1.3,-D/2+1.4,'👔','Closet','Trocar de roupa e visual',()=>openMenu('perso'));
   // notebook / escrivaninha
-  fDesk(B,W/2-1.6,D/2-2.4,Math.PI/2);prop(W/2-2.6,D/2-2.4,'💻','Notebook','Fazer freela de casa (⚡30)',()=>{const pay=actFreelance();if(pay){toast('💻 Freela feito em casa · +'+money(pay));refreshHUD();}});
+  fDesk(B,W/2-1.6,D/2-2.4,Math.PI/2);prop(W/2-2.6,D/2-2.4,'💻','Notebook','Fazer freela de casa (⚡30)',()=>{tx('Freela','freela');const pay=actFreelance();if(pay){toast('💻 Freela feito em casa · +'+money(pay));refreshHUD();}});
   // tablet de imóveis (corretor)
   {const tx=W/2-1.2,tz=-D/2+(t>=2?2.6:3.0);B.add(I.black,xf(new THREE.BoxGeometry(0.3,0.02,0.2),tx,0.79,tz));B.add(I.deskDark,xf(new THREE.BoxGeometry(0.7,0.04,1.0),tx,0.76,tz));B.add(I.metal,xf(new THREE.CylinderGeometry(0.05,0.05,0.74,6),tx,0.37,tz));obst(tx,tz,0.7,1.0);
   prop(tx-0.9,tz,'🏠','Tablet de imóveis','Mudar de casa · reformar e decorar',openHomeShop,1.4);}
@@ -3877,7 +3877,7 @@ function placeOf(key){if(key==='sede'){const h=SPECIAL.home;return h?{x:h.front[
   const sp=SPECIAL[key];return sp?{x:sp.front[0],y:sp.front[1],name:sp.name}:null;}
 /* ---- AuvraOS: o celular do jogador ---- */
 let osTab='agenda';
-function openOS(tab){osTab=tab||osTab;const unread=S.inbox.filter(m=>!m.read).length;const tabs=[['agenda','📅 Agenda'],['msg','✉️ Mensagens'+(unread?' ('+unread+')':'')],['rede','📇 Contatos'],['amigos','👥 Amigos'+(dmUnreadTotal()?' ('+dmUnreadTotal()+')':'')],['invest','📈 Investir'],['taxi','🚕 Táxi'],['jobs','💼 Vagas'],['news','📰 Notícias']];
+function openOS(tab){osTab=tab||osTab;const unread=S.inbox.filter(m=>!m.read).length;const tabs=[['agenda','📅 Agenda'],['msg','✉️ Mensagens'+(unread?' ('+unread+')':'')],['rede','📇 Contatos'],['amigos','👥 Amigos'+(dmUnreadTotal()?' ('+dmUnreadTotal()+')':'')],['banco','🏦 Banco'],['invest','📈 Investir'],['taxi','🚕 Táxi'],['jobs','💼 Vagas'],['news','📰 Notícias']];
   let body='<div class="seg" style="margin-bottom:8px">'+tabs.map(([k,l])=>'<button data-os="'+k+'" class="'+(k===osTab?'on':'')+'">'+l+'</button>').join('')+'</div>';
   if(osTab==='agenda'){const it=S.agenda.filter(a=>a.day>=S.day).sort((a,b)=>a.day-b.day||a.hour-b.hour);
     body+='<p class="small">Agora: dia '+S.day+' · '+fmtHour(nowHour())+(timeScale()<1?' · ⏱ modo agenda (tempo mais lento)':'')+'</p>'+(it.length?it.map(a=>'<div class="lrow" data-wp="'+a.id+'"><span>'+(a.status==='done'?'✅':'📍')+' <b>'+esc(a.title)+'</b><br><span class="small">Dia '+a.day+' · '+fmtHour(a.hour)+' · '+esc(a.place?a.place.name:'')+'</span></span><span class="small">'+(a.status==='pending'?'Ir ›':a.status==='done'?'feito':'perdido')+'</span></div>').join(''):'<p class="small">Nenhum compromisso. Arrume um emprego ou aceite convites de reunião.</p>');}
@@ -3885,6 +3885,7 @@ function openOS(tab){osTab=tab||osTab;const unread=S.inbox.filter(m=>!m.read).le
   else if(osTab==='invest'){osTab='agenda';closeModal();openInvest();return;}
   else if(osTab==='amigos'){osTab='agenda';closeModal();openContacts();return;}
   else if(osTab==='rede'){osTab='agenda';closeModal();openNetwork();return;}
+  else if(osTab==='banco'){osTab='agenda';closeModal();openBank('saldo');return;}
   else if(osTab==='taxi'&&!TAXI&&!INT.active&&!(PCAR&&PCAR.driving)){osTab='agenda';closeModal();openTaxiMap();return;}
   else if(osTab==='taxi')body+=taxiTab();
   else if(osTab==='jobs')body+=JOBS.map(j=>{const sp=SPECIAL['job:'+j.id];const ok=S.phase>=j.phase;const mine=S.job&&S.job.id===j.id;return '<div class="lrow" data-job="'+j.id+'"><span>'+j.ico+' <b>'+esc(j.t)+'</b> · '+esc(j.co)+'<br><span class="small">'+money(jobPay(j,0))+'/turno · turno às '+fmtHour(j.hour)+' · '+(ok?esc(j.req):'🔒 fase '+j.phase+'+')+'</span></span><span class="small">'+(mine?'seu emprego':'ver no mapa ›')+'</span></div>';}).join('');
@@ -3940,7 +3941,7 @@ function scheduleShift(){const j=S.job&&JOBS.find(x=>x.id===S.job.id);if(!j)retu
 function openBoss(j){const J=S.job;modal(j.ico,esc(j.co)+' · chefia','<div class="kpis">'+kpi('Cargo',JOB_LV[J.level]+' · '+j.t)+kpi('Por turno',money(jobPay(j,J.level)))+kpi('Desempenho',J.good+' turnos bons')+kpi('Advertências',J.warns+'/3',J.warns?'var(--red)':'')+'</div><p class="small">5 turnos bons seguidos = promoção.</p>',
   [{t:'🚪 Pedir demissão',d:'Sai em bons termos (+reputação no mercado)',fn:()=>{S.job=null;S.agenda=S.agenda.filter(a=>a.kind!=='job'||a.status!=='pending');S.rep.market+=1;inbox(j.co,'Obrigado pelo tempo conosco. Boa sorte na sua empresa!','👋');closeModal();toast('Você pediu demissão da '+j.co);const ex=INT.active.exit;exitInterior();enterInterior({kind:'job',job:j,title:j.co,exit:ex,key:'job:'+j.id});}},{t:'↩ Voltar',fn:closeModal}]);}
 function startShift(j){const it=pendingToday().find(a=>a.kind==='job');if(!it)return toast('Sem turno marcado agora — veja a Agenda no 📱');const h=nowHour();if(h<it.hour-1)return toast('Cedo demais: o turno começa às '+fmtHour(it.hour));
-  if(!useEnergy(30))return;const late=Math.max(0,h-it.hour);runMinigame(j,late,(score)=>{it.status='done';const J=S.job;const pay=Math.round(jobPay(j,J.level)*(0.55+score*0.6)*(late>0.5?0.8:1));S.cash+=pay;gainSkill(j.need?j.need[0]:'charisma',0.4);
+  if(!useEnergy(30))return;const late=Math.max(0,h-it.hour);runMinigame(j,late,(score)=>{it.status='done';const J=S.job;const pay=Math.round(jobPay(j,J.level)*(0.55+score*0.6)*(late>0.5?0.8:1));tx('Salário · turno na '+j.co,'salario');S.cash+=pay;gainSkill(j.need?j.need[0]:'charisma',0.4);
     if(score>=0.6){J.good++;if(J.good>=5&&J.level<3){J.level++;J.good=0;inbox(j.co,'Parabéns! Você foi promovido(a) a '+JOB_LV[J.level]+'.','🎉');toast('🎉 Promoção: '+JOB_LV[J.level]);}}else J.good=0;
     log('💼 Turno na '+j.co+': '+money(pay)+(late>0.5?' (atrasado)':''));toast((late>0.5?'⏰ Atrasado · ':'')+'💵 +'+money(pay)+' · desempenho '+Math.round(score*100)+'%');scheduleShift();refreshHUD();saveLocal();});}
 /* ---- mini-jogos (toque, 20–45 s) ---- */
@@ -4243,7 +4244,7 @@ function calibrate(co,target){co.scale=clamp(1+target/400000,1,6);for(let k=0;k<
 function endDay(){if(S.over)return;let coNet=0;
   companies.forEach(co=>{if(co.build>0){co.build--;if(co.build===0)log('🏗️ Obra concluída: '+co.name+' abriu as portas!');return;}co.age++;coNet+=coProfit(co)*stakeOf(co);co.ops=clamp(co.ops-(co.managed?rnd(0.05,0.35):rnd(0.4,1.1)),0,100);co.scale*=rnd(0.998,1.003);
     if(chance(NICHE[co.niche].risk*0.05)){co.scale*=rnd(.86,.94);log('⚠️ '+co.name+' perdeu um cliente grande.');}});
-  S.cash+=coNet-dailyExpenses()-dailyInterest();S.energy=Math.min(100,(S.energy||0)+(S.slept?100:35));S.slept=false;
+  if(typeof bankDay==='function'&&started)bankDay(coNet,dailyExpenses(),dailyInterest());else S.cash+=coNet-dailyExpenses()-dailyInterest();S.energy=Math.min(100,(S.energy||0)+(S.slept?100:35));S.slept=false;
   employeeTick();marketTick();rivalTick();contactTick();
   if(S.flags.scandal>0){S.flags.scandal--;repUp('public',-0.3);}
   S.day++;if(S.day%10===0)S.season=SEASONS[(SEASONS.indexOf(S.season)+1)%4];
@@ -4334,7 +4335,7 @@ function eventModal(ico,title,body,choices){modal(ico,title,'<p>'+body+'</p>',ch
 
 /*@ECON-END*/
 /* ============================ MODAIS / PAINÉIS ============================ */
-function modal(ico,title,bodyHTML,actions){closeModal();const sc=document.createElement('div');sc.id='scrim';sc.className='scrim';
+function modal(ico,title,bodyHTML,actions){closeModal();if(typeof LAST_MODAL!=='undefined')LAST_MODAL={t:String(title).replace(/<[^>]+>/g,'').replace(/&[a-z#0-9]+;/g,''),at:performance.now()};const sc=document.createElement('div');sc.id='scrim';sc.className='scrim';
   const m=document.createElement('div');m.className='modal panel';m.setAttribute('role','dialog');m.setAttribute('aria-modal','true');m.setAttribute('aria-labelledby','modalTitle');m.innerHTML='<div class="mh" id="modalTitle">'+(ico||'')+' '+title+'</div><div class="mb">'+bodyHTML+'</div>';
   const ab=document.createElement('div');ab.className='mact';(actions||[{t:'Fechar',fn:closeModal}]).forEach(a=>{const btn=document.createElement('button');btn.className='mbtn'+(a.dis?' dis':'');btn.innerHTML='<b>'+a.t+'</b>'+(a.d?'<span>'+a.d+'</span>':'');btn.disabled=!!a.dis;if(!a.dis)btn.onclick=()=>a.fn&&a.fn();ab.appendChild(btn);});
   m.appendChild(ab);sc.appendChild(m);document.body.appendChild(sc);sc.onclick=e=>{if(e.target===sc&&!m.dataset.locked)closeModal();};return m;}
@@ -4368,12 +4369,7 @@ function openSede(){modal('📚','Seu painel — '+esc(S.name),'<div class="kpis
    {t:'📚 Curso de finanças ('+money(150*S.phase)+' · ⚡25)',d:'Finanças melhora seus negócios',fn:after(()=>{if(actStudy('finance'))toast('📚 Finanças +');openSede();})},
    {t:'🎖️ Curso de liderança ('+money(150*S.phase)+' · ⚡25)',d:'Equipes mais felizes e operação melhor',fn:after(()=>{if(actStudy('leadership'))toast('🎖️ Liderança +');openSede();})},
    {t:'🏦 Banco',fn:openBank},{t:'↩ Fechar',fn:closeModal}]);}
-function openBank(){const lim=loanLimit(),avail=Math.max(0,lim-S.debt);
-  modal('🏦','Banco · 23 Wall Street','<div class="kpis">'+kpi('Dívida',money(S.debt),S.debt>0?'var(--red)':'var(--cream)')+kpi('Crédito livre',money(avail),'var(--green)')+kpi('Juros',loanRate().toFixed(1)+'% a.a.'+(S.flags.banker?' (−30%)':''))+kpi('Juros/dia',money(dailyInterest()))+'</div><p class="small">1 ano = 40 dias. Juros sobem na recessão e quanto mais você deve. Caixa negativo por 5 dias = falência.</p>',
-  [{t:'💵 Pegar '+money(Math.min(avail,Math.max(2000,Math.round(lim*0.25)))),dis:avail<=0,fn:after(()=>{const a=borrow(Math.max(2000,Math.round(lim*0.25)));if(a)toast('+'+money(a)+' emprestado');openBank();})},
-   {t:'💰 Pegar tudo ('+money(avail)+')',dis:avail<=0,fn:after(()=>{const a=borrow(avail);if(a)toast('+'+money(a)+' emprestado');openBank();})},
-   {t:'↩️ Pagar 25%',dis:S.debt<=0||S.cash<=0,fn:after(()=>{repay(Math.max(1,Math.round(S.debt*0.25)));openBank();})},
-   {t:'✅ Quitar tudo',dis:S.debt<=0||S.cash<S.debt,fn:after(()=>{repay(S.debt);toast('Dívida quitada!');openBank();})},{t:'↩ Fechar',fn:closeModal}]);}
+
 function openContact(c){const ok=S.day!==c.last;const rl=c.rel>=60?'aliado(a)':c.rel>=35?'próximo(a)':c.rel>=15?'conhecido(a)':'estranho(a)';const acts=[];
   acts.push({t:'☕ Conversar',d:ok?'Relação +, carisma +':'Já conversaram hoje',dis:!ok,fn:after(()=>{c.rel=clamp(c.rel+6+S.skills.charisma*0.08,0,100);c.last=S.day;gainSkill('charisma',0.6);remember(c,'tomamos um café');
     if(c.kind==='mentor'){const k=pick(['finance','leadership']);gainSkill(k,c.rel>=20?1.4:0.5);toast('🎓 Mentoria: '+(k==='finance'?'finanças':'liderança')+' +');}else toast('☕ '+c.name.split(' ')[0]+' gostou da conversa');openContact(c);})});
@@ -4477,7 +4473,57 @@ function startPlacing(def){placing=def;placeManual=null;document.getElementById(
   showHint('Terrenos verdes estão liberados. Ande até um deles (ou toque no chão) e confirme.',4200);}
 function cancelPlacing(){placing=null;placeManual=null;if(overlayMesh)overlayMesh.visible=false;document.getElementById('placeBar').classList.remove('on');document.querySelectorAll('.tool').forEach(t=>t.classList.remove('on'));}
 function tryPlace(gx,gy){const d=placing;if(!d)return;if(!canBuild(d.spr,gx,gy))return toast(lotFree(d.spr,gx,gy)?'🔒 Área ainda não liberada — suba de fase':'Lugar ocupado: escolha um terreno verde');if(S.cash<d.cost)return toast('Caixa insuficiente');
-  const co=foundCompany(d.id,gx,gy);cancelPlacing();toast('🏗️ '+co.name+' fundada · −'+money(d.cost));MP.news(S.name+' fundou a '+co.name+' em Wall Street');checkPhase();refreshHUD();refreshObj();saveLocal();}
+  tx('Fundação de empresa · '+d.name,'empresa');const co=foundCompany(d.id,gx,gy);cancelPlacing();toast('🏗️ '+co.name+' fundada · −'+money(d.cost));MP.news(S.name+' fundou a '+co.name+' em Wall Street');checkPhase();refreshHUD();refreshObj();saveLocal();}
+
+/* ============================ APP DO BANCO: saldo, extrato e lançamentos futuros ============================
+   Todo movimento no caixa vira uma linha do extrato (S.ledger). O rótulo vem de quem pagou/recebeu (TXR),
+   ou do título da janela aberta na hora (compra numa loja, carro, casa…). O fechamento do dia é detalhado. */
+let TXR=null,TXC=null,LAST_MODAL={t:'',at:0};
+function tx(label,cat){TXR=label;TXC=cat||null;}
+const TX_CAT={empresa:['🏢','Empresas'],casa:['🏠','Moradia'],juros:['📉','Juros'],credito:['🏦','Crédito'],salario:['💼','Salário'],freela:['💻','Freela'],compra:['🛍️','Compras'],comida:['🍽️','Alimentação'],presente:['🎁','Presentes'],invest:['📈','Investimentos'],transporte:['🚕','Transporte'],outros:['💳','Outros']};
+function guessCat(t){t=String(t).toLowerCase();if(/freela/.test(t))return 'freela';if(/sal[aá]rio|turno/.test(t))return 'salario';if(/empr[eé]stimo|d[ií]vida|cr[eé]dito/.test(t))return 'credito';if(/juros/.test(t))return 'juros';
+  if(/presente|deu |drink para|café para/.test(t))return 'presente';if(/invest|corretora|a[cç][oõ]es|bolsa|ipo/.test(t))return 'invest';if(/t[aá]xi|balsa|helic|voo|carro|garagem/.test(t))return 'transporte';
+  if(/casa|apartamento|cobertura|penthouse|loft|quitinete|imóve|reforma|aluguel|moradia/.test(t))return 'casa';if(/caf[eé]|almo[cç]o|jantar|prato|sandu|bagel|lanche|cozinh|deli|restaurante|bebida|drink|espresso|croissant|pizza/.test(t))return 'comida';
+  if(/empresa|funda|equipe|opera|obra|contrat/.test(t))return 'empresa';if(/loja|cole[cç][aã]o|roupa|terno|vestido|sapato|rel[oó]gio|bolsa|joia|ateli|maison|tailors|outfitters|basics|mercadinho|farm[aá]cia|banca|flores/.test(t))return 'compra';return 'outros';}
+function ledgerAdd(a,label,cat){if(!S||Math.abs(a)<0.5)return;S.ledger=S.ledger||[];const t=label||'Movimentação';S.ledger.unshift({d:S.day,h:+nowHour().toFixed(2),a:Math.round(a),t:String(t).slice(0,60),c:cat||guessCat(t),b:Math.round(S.cash)});if(S.ledger.length>200)S.ledger.length=200;}
+// o caixa passa a ser observado: cada mudança vira lançamento
+function installLedger(){if(!S||Object.getOwnPropertyDescriptor(S,'cash')?.get)return;let v=S.cash||0;
+  Object.defineProperty(S,'cash',{enumerable:true,configurable:true,get(){return v;},set(n){const d=n-v;v=n;if(!started||!isFinite(d)||Math.abs(d)<0.5)return;
+    const lbl=TXR||(performance.now()-LAST_MODAL.at<4000&&LAST_MODAL.t?LAST_MODAL.t:null);ledgerAdd(d,lbl,TXC||null);TXR=null;TXC=null;}});}
+// fechamento do dia, item por item (mesmo resultado da economia)
+function bankDay(coNet,exp,int){const t=S.assets&&S.assets.home||0,base=45+S.phase*S.phase*8,fees=exp-base;
+  if(Math.round(coNet)!==0){tx(coNet>=0?'Resultado das empresas':'Prejuízo das empresas','empresa');S.cash+=coNet;}
+  tx(t===0?'Aluguel e contas da casa':'Condomínio e contas da casa','casa');S.cash-=base;
+  if(fees>0.5){tx('Contabilidade e alvarás ('+companies.length+' empresa'+(companies.length>1?'s':'')+')','empresa');S.cash-=fees;}
+  if(int>0.5){tx('Juros do empréstimo','juros');S.cash-=int;}}
+function futureItems(){const t=S.assets&&S.assets.home||0,base=45+S.phase*S.phase*8,fees=dailyExpenses()-base,int=dailyInterest();let co=0;const L=[];
+  for(const c of companies){if(c.build>0){L.push({t:'🏗️ '+c.name+' · obra ('+c.build+' dia(s))',a:0,c:'empresa',note:'sem receita até abrir'});continue;}const p=coProfit(c)*stakeOf(c);co+=p;L.push({t:c.name,a:Math.round(p),c:'empresa',note:'resultado previsto'});}
+  L.push({t:t===0?'Aluguel e contas da casa':'Condomínio e contas · '+HOME_DEF[t].n,a:-Math.round(base),c:'casa'});
+  if(fees>0.5)L.push({t:'Contabilidade e alvarás',a:-Math.round(fees),c:'empresa'});if(int>0.5)L.push({t:'Juros do empréstimo ('+loanRate().toFixed(1)+'% a.a.)',a:-Math.round(int),c:'juros'});
+  if(S.job){const j=JOBS.find(x=>x.id===S.job.id);if(j)L.push({t:'Salário · '+j.co+' (se fizer o turno)',a:jobPay(j,S.job.level),c:'salario',maybe:1,note:'turno às '+fmtHour(j.hour)});}
+  const net=L.filter(x=>!x.maybe).reduce((s,x)=>s+x.a,0);return {L,net};}
+let bankTab='saldo';
+function openBank(tab){if(tab)bankTab=tab;installLedger();const tabs=[['saldo','💰 Saldo'],['extrato','🧾 Extrato'],['futuros','📅 Futuros'],['credito','🏦 Crédito']];
+  let body='<div class="seg" style="margin-bottom:8px">'+tabs.map(([k,l])=>'<button data-bk="'+k+'" class="'+(k===bankTab?'on':'')+'">'+l+'</button>').join('')+'</div>';
+  const lim=loanLimit(),avail=Math.max(0,lim-S.debt),inv=S.inv?invValue():0,F=futureItems();const col=a=>a>=0?'var(--green)':'var(--red)';const sg=a=>(a>=0?'+':'−')+money(Math.abs(a));
+  let acts=[];
+  if(bankTab==='saldo'){body+='<div class="kpis">'+kpi('Saldo em conta',money(S.cash),S.cash>=0?'var(--gold)':'var(--red)')+kpi('Investimentos',money(inv))+kpi('Dívida',money(S.debt),S.debt>0?'var(--red)':'var(--cream)')+kpi('Patrimônio',money(netWorth()))+'</div>'+
+      '<div class="lrow"><span>📅 <b>Próximo fechamento</b><br><span class="small">Hoje às 23:00 · previsto '+sg(F.net)+'</span></span><span style="color:'+col(S.cash+F.net)+'"><b>'+money(S.cash+F.net)+'</b></span></div>'+
+      ((S.cash+F.net)<0?'<p class="small" style="color:var(--red)">⚠️ Seu saldo vai ficar negativo no fechamento. Com 5 dias no vermelho, você quebra.</p>':'')+
+      '<div class="sec">ÚLTIMOS LANÇAMENTOS</div>'+ledgerRows((S.ledger||[]).slice(0,4));acts=[{t:'🧾 Ver extrato completo',fn:()=>openBank('extrato')}];}
+  else if(bankTab==='extrato'){const L=S.ledger||[];let html='',day=null;for(const e of L.slice(0,80)){if(e.d!==day){day=e.d;html+='<div class="sec">DIA '+e.d+(e.d===S.day?' · HOJE':'')+'</div>';}html+=ledgerRows([e]);}
+    const ins=L.filter(e=>e.d===S.day&&e.a>0).reduce((s,e)=>s+e.a,0),outs=L.filter(e=>e.d===S.day&&e.a<0).reduce((s,e)=>s+e.a,0);
+    body+='<div class="kpis">'+kpi('Entradas hoje',money(ins),'var(--green)')+kpi('Saídas hoje',money(-outs),'var(--red)')+kpi('Saldo',money(S.cash),'var(--gold)')+'</div>'+(html||'<p class="small">Nenhum lançamento ainda. Tudo o que entrar ou sair da sua conta aparece aqui.</p>');}
+  else if(bankTab==='futuros'){const rows=F.L.map(x=>{const ic=TX_CAT[x.c]||TX_CAT.outros;return '<div class="lrow"><span>'+ic[0]+' <b>'+esc(x.t)+'</b><br><span class="small">'+(x.maybe?'Depende de você':'Hoje às 23:00')+(x.note?' · '+esc(x.note):'')+'</span></span><span style="color:'+(x.a?col(x.a):'var(--dim)')+'">'+(x.a?sg(x.a):'—')+'</span></div>';}).join('');
+    let proj='',b=S.cash;for(let i=1;i<=7;i++){b+=F.net;proj+='<div class="lrow"><span class="small">Dia '+(S.day+i-1)+' · fechamento</span><span style="color:'+col(b)+'">'+money(b)+'</span></div>';}
+    body+='<p class="small">Cobranças e recebimentos que caem automaticamente no fechamento do dia (23:00).</p>'+rows+'<div class="lrow"><span><b>Total previsto hoje</b></span><span style="color:'+col(F.net)+'"><b>'+sg(F.net)+'</b></span></div><div class="sec">PROJEÇÃO · PRÓXIMOS 7 DIAS (se nada mudar)</div>'+proj;}
+  else{body+='<div class="kpis">'+kpi('Dívida',money(S.debt),S.debt>0?'var(--red)':'var(--cream)')+kpi('Crédito livre',money(avail),'var(--green)')+kpi('Juros',loanRate().toFixed(1)+'% a.a.'+(S.flags.banker?' (−30%)':''))+kpi('Juros/dia',money(dailyInterest()))+'</div><p class="small">O limite cresce com o seu patrimônio e a reputação no mercado.</p>';
+    acts=[{t:'💵 Pegar '+money(Math.min(avail,Math.max(2000,Math.round(lim*0.25)))),dis:avail<=0,fn:after(()=>{tx('Empréstimo recebido','credito');const a=borrow(Math.max(2000,Math.round(lim*0.25)));if(a)toast('+'+money(a)+' emprestado');openBank();})},
+      {t:'💰 Pegar tudo ('+money(avail)+')',dis:avail<=0,fn:after(()=>{tx('Empréstimo recebido','credito');const a=borrow(avail);if(a)toast('+'+money(a)+' emprestado');openBank();})},
+      {t:'↩️ Pagar 25%',dis:S.debt<=0||S.cash<=0,fn:after(()=>{tx('Pagamento do empréstimo','credito');repay(Math.max(1,Math.round(S.debt*0.25)));openBank();})},
+      {t:'✅ Quitar tudo',dis:S.debt<=0||S.cash<S.debt,fn:after(()=>{tx('Quitação do empréstimo','credito');repay(S.debt);toast('Dívida quitada!');openBank();})}];}
+  const m=modal('🏦','Banco 23 Wall',body,acts.concat([{t:'↩ Fechar',fn:closeModal}]));m.querySelectorAll('[data-bk]').forEach(b=>b.onclick=()=>openBank(b.dataset.bk));}
+function ledgerRows(L){return L.map(e=>{const ic=TX_CAT[e.c]||TX_CAT.outros;return '<div class="lrow"><span>'+ic[0]+' <b>'+esc(e.t)+'</b><br><span class="small">'+ic[1]+' · '+fmtHour(e.h)+(e.b!=null?' · saldo '+money(e.b):'')+'</span></span><span style="color:'+(e.a>=0?'var(--green)':'var(--red)')+'">'+(e.a>=0?'+':'−')+money(Math.abs(e.a))+'</span></div>';}).join('')||'<p class="small">Sem lançamentos.</p>';}
 
 /* ============================ SAVE (local + nuvem) ============================ */
 let SAVE_KEY='bs_town_v2';
@@ -4581,18 +4627,18 @@ async function sendGift(r,kind,amount,item){if(!MP.on){toast('Sem conexão com o
   const {error}=await MP.sb.rpc('send_gift',{p_to:r.id,p_kind:kind,p_amount:amount||0,p_item:item||null});
   if(error){const k=Object.keys(GIFT_ERR).find(x=>String(error.message).includes(x));toast('⚠️ '+(GIFT_ERR[k]||'Não foi possível enviar agora.'));return false;}
   MP.ch&&MP.ch.send({type:'broadcast',event:'gift',payload:{to:r.id}});return true;}
-async function giveTreat(r,kind,price){if(S.cash<price)return toast('Caixa insuficiente');S.cash-=price;refreshHUD();closeModal();
+async function giveTreat(r,kind,price){if(S.cash<price)return toast('Caixa insuficiente');tx((kind==='drink'?'Drink':'Café')+' para '+r.name,'presente');S.cash-=price;refreshHUD();closeModal();
   if(await sendGift(r,kind)){MP.emote(kind==='drink'?'🍸':'☕');log((kind==='drink'?'🍸 Você pagou um drink para ':'☕ Você pagou um café para ')+r.name+'.');toast((kind==='drink'?'🍸 Drink':'☕ Café')+' pago para '+r.name);}
   else{S.cash+=price;refreshHUD();}}
 function giveCash(r){const opts=[100,500,1000,5000,10000].filter(v=>v<=S.cash);
   modal('💵','Dar dinheiro para '+esc(r.name),'<p class="small">Sai do seu caixa ('+money(S.cash)+'). Limite de $10 mil por envio e $25 mil por dia.</p>',
-    (opts.length?opts.map(v=>({t:'💵 '+money(v),fn:async()=>{if(S.cash<v)return toast('Caixa insuficiente');S.cash-=v;refreshHUD();closeModal();if(await sendGift(r,'cash',v)){log('💵 Você deu '+money(v)+' para '+r.name+'.');toast('💵 '+money(v)+' enviados para '+r.name);MP.emote('💵');}else{S.cash+=v;refreshHUD();}}})):[{t:'Caixa insuficiente',dis:true}]).concat([{t:'↩ Voltar',fn:()=>openPlayer(r)}]));}
+    (opts.length?opts.map(v=>({t:'💵 '+money(v),fn:async()=>{if(S.cash<v)return toast('Caixa insuficiente');tx('Transferência para '+r.name,'presente');S.cash-=v;refreshHUD();closeModal();if(await sendGift(r,'cash',v)){log('💵 Você deu '+money(v)+' para '+r.name+'.');toast('💵 '+money(v)+' enviados para '+r.name);MP.emote('💵');}else{S.cash+=v;refreshHUD();}}})):[{t:'Caixa insuficiente',dis:true}]).concat([{t:'↩ Voltar',fn:()=>openPlayer(r)}]));}
 function giveItem(r){const worn=new Set(['topStyle','shoeStyle','acc','jewel'].map(k=>wkey(k,AVATAR[k])));const own=(S.wardrobe||[]).filter(k=>!worn.has(k)).map(k=>[k,witem(...k.split(':'))]).filter(([k,w])=>w);
   modal('🎁','Dar uma peça para '+esc(r.name),own.length?'<p class="small">Só peças que você não está vestindo. A peça sai do seu guarda-roupa.</p>':'<p class="small">Você não tem peças sobrando (a que está vestindo não conta).</p>',
     own.slice(0,10).map(([k,w])=>({t:'🎁 '+itemName(w[0],w[1]),d:'Vale '+money(w[2]),fn:async()=>{const i=S.wardrobe.indexOf(k);if(i<0)return;S.wardrobe.splice(i,1);closeModal();if(await sendGift(r,'item',0,k)){log('🎁 Você deu '+itemName(w[0],w[1])+' para '+r.name+'.');toast('🎁 Presente entregue');MP.emote('🎁');saveLocal();}else S.wardrobe.push(k);}})).concat([{t:'↩ Voltar',fn:()=>openPlayer(r)}]));}
 async function claimGifts(){if(!MP.on||!started)return;const {data,error}=await MP.sb.rpc('claim_gifts');if(error||!data||!data.length)return;
   for(const g of data){const n=g.from_name;let txt;
-    if(g.kind==='cash'){S.cash+=Number(g.amount);txt=n+' te deu '+money(Number(g.amount))+'.';}
+    if(g.kind==='cash'){tx('Presente de '+n,'presente');S.cash+=Number(g.amount);txt=n+' te deu '+money(Number(g.amount))+'.';}
     else if(g.kind==='drink'){S.energy=Math.min(S.energy+6,120);txt=n+' pagou um drink para você. ⚡+6';}
     else if(g.kind==='coffee'){S.energy=Math.min(S.energy+3,120);txt=n+' pagou um café para você. ⚡+3';}
     else if(g.kind==='item'){const [k,v]=String(g.item).split(':');const w=witem(k,v);if(w&&!owned(k,v)){S.wardrobe=S.wardrobe||[];S.wardrobe.push(g.item);}txt=n+' te deu '+(w?itemName(k,v):'um presente')+'.';}
@@ -4949,7 +4995,7 @@ async function play(){if(started){closeMenu();return;}if(needName()||joining)ret
 async function startNew(forceFresh){if(needName())return;const nm=AVATAR.name;await mpWait();
   if(!forceFresh&&MP.on){const cloud=await MP.loadCloud();if(cloud&&cloud.S&&!cloud.S.over){loadGame(cloud);S.name=nm;beginPlay();toast('☁️ Save da nuvem carregado');return;}}
   newGame(nm);beginPlay();MP.sync();MP.news(nm+' acabou de chegar em Wall Street.');}
-function beginPlay(){started=true;updateHomeSpecial();claimHomeFloor();ensureCareer();ensureWardrobe();rebuildHero();spawnPlayerCar(false);lastPhase=S.phase;paintGround();paintMiniBase();CAM.yaw=0;CAM.pitch=0.28;CAM.dist=7.5;closeMenu();buildToolbar();checkPhase();refreshHUD();refreshObj();saveLocal();LOCAL=readLocal();enterFullscreen();
+function beginPlay(){started=true;installLedger();updateHomeSpecial();claimHomeFloor();ensureCareer();ensureWardrobe();rebuildHero();spawnPlayerCar(false);lastPhase=S.phase;paintGround();paintMiniBase();CAM.yaw=0;CAM.pitch=0.28;CAM.dist=7.5;closeMenu();buildToolbar();checkPhase();refreshHUD();refreshObj();saveLocal();LOCAL=readLocal();enterFullscreen();
   if(!HIST.length)HIST.push({d:S.day,n:Math.round(netWorth()),c:Math.round(S.cash)});
 }
 function enterFullscreen(){if(!isTouch||!SETTINGS.fullscreen||isStandalone())return;const el=document.documentElement;const p=el.requestFullscreen?el.requestFullscreen({navigationUI:'hide'}):el.webkitRequestFullscreen?el.webkitRequestFullscreen():null;
@@ -4974,7 +5020,7 @@ async function boot(){
   if(!MP.on)await showAuth('login',MP.sb?'':'Sem conexão com o servidor. Confira a internet e tente de novo.');
   await enterAccount();
   window.__townReady=true;
-  window.__game={AVATAR,rebuildHero,get ROUTE(){return ROUTE;},solidAt,bodyFree,setWaypoint,clearWaypoint,openBigMap,closeBigMap,goTo,get S(){return S;},get hero(){return hero;},get companies(){return companies;},get buildings(){return buildings;},canBuild,foundCompany,tryPlace,startPlacing,BUILD,get placing(){return placing;},renderer:()=>renderer,camera:()=>camera,CAM,openMenu,closeMenu,TILE,TS,M,PX,WORLD:()=>WORLD,STATS:()=>renderer.info.render,setDayAcc:v=>{dayAcc=v;},scheduleShiftX:()=>scheduleShift(),contactsX:()=>contacts,addAgenda,CARSX:()=>CARS,heroFree,WP:()=>WAYPOINT,actHire,genPerson,enterInterior,exitInterior,get SPECIAL(){return SPECIAL;},get PCAR(){return PCAR;},get INT(){return INT;},CROWD,setTod:v=>{tod=v;},sede:()=>sede,bFront,doInteract,get interact(){return interactTarget;},trafficStep:updateTraffic,crowdStep:updateCrowd,RESID,enterHome,mySpace,get REMOTES(){return REMOTES;},get joy(){return joy;},GB,gbEnter,openElevator,get HEROY(){return HEROY;},laneRoute,LANES,INTERS,GROUPS,lightState,get lightT(){return lightT;}};}
+  window.__game={AVATAR,rebuildHero,get ROUTE(){return ROUTE;},solidAt,bodyFree,setWaypoint,clearWaypoint,openBigMap,closeBigMap,goTo,get S(){return S;},get hero(){return hero;},get companies(){return companies;},get buildings(){return buildings;},canBuild,foundCompany,tryPlace,startPlacing,BUILD,get placing(){return placing;},renderer:()=>renderer,camera:()=>camera,CAM,openMenu,closeMenu,TILE,TS,M,PX,WORLD:()=>WORLD,STATS:()=>renderer.info.render,setDayAcc:v=>{dayAcc=v;},scheduleShiftX:()=>scheduleShift(),contactsX:()=>contacts,addAgenda,CARSX:()=>CARS,heroFree,WP:()=>WAYPOINT,actHire,genPerson,enterInterior,exitInterior,get SPECIAL(){return SPECIAL;},get PCAR(){return PCAR;},get INT(){return INT;},CROWD,setTod:v=>{tod=v;},sede:()=>sede,bFront,doInteract,get interact(){return interactTarget;},trafficStep:updateTraffic,crowdStep:updateCrowd,openBank,RESID,enterHome,mySpace,get REMOTES(){return REMOTES;},get joy(){return joy;},GB,gbEnter,openElevator,get HEROY(){return HEROY;},laneRoute,LANES,INTERS,GROUPS,lightState,get lightT(){return lightT;}};}
 boot().catch(e=>{console.error(e);window.__fail('Erro ao iniciar: '+(e&&e.message||e));});
 </script>
 </body>
