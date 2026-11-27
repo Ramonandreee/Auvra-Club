@@ -53,6 +53,12 @@ menu ou painel aberto.
 
 ## Vida em Wall Street (estilo mundo aberto)
 
+- **Distrito Financeiro ampliado:** o mapa cobre do Hudson ao East River e da Fulton St ao Battery Park (104 × 98 quadras-unidade). O núcleo da Wall Street continua igual no centro.
+  - **Ruas reais:** West St, Greenwich, Church St/Trinity Pl, Fulton (com o calçadão do Seaport), Maiden Ln, Liberty, Cedar, Rector e State St.
+  - **Marcos:** One World Trade Center (com elevador e Sky Lounge), Memorial 9/11 (as duas piscinas), Oculus, St. Paul's Chapel, Zuccotti Park, Castle Clinton, terminal da balsa de Staten Island (passeio grátis) e Pier 17 (salão de eventos).
+  - **Prédios de bairro:** cerca de 60 novos quarteirões ocupados (vidro no lado oeste, sobrados de tijolo no Seaport), todos com porta: comércios, torres e residenciais.
+  - **Desbloqueio:** os bairros novos abrem na fase 4 e 5.
+  - **Save:** um save antigo é migrado automaticamente, e tudo volta ao mesmo lugar.
 - **Entrar nos prédios:** sede, suas empresas e concorrentes têm interior 3D. Nas suas empresas, a equipe trabalha
   sentada nas mesas (digitando) ou circula; fale com cada funcionário (elogiar, aumento de 10%, demitir). Recepção/RH e a
   mesa do CEO abrem a gestão; a mesa de reunião otimiza a operação; a copa faz um café com a equipe (1×/dia).
