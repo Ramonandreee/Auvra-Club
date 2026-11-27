@@ -2,6 +2,16 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.5.0 — 2026-11-27
+- **feat(town): entrar nos prédios (etapa 3).** Todos os marcos têm interior.
+  - **Torres:** saguão, elevador com painel e animação de andares, escritórios e lajes por andar, Sky Lounge na cobertura com código de vestimenta (estilo 30+).
+  - **Residencial (70 Pine):** apartamento modelo e cobertura à venda, com hora marcada a partir de $1M de patrimônio.
+  - **Salões:** de eventos (55 Wall), do banco (23 Wall), museu (Federal Hall) e igreja (Trinity).
+  - **Comércios de rua:** 6 no térreo dos marcos, com atendentes e itens que mexem em energia, habilidades e reputação.
+  - **Helipontos:** no topo real do 1 Wall St (heliponto fictício) e no píer do East River. Voo panorâmico ($450) e voo particular ($2.500).
+  - **Mapa:** nova camada "Comércios e helipontos".
+- **fix(town):** "Novo jogo" voltou a zerar empresas, concorrentes e contatos. Um comentário engolia essa linha.
+
 ## 2.4.0 — 2026-11-27
 - **feat(town): trânsito com regras.** Rede de faixas por sentido, com a mão direita corrigida nas ruas horizontais de mão dupla (estava invertida) e cruzamentos detectados também onde a rua termina na outra.
   - **Veículos:** curvas suaves (Bézier) em vez de pulo de faixa; os longos abrem mais a curva. Semáforo com **amarelo** e regra de decisão no amarelo. Parada antes da faixa. Distância do veículo da frente, inclusive de quem cruza. Não bloqueiam o cruzamento. Conversão à esquerda espera quem vem de frente, e na curva dupla cada um vai para a sua faixa. **Setas** piscando. **Motos** com piloto.
