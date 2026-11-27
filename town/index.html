@@ -935,10 +935,10 @@ const HAIR={
   repartido:[.042,.025,.015],ondulado:[.042,.037,.11],cacheado:[.053,.045,.085],
   preso:[.02,.03,.16]
 };
-const OUTFITS=['camiseta','polo','casual','moletom','esportivo','tricô','jaqueta','social','saia','vestido','blazer','terno','sobretudo','alfaiataria','old-money','smoking','luxo'];
-const OUTFIT_LABELS=['Camiseta básica','Polo','Camisa casual','Moletom','Esportivo','Suéter de tricô','Jaqueta de couro','Camisa social','Saia e camisa','Vestido','Blazer','Terno executivo','Sobretudo','Terno sob medida','Old money','Smoking','Luxo discreto'];
-const SHOES=['auto','tênis','sapato','salto','oxford'];
-const ACCESS=['','bag','phone','coffee','glasses','watch','badge','cap','hat','scarf'];
+const OUTFITS=['camiseta','polo','casual','moletom','esportivo','tricô','jaqueta','social','saia','vestido','blazer','terno','sobretudo','alfaiataria','old-money','smoking','gala','luxo'];
+const OUTFIT_LABELS=['Camiseta básica','Polo','Camisa casual','Moletom','Esportivo','Suéter de tricô','Jaqueta de couro','Camisa social','Saia e camisa','Vestido','Blazer','Terno executivo','Sobretudo','Terno sob medida','Old money','Smoking','Vestido de gala','Luxo discreto'];
+const SHOES=['auto','tênis','sapato','salto','oxford','stiletto'];
+const ACCESS=['','bag','phone','coffee','glasses','watch','badge','cap','hat','scarf','pearls'];
 const personCache=new Map();
 /* AVATAR_HEAD_BEGIN */
 const HEAD_PACKED=[
@@ -1476,7 +1476,7 @@ function personGeometry(look,lod=0){
   const hip=.146*L.hips*(profile?1.09:1), waist=.117*L.waist*(profile?.91:1);
   const mass=Math.sqrt(L.mass), st=L.topStyle;
   const suit=['terno','sobretudo','alfaiataria','luxo','blazer','smoking'].includes(st);const openFront=suit||st==='jaqueta';
-  const skirt=st==='vestido'||st==='saia', shirt=st==='saia'?0xe9edf2:(L.shirt??0xe9edf2);
+  const skirt=st==='vestido'||st==='saia'||st==='gala', shirt=st==='saia'?0xe9edf2:(L.shirt??0xe9edf2);
   const skin=L.skin??PAL.skin[1], top=st==='smoking'?0x101114:(L.top??PAL.top[0]), pants=st==='smoking'?0x0c0d10:(L.pants??PAL.pants[0]);
   const hair=L.hair??PAL.hair[1];
   const detail=lod===0;
@@ -1681,11 +1681,12 @@ function personGeometry(look,lod=0){
   }
   const mat=st==='jaqueta'?'leather':suit||st==='old-money'||st==='tricô'?'wool':'cotton';
   const bulk=st==='moletom'||st==='sobretudo'?.024:st==='tricô'||st==='jaqueta'?.02:st==='esportivo'||st==='camiseta'||st==='polo'?.008:st==='alfaiataria'||st==='smoking'?.010:.014;
-  const hem=st==='sobretudo'?.72:st==='vestido'?.60:.914;
+  const hem=st==='sobretudo'?.72:st==='vestido'?.60:st==='gala'?.12:.914;
   const jacket=torso.slice(1,-2).map(([x,y,z,rx,rz,a,b,w])=>[x,y,z,rx+bulk,rz+bulk,a,b,w]);
   jacket.unshift([0,hem,0,hip+bulk,.102+bulk,'hips']);
   if(st==='sobretudo')jacket[0][3]+=.045;
   if(st==='vestido')jacket[0][3]+=.055;
+  if(st==='gala')jacket[0][3]+=.11;
   const clothes=jacket.map(([x,y,z,rx,rz,a,b,w])=>ring([],n,top,mat,(sx,cz)=>{
     const weave=st==='tricô'?1+Math.sin(sx*60)*.05+(y<.95?Math.sin(sx*90)*.08:0):st==='jaqueta'?1+Math.max(0,cz)*.12-Math.abs(sx)*.04:1+Math.sin(sx*33+y*52)*.012+Math.cos(y*41+cz*12)*.018;
     const shape=profile?.023*Math.max(0,cz)**3*Math.exp(-Math.pow((y-1.34)/.13,2)):0;
@@ -1695,7 +1696,7 @@ function personGeometry(look,lod=0){
   for(let i=1;i<clothes.length;i++){
     join(clothes[i-1],clothes[i],j=>i===5&&[n/4,3*n/4].some(k=>j>=k-n/8&&j<k+n/8));
   }
-  const sleeves=['casual','vestido','esportivo','old-money','camiseta','polo'].includes(st);
+  const sleeves=['casual','vestido','esportivo','old-money','camiseta','polo','gala'].includes(st);
   for(const [side,s,k] of [['L',-1,3*n/4],['R',1,n/4]]){
     const lo=k-n/8,hi=k+n/8;
     const root=[...clothes[4].slice(lo,hi+1),...clothes[5].slice(lo,hi+1).reverse()];
@@ -1717,10 +1718,10 @@ function personGeometry(look,lod=0){
       [s*hip*.61,.795,0,.078*mass,.086*mass,'th'+side],[s*hip*.58,.94,0,hip*.60,.096*mass,'hips']
     ],m,pants,mat,false);
     const shoeStyle=L.shoeStyle==='auto'||!L.shoeStyle?(skirt?'salto':suit?'sapato':'tênis'):L.shoeStyle;
-    const sneaker=shoeStyle==='tênis', heel=shoeStyle==='salto', oxf=shoeStyle==='oxford', foot='foot'+side;
+    const sneaker=shoeStyle==='tênis', heel=shoeStyle==='salto'||shoeStyle==='stiletto', oxf=shoeStyle==='oxford', foot='foot'+side;
     loft([[s*.09,.014,.044,.043,.088,foot],[s*.09,.034,.039,.046,.098,foot],
       [s*.09,heel?.073:.083,.025,.039,.068,foot],[s*.09,.096,0,.03,.042,foot]],m,
-      sneaker?0x454954:oxf?0x4a2614:0x231d1b,sneaker?'cotton':'leather');
+      sneaker?0x454954:oxf?0x4a2614:shoeStyle==='stiletto'?0x0a0a0c:0x231d1b,sneaker?'cotton':'leather');
     if(lod<2){piece(xf(new THREE.BoxGeometry(.084,.016,.19),s*.09,.008,.03),sneaker?0xeeebe3:oxf?0x2a160c:0x141110,foot,sneaker?'cotton':'leather'); // solado
       if(oxf)piece(xf(new THREE.SphereGeometry(.04,8,5),s*.09,.045,.1,0,0,0,1,.55,1.1),0x5a2e18,foot,'leather');
       if(sneaker)for(const z of [.03,.055])piece(xf(new THREE.BoxGeometry(.05,.005,.006),s*.09,.074,z),0xf2efe8,foot,'cotton');}
@@ -1768,6 +1769,7 @@ function personGeometry(look,lod=0){
       if(st==='smoking'){piece(xf(new THREE.BoxGeometry(.06,.022,.012),0,1.452,.086+bulk),0x0b0b0d,'chest','wool');piece(xf(new THREE.SphereGeometry(.009,6,4),0,1.452,.094+bulk),0x0b0b0d,'chest','wool');}}
     if(L.acc==='cap'){piece(xf(new THREE.SphereGeometry(.098,14,7,0,Math.PI*2,0,Math.PI/2),0,1.735,-.004,0,0,0,1.0*L.faceWidth,.78,1.08),0x1d2a44,'head','cotton');piece(xf(new THREE.BoxGeometry(.13,.008,.085),0,1.738,.12,-.12,0,0),0x1d2a44,'head','cotton');}
     if(L.acc==='hat'){piece(xf(new THREE.CylinderGeometry(.072,.086,.085,16),0,1.82,-.004),0x3a3633,'head','wool');piece(xf(new THREE.CylinderGeometry(.155,.155,.008,22),0,1.776,-.004),0x34302d,'head','wool');piece(xf(new THREE.CylinderGeometry(.087,.087,.018,16),0,1.79,-.004),0x1a1715,'head','leather');}
+    if(L.acc==='pearls')for(let k=0;k<14;k++){const a=-Math.PI*0.85+k/13*Math.PI*1.7;piece(xf(new THREE.SphereGeometry(.0075,6,4),Math.sin(a)*.068,1.445-Math.cos(a)*.012,Math.cos(a)*.074+.012),0xf4efe4,'chest','leather');}
     if(L.acc==='scarf'){piece(xf(new THREE.TorusGeometry(.072,.024,6,16),0,1.47,.0,Math.PI/2,0,0,1,1.2,1),0x8a2a2a,'neck','wool');piece(xf(new THREE.BoxGeometry(.05,.17,.02),.035,1.36,.1,0,0,.12),0x8a2a2a,'chest','wool');}
     if(L.acc==='bag'){
       piece(xf(new THREE.BoxGeometry(.11,.24,.20),.282,.765,.018),0x493022,'handR','leather');
@@ -1928,11 +1930,11 @@ const ROLE_WARDROBE={
 function randomLook(r=Math.random,kind='street'){
   const pick=a=>a[Math.floor(r()*a.length)], range=(a,b)=>lerp(a,b,r());
   const build=r()<.48?'B':'A';
-  const topStyle=pick(ROLE_WARDROBE[kind]??ROLE_WARDROBE.street);
+  let topStyle=pick(ROLE_WARDROBE[kind]??ROLE_WARDROBE.street);if(build==='A'&&['vestido','saia','gala'].includes(topStyle))topStyle=pick(['terno','social','casual','polo']);if(build==='B'&&topStyle==='smoking')topStyle='gala';
   const tailored=['terno','alfaiataria','luxo'].includes(topStyle);
   const top=pick(tailored?PAL.top.slice(0,4):PAL.top);
-  return {skin:pick(PAL.skin),hair:pick(PAL.hair),hairStyle:pick(Object.keys(HAIR)),
-    beard:r()<.25?pick(['por fazer','cheia']):'não',top,topStyle,
+  return {skin:pick(PAL.skin),hair:pick(PAL.hair),hairStyle:build==='B'?pick(['longo','coque','médio','ondulado','cacheado','preso','repartido']):pick(['curto','raspado','repartido','médio','careca','ondulado','cacheado','curto']),
+    beard:build==='A'&&r()<.3?pick(['por fazer','cheia']):'não',top,topStyle,gender:build==='B'?'f':'m',shoeStyle:build==='B'&&r()<.4?'salto':'auto',
     shirt:pick([0xe9edf2,0xdfe7f2,0xf2efe6]),pants:tailored?shade(top,.88):pick(PAL.pants),
     build,height:range(.92,1.09),mass:pick([.89,1,1.13]),hips:pick([.92,1,1.09]),
     faceWidth:pick([.93,1,1.08]),jaw:pick([.91,1,1.09]),nose:pick([.83,1,1.16]),
@@ -2206,17 +2208,19 @@ function normalizeAvatar(){
   for(const [key,[,min,max]] of Object.entries(AVATAR_RANGES))AVATAR[key]=cl(Number(AVATAR[key])||1,min,max);
 }
 const SHOPS={front:{n:'Front Street Outfitters',ico:'🧢',col:'#2f5a3a',txt:'Casual, streetwear e couro'},maiden:{n:'Maiden Lane Tailors',ico:'🪡',col:'#2a3550',txt:'Alfaiataria e social'},verlaine:{n:'Maison Verlaine',ico:'💎',col:'#3a2a3a',txt:'Luxo e gala'}};
-const WARD=[ // [slot, valor, preço, nível de estilo 0–5, loja]
+const WARD=[ // [slot, valor, preço, nível de estilo 0–5, loja, gênero u/m/f]
   ['topStyle','camiseta',0,0,null],['topStyle','casual',90,1,'front'],['topStyle','polo',120,1,'front'],['topStyle','moletom',110,1,'front'],['topStyle','esportivo',160,1,'front'],['topStyle','tricô',280,2,'front'],['topStyle','jaqueta',650,2,'front'],
-  ['topStyle','social',180,2,'maiden'],['topStyle','saia',260,2,'maiden'],['topStyle','blazer',720,3,'maiden'],['topStyle','terno',1400,3,'maiden'],['topStyle','sobretudo',2200,3,'maiden'],['topStyle','alfaiataria',4800,4,'maiden'],
-  ['topStyle','vestido',420,2,'verlaine'],['topStyle','old-money',6500,4,'verlaine'],['topStyle','smoking',9000,5,'verlaine'],['topStyle','luxo',15000,5,'verlaine'],
-  ['shoeStyle','auto',0,0,null],['shoeStyle','tênis',0,0,null],['shoeStyle','sapato',240,2,'maiden'],['shoeStyle','salto',300,2,'verlaine'],['shoeStyle','oxford',1800,4,'verlaine'],
-  ['acc','',0,0,null],['acc','phone',0,0,null],['acc','coffee',0,0,null],['acc','badge',0,0,null],['acc','cap',40,1,'front'],['acc','bag',220,2,'maiden'],['acc','glasses',300,2,'verlaine'],['acc','scarf',260,2,'verlaine'],['acc','watch',900,3,'verlaine'],['acc','hat',700,4,'verlaine']];
+  ['topStyle','social',180,2,'maiden'],['topStyle','saia',260,2,'maiden','f'],['topStyle','blazer',720,3,'maiden'],['topStyle','terno',1400,3,'maiden'],['topStyle','sobretudo',2200,3,'maiden'],['topStyle','alfaiataria',4800,4,'maiden'],
+  ['topStyle','vestido',420,2,'verlaine','f'],['topStyle','old-money',6500,4,'verlaine'],['topStyle','smoking',9000,5,'verlaine','m'],['topStyle','luxo',15000,5,'verlaine'],
+  ['shoeStyle','auto',0,0,null],['shoeStyle','tênis',0,0,null],['shoeStyle','sapato',240,2,'maiden','m'],['shoeStyle','salto',300,2,'verlaine','f'],['shoeStyle','oxford',1800,4,'verlaine','m'],
+  ['acc','',0,0,null],['acc','phone',0,0,null],['acc','coffee',0,0,null],['acc','badge',0,0,null],['acc','cap',40,1,'front'],['acc','bag',220,2,'maiden'],['acc','glasses',300,2,'verlaine'],['acc','scarf',260,2,'verlaine'],['acc','watch',900,3,'verlaine'],['acc','hat',700,4,'verlaine'],['topStyle','gala',11000,5,'verlaine','f'],['shoeStyle','stiletto',1600,4,'verlaine','f'],['acc','pearls',2400,4,'verlaine','f']];
+const genderOf=()=>AVATAR.gender||(AVATAR.build==='B'?'f':'m');const fits=w=>!w[5]||w[5]===genderOf();
 const wkey=(k,v)=>k+':'+v,witem=(k,v)=>WARD.find(w=>w[0]===k&&w[1]===v);
 function owned(k,v){const w=witem(k,v);if(!w||!w[2])return true;return !!(started&&S.wardrobe&&S.wardrobe.includes(wkey(k,v)));}
-function itemName(k,v){const L_={topStyle:[OUTFITS,OUTFIT_LABELS],shoeStyle:[SHOES,['Automático','Tênis','Sapato social','Salto','Oxford italiano']],acc:[ACCESS,['Nenhum','Pasta de couro','Celular','Café','Óculos','Relógio','Crachá','Boné','Chapéu fedora','Cachecol']]}[k];return L_?L_[1][L_[0].indexOf(v)]||v:v;}
+function itemName(k,v){if(genderOf()==='f'&&k==='topStyle'&&({terno:1,alfaiataria:1})[v])return v==='terno'?'Tailleur executivo':'Tailleur sob medida';const L_={topStyle:[OUTFITS,OUTFIT_LABELS],shoeStyle:[SHOES,['Automático','Tênis','Sapato social','Salto','Oxford italiano','Scarpin stiletto']],acc:[ACCESS,['Nenhum','Pasta de couro','Celular','Café','Óculos','Relógio','Crachá','Boné','Chapéu fedora','Cachecol','Colar de pérolas']]}[k];return L_?L_[1][L_[0].indexOf(v)]||v:v;}
 function ensureWardrobe(){if(!S.wardrobe){S.wardrobe=[];for(const k of ['topStyle','shoeStyle','acc']){const w=witem(k,AVATAR[k]);if(w&&w[2]&&S.day>1)S.wardrobe.push(wkey(k,AVATAR[k]));}}
-  for(const k of ['topStyle','shoeStyle','acc'])if(!owned(k,AVATAR[k])){AVATAR[k]=k==='topStyle'?'camiseta':k==='shoeStyle'?'tênis':'';}}
+  fixGender();for(const k of ['topStyle','shoeStyle','acc'])if(!owned(k,AVATAR[k])){AVATAR[k]=k==='topStyle'?'camiseta':k==='shoeStyle'?'tênis':'';}}
+function fixGender(){for(const [k,d] of [['topStyle','camiseta'],['shoeStyle','auto'],['acc','']]){const w=witem(k,AVATAR[k]);if(w&&!fits(w))AVATAR[k]=d;}}
 function lookScore(){const t=(witem('topStyle',AVATAR.topStyle)||[0,0,0,0])[3],sh=(witem('shoeStyle',AVATAR.shoeStyle)||[0,0,0,0])[3],a=(witem('acc',AVATAR.acc)||[0,0,0,0])[3];return Math.round((t*2+sh+a)/18*100);}
 function lookLabel(v){v=v??lookScore();return v>=80?'Ícone':v>=60?'Executivo':v>=40?'Elegante':v>=20?'Casual':'Básico';}
 const lookBonus=()=>started?lookScore()/100:0;
@@ -2820,7 +2824,7 @@ function openStaff(p,extra){INT.talkP=p;const mem=p.mem,T=TRAITS[mem.trait],spec
 function staffReply(p,txt,more){modal('🧑‍💼',esc(p.mem.name),'<p class="quote">'+txt+'</p>',(more||[]).concat([{t:'↩ Voltar',fn:()=>openStaff(p,'"Mais alguma coisa?"')},{t:'Tchau',fn:closeModal}]));refreshHUD();}
 function eat(p,name,price,en,line){if(S.cash<price)return staffReply(p,'"Hm… o cartão não passou. Fica pra próxima?"');S.cash-=price;S.energy=Math.min(S.energy+en,120);p.mem.rel=Math.min(100,p.mem.rel+1);staffReply(p,line+'<br><span class="small">'+name+' · −'+money(price)+' · ⚡+'+en+'</span>');}
 function staffActions(p){const s=p.staff,spec=p.spec,mem=p.mem,h=nowHour();
-  if(s==='estilo'){const sh=spec.shop;return [{t:'👔 Ver a coleção',d:SHOPS[sh].txt,fn:()=>openShop(sh,p)},{t:'🪞 Como estou?',fn:()=>{const v=lookScore(),nx=WARD.filter(w=>w[4]===sh&&!owned(w[0],w[1])).sort((a,b)=>a[2]-b[2]).find(w=>w[2]<=S.cash*1.5);
+  if(s==='estilo'){const sh=spec.shop;return [{t:'👔 Ver a coleção',d:SHOPS[sh].txt,fn:()=>openShop(sh,p)},{t:'🪞 Como estou?',fn:()=>{const v=lookScore(),nx=WARD.filter(w=>w[4]===sh&&fits(w)&&!owned(w[0],w[1])).sort((a,b)=>a[2]-b[2]).find(w=>w[2]<=S.cash*1.5);
       staffReply(p,'"'+(v>=60?'Impecável. Você entra numa sala e as pessoas param.':v>=40?'Elegante! Só falta um detalhe para impressionar de verdade.':v>=20?'Confortável… mas Wall Street julga pela roupa, sabia?':'Sendo sincero(a)? Assim ninguém te leva a sério numa reunião.')+(nx?' Eu levaria o '+itemName(nx[0],nx[1]).toLowerCase()+' ('+money(nx[2])+').':'')+'" <span class="small">Estilo '+v+'/100 · '+lookLabel(v)+'</span>');}}];}
   if(s==='pregao')return [{t:'📈 Ver cotações e investir',d:'Sua conta na corretora',fn:()=>{closeModal();openInvest();}},{t:'🏛️ IPO e aquisições do distrito',fn:()=>{closeModal();onTool('market');}},
     {t:'🧭 O que está mexendo o mercado?',fn:()=>{ensureMk();const best=STOCKS.map(x=>[x,priceNow(x.t)/S.mk.p[x.t]-1]).sort((a,b)=>b[1]-a[1]);staffReply(p,'"Hoje quem puxa é a '+best[0][0].n+' ('+pct(best[0][1])+'). Quem apanha é a '+best[best.length-1][0].n+' ('+pct(best[best.length-1][1])+'). A economia está '+S.market.cycle+'."');}}];
@@ -3004,7 +3008,7 @@ function buildBroker(B,spec){const I=imat(),b=brokerOf(spec.broker),W=14,D=11;bu
 
 /* ---- lojas de roupa ---- */
 function buildShop(B,spec){const I=imat(),sh=SHOPS[spec.shop],W=14,D=11,lux=spec.shop==='verlaine';buildRoom(B,W,D,lux?I.marbleF:I.wood,{wall:lux?I.wallDark:I.wall});
-  const items=WARD.filter(w=>w[4]===spec.shop);const rail=std({color:lux?0xc9a24a:0x8a8f96,metalness:.8,roughness:.3});INT.mats.push(rail);
+  const items=WARD.filter(w=>w[4]===spec.shop&&fits(w));const fem=genderOf()==='f';const rail=std({color:lux?0xc9a24a:0x8a8f96,metalness:.8,roughness:.3});INT.mats.push(rail);
   for(let r=0;r<3;r++){const x=-W/2+2+r*3.4,z=-D/2+1.4;B.add(rail,xf(new THREE.BoxGeometry(2.6,0.04,0.04),x,1.55,z));for(const sx of [-1.3,1.3])B.add(rail,xf(new THREE.BoxGeometry(0.04,1.55,0.04),x+sx,0.775,z));
     for(let k=0;k<9;k++){const c=new THREE.Color().setHSL(((r*9+k)*0.13)%1,lux?0.25:0.4,lux?0.25:0.35);B.add(std({color:c,roughness:.9}),xf(new THREE.BoxGeometry(0.06,0.85,0.42),x-1.15+k*0.29,1.1,z));}obst(x,z,2.8,0.6);}
   const mir=std({color:0xd8e4ea,metalness:1,roughness:.05});INT.mats.push(mir);B.add(mir,xf(new THREE.PlaneGeometry(1.6,2.4),W/2-0.06,1.4,0,-Math.PI/2));
@@ -3012,10 +3016,10 @@ function buildShop(B,spec){const I=imat(),sh=SHOPS[spec.shop],W=14,D=11,lux=spec
   const sm=std({map:signTex(sh.n,sh.col,'#f6f0e4'),roughness:.4});INT.mats.push(sm);B.add(sm,xf(new THREE.PlaneGeometry(6,1.12),2,3.2,-D/2+0.06));
   // manequins vestindo as peças da loja
   items.filter(w=>w[0]==='topStyle').slice(-3).forEach((w,i)=>{const x=-3+i*2.6,z=0.6;B.add(I.deskDark,xf(new THREE.CylinderGeometry(0.4,0.45,0.15,16),x,0.075,z));obst(x,z,0.9,0.9);
-    const g=buildPerson({...SHAPE,skin:0xdedad2,hair:0xdedad2,hairStyle:'careca',top:({front:[0x2f5a8a,0x8a3a2a,0x5a6a3a],maiden:[0x2a3550,0x5a5e66,0x22262e],verlaine:[0xc9b79a,0x101114,0x3a2a3a]})[spec.shop][i],pants:0x23262c,topStyle:w[1],shoeStyle:w[1]==='vestido'?'salto':'sapato',build:i%2?'B':'A',acc:'',beard:'não',iris:'castanho'});
+    const g=buildPerson({...SHAPE,skin:0xdedad2,hair:0xdedad2,hairStyle:'careca',top:({front:[0x2f5a8a,0x8a3a2a,0x5a6a3a],maiden:[0x2a3550,0x5a5e66,0x22262e],verlaine:[0xc9b79a,0x101114,0x3a2a3a]})[spec.shop][i],pants:0x23262c,topStyle:w[1],shoeStyle:fem?(w[3]>=4?'stiletto':'salto'):(w[3]>=4?'oxford':'sapato'),build:fem?'B':'A',acc:fem&&w[3]>=4?'pearls':'',beard:'não',iris:'castanho'});
     g.position.set(x,0.15,z);g.rotation.y=0.3-i*0.3;INT.group.add(g);animPerson(g,0,0.016);
     prop(x,z+1.0,'👔',itemName('topStyle',w[1]),money(w[2])+(owned('topStyle',w[1])?' · já é seu':''),()=>{const st_=INT.staffP;openShop(spec.shop,st_,w);},1.2);});}
-function openShop(sh,p,focus){const H_=SHOPS[sh],items=WARD.filter(w=>w[4]===sh);const v=lookScore();
+function openShop(sh,p,focus){const H_=SHOPS[sh],items=WARD.filter(w=>w[4]===sh&&fits(w));const v=lookScore();
   const rows='<div class="shopgrid">'+items.map((w,i)=>{const own=owned(w[0],w[1]),wearing=AVATAR[w[0]]===w[1];return '<button class="sitem'+(wearing?' on':'')+'" data-it="'+i+'"><b>'+esc(itemName(w[0],w[1]))+'</b><span>'+({topStyle:'👔',shoeStyle:'👞',acc:'⌚'})[w[0]]+' '+'★'.repeat(w[3])+'</span><i>'+(wearing?'vestindo':own?'✔ seu':money(w[2]))+'</i></button>';}).join('')+'</div>';
   const m=modal(H_.ico,H_.n,'<p class="small">Seu estilo hoje: <b>'+v+'/100 · '+lookLabel(v)+'</b>. Estilo melhora a primeira impressão em negociações, entrevistas e contatos. Caixa: '+money(S.cash)+'</p>'+rows,[p?{t:'↩ Voltar',fn:()=>openStaff(p,'"Achou algo?"')}:{t:'↩ Fechar',fn:closeModal}]);
   m.querySelectorAll('[data-it]').forEach(r=>r.onclick=()=>shopItem(sh,items[+r.dataset.it],p));if(focus)shopItem(sh,focus,p);}
@@ -4002,15 +4006,16 @@ const AVATAR_RANGES={
   jaw:['Maxilar',.79,1.21],nose:['Nariz',.68,1.32],eyes:['Olhos',.8,1.2],brows:['Sobrancelhas',.8,1.2]
 };
 const AVATAR_CHOICES={
-  Corpo:[['skin','Tom de pele',PAL.skin,true],['build','Silhueta',['A','B'],false,['Ombros largos','Cintura marcada']]],
+  Corpo:[['gender','Gênero',['m','f'],false,['Masculino','Feminino']],['skin','Tom de pele',PAL.skin,true],['build','Silhueta',['A','B'],false,['Ombros largos','Cintura marcada']]],
   Rosto:[['iris','Íris',['castanho','verde','azul']]],
   Cabelo:[['hairStyle','Corte',Object.keys(HAIR)],['hair','Cor',PAL.hair,true],['beard','Barba',['não','por fazer','cheia'],false,['Sem barba','Por fazer','Cheia']]],
   Roupa:[['topStyle','Estilo',OUTFITS,false,OUTFIT_LABELS],
     ['top','Cor principal',PAL.top,true],['pants','Cor da parte de baixo',PAL.pants,true],
-    ['shoeStyle','Calçado',SHOES,false,['Automático','Tênis','Sapato social','Salto','Oxford italiano']]],
-  Acessórios:[['acc','Acessório',ACCESS,false,['Nenhum','Pasta de couro','Celular','Café','Óculos','Relógio','Crachá','Boné','Chapéu fedora','Cachecol']]]
+    ['shoeStyle','Calçado',SHOES,false,['Automático','Tênis','Sapato social','Salto','Oxford italiano','Scarpin stiletto']]],
+  Acessórios:[['acc','Acessório',ACCESS,false,['Nenhum','Pasta de couro','Celular','Café','Óculos','Relógio','Crachá','Boné','Chapéu fedora','Cachecol','Colar de pérolas']]]
 };
-function chipRow(key,label,vals,isColor,labels){
+function chipRow(key,label,vals,isColor,labels){if(key==='gender'&&!AVATAR.gender)AVATAR.gender=genderOf();
+  if(['topStyle','shoeStyle','acc'].includes(key)){const keep=vals.map((v,i)=>[v,labels?.[i]]).filter(([v])=>{const w=witem(key,v);return !w||fits(w);});vals=keep.map(x=>x[0]);labels=labels?keep.map(x=>key==='topStyle'?itemName('topStyle',x[0]):x[1]):labels;}
   return '<div class="opt">'+label+'</div><div class="chips" role="group" aria-label="'+label+'">'+vals.map((v,i)=>{
     const val=isColor?i:v, on=AVATAR[key]===val;
     const lock=!isColor&&['topStyle','shoeStyle','acc'].includes(key)&&!owned(key,val),wi=lock?witem(key,val):null;
@@ -4099,7 +4104,7 @@ function bindCharacter(){
     if(chip.dataset.lock){const wi=witem(chip.dataset.k,chip.dataset.v),sp=SPECIAL['shop:'+wi[4]];toast('🔒 '+itemName(wi[0],wi[1])+' · '+money(wi[2])+' na '+SHOPS[wi[4]].n+(started&&sp?' — marcado no mapa':''));if(started&&sp)setWaypoint(sp.front[0],sp.front[1],SHOPS[wi[4]].n);return;}
     const {k,v}=chip.dataset, value=chip.classList.contains('sw')?Number(v):v;
     if(AVATAR[k]===value)return;
-    remember();AVATAR[k]=value;change();options(false);
+    remember();AVATAR[k]=value;if(k==='gender'){AVATAR.build=value==='f'?'B':'A';if(value==='f')AVATAR.beard='não';fixGender();}change();options(false);
   };
   panel.oninput=e=>{
     const {shape}=e.target.dataset;if(!shape)return;

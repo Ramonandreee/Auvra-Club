@@ -2,6 +2,12 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## [2.1.1] — 2026-11-28 — *Lojas por gênero*
+- Gênero do personagem (Masculino/Feminino) na aba Corpo. Lojas mostram só a coleção do seu gênero, com manequins do
+  mesmo gênero; o editor esconde as peças do outro. No feminino, ternos viram tailleurs.
+- Peças femininas novas: vestido de gala, scarpin stiletto e colar de pérolas.
+- NPCs coerentes: homens sem vestido/saia/salto, mulheres sem barba; cortes de cabelo por gênero.
+
 ## [2.1.0] — 2026-11-28 — *Guarda-roupa e estilo*
 - Começa com o básico (camiseta, jeans e tênis). Roupas, calçados e acessórios são comprados em três lojas fictícias
   com interior (araras, manequins vestindo a coleção, espelho, consultor(a) de estilo): Front Street Outfitters
