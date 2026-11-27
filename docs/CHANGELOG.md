@@ -2,6 +2,15 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## [1.7.0] — 2026-11-28 — *Obras, táxi, ritmo de cidade e menu novo*
+- Dia de 10 min reais. Analógico só anda; botão de correr; câmera no lado direito (corrigido o arrasto com o celular em pé).
+- Táxi pelo AuvraOS com preço/rota/chegada; canteiro de obras com prazo por porte e hora extra (economia: empresa em
+  obra não fatura nem contrata). Noite mais clara com luz dos postes. NPCs sentados de frente para a mesa e sempre em
+  cadeira.
+- Menu e editor de personagem redesenhados (rail com logo, painel de início com dia/caixa/fase/patrimônio e próximo
+  compromisso; editor em duas colunas com abas, opções roláveis e sliders com − / +). Sem avisos de instrução na tela.
+- Tela inteira no app instalado (mede a tela real) e rolagem/sliders funcionando com o celular em pé.
+
 ## [1.6.0] — 2026-11-27 — *Tela limpa, mundo sólido e GPS*
 - HUD mínimo (caixa/energia, relógio, mapa, ações, menu, minimapa redondo); ferramentas sob demanda; missão temporária.
 - Sem acelerar o tempo. Energia só para esforço (trabalho/estudo); networking, reuniões, mercado e banco são livres;

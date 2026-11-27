@@ -68,6 +68,15 @@ menu ou painel aberto.
 
 ## Tela limpa, corpo físico e GPS
 
+- **Controles:** o analógico só **anda** (passo natural); o botão 🏃 à direita liga a corrida (desliga ao soltar o
+  analógico); arrastar o lado direito da tela gira a câmera, pinça aproxima.
+- **Táxi (📱 Celular → Táxi):** escolha o destino (compromisso de hoje, trabalho, casa, sede, lojas, marcos ou o ponto
+  marcado no mapa), veja preço, distância e horário de chegada, pague e entre no táxi que para na rua mais próxima. A
+  corrida consome o tempo do trajeto no relógio — bem menos que ir a pé.
+- **Obras de verdade:** fundar uma empresa abre um **canteiro de obras** (tapume, estrutura subindo andar por andar,
+  andaime e grua) com prazo de 2 a 9 dias conforme o porte. A empresa só fatura e contrata depois de pronta; dá para
+  pagar hora extra e adiantar um dia.
+- **Noite visível:** céu com brilho da cidade, luar mais forte e poças de luz quente sob os postes.
 - **HUD mínimo:** caixa e energia no canto, relógio + 🗺 mapa + ▦ ações + ☰ menu no outro, minimapa redondo. A barra de
   ferramentas só aparece ao tocar em ▦; a missão aparece por alguns segundos quando muda (toque no caixa para revê-la).
 - **Nada atravessa nada:** prédios, postes, árvores, semáforos, bancas do metrô, estátua, touro, chafariz e
@@ -82,7 +91,7 @@ menu ou painel aberto.
 
 ## Carreira e agenda (a jogabilidade que é só nossa)
 
-- **Relógio e dias longos:** o HUD mostra a hora (07:00–23:00). Um dia de jogo dura **~4,8 min reais** (18 s por hora)
+- **Relógio e dias longos:** o HUD mostra a hora (07:00–23:00). Um dia de jogo dura **10 min reais** (~37 s por hora)
   e **o tempo não acelera** (só para com o menu aberto). O sol acompanha o relógio. Pontualidade muda o resultado.
 - **Energia é esforço, não tudo:** só trabalho gasta energia (freela, turno, estudo, otimizar empresa). **Networking**
   (conversar com contatos, fechar contrato com eles, abordar pessoas), reuniões, mercado, banco, construir e contratar
@@ -167,7 +176,8 @@ usuário único** (sem diferenciar maiúsculas; checado ao vivo no cadastro e ga
 depois. Há "Esqueci minha senha" e **⚙️ Ajustes → 🚪 Sair da conta**. O save fica por conta (local + nuvem).
 
 **Sempre na horizontal:** com o celular em pé o jogo **não bloqueia** — a tela inteira é girada 90° e os toques são
-convertidos (joystick, câmera, mapa, prévia do personagem). Deitar o celular só troca para o modo nativo.
+convertidos (joystick, câmera, mapa, prévia do personagem, rolagem das listas e sliders); o teclado também é deitado
+(teclado próprio). No app instalado o jogo mede a tela real e usa a área inteira. Deitar o celular só troca para o modo nativo.
 
 O `town/` é um **PWA**: `manifest.webmanifest` + `sw.js` + ícones. No jogo, **⚙️ Ajustes → 📲 Instalar app**
 (Android/Chrome abre o instalador; no iPhone mostra o passo *Compartilhar → Adicionar à Tela de Início*).
