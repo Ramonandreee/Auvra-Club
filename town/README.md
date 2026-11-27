@@ -253,6 +253,7 @@ Ajustes reúne qualidade gráfica, câmera, ciclo dia/noite, trânsito, tela che
 - **Animação:** a mesma do procedural. O esqueleto procedural é animado e as rotações são transferidas osso a osso para o rig `game_engine` (`realPose`).
 - **Limite por qualidade:** só as pessoas mais próximas usam o modelo realista (3 em Baixa, 6 em Média, 10 em Alta). Dá para desligar em **Ajustes → Personagens realistas**.
 - **Editor:** "Modelo realista" (Automático ou um dos 5). No automático, a pessoa segue gênero, tom de pele e cabelo grisalho.
+- **Editor (tela cheia):** no modelo realista valem a pessoa, o tom de pele, o corte e a cor do cabelo, a íris, as cores da roupa, o rosto (morphs: largura, maxilar, nariz, olhos) e o corpo (massa, ombros, quadril). As cores são aplicadas no shader (`tintMat`) e o cabelo vem de `models/hair/` (`realStyle`).
 - **Roupa:** cada pessoa tem duas versões. A **casual** (camiseta, calça e tênis) é a roupa padrão de início; a **social** (terno ou tailleur) aparece quando você veste um traje social no guarda-roupa.
 
 

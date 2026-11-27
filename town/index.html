@@ -395,6 +395,11 @@
   .sv-db{flex:1 0 auto;display:flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:0 12px;border-radius:11px;background:rgba(12,14,18,.82);border:1px solid rgba(255,255,255,.1);color:#d7d2c6;font:600 12.5px/1 var(--font);cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
   .sv-db .icon{width:16px;height:16px;color:var(--gold)}
   @media (max-height:360px){.sv-body p{display:none}.sv-label{display:none}}
+  /* ===== PERSONAGEM v3: tela cheia ===== */
+  #menu.persofull{background:none!important}
+  #menu .page.character.full{margin:calc(10px + var(--st)) calc(10px + var(--sr)) calc(10px + var(--sb)) calc(10px + var(--sl))!important;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr)!important}
+  .pback{flex:none;height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:var(--cream);font:700 13px/1 var(--font);cursor:pointer}
+  .rnote{font-size:11.5px;color:var(--dim);margin:2px 0 6px}
   /* ===== PERSONAGEM v2 ===== */
   #menu .page.character{display:grid!important;grid-template-columns:minmax(0,0.9fr) minmax(0,1.1fr)!important;gap:10px!important;padding:0!important;background:none!important;border:0!important;overflow:hidden!important}
   .avatar-view{border-radius:16px!important;background:transparent!important;border:1px solid rgba(255,255,255,.08)!important;min-height:0}
@@ -2138,6 +2143,7 @@ function realLoad(key){if(REAL.assets[key]||REAL.loading[key]||REAL.failed[key])
   REAL.loader.load('models/'+key+'.glb',gl=>{const sc=gl.scene;sc.updateMatrixWorld(true);
     sc.traverse(o=>{if(!o.isMesh)return;const m=o.material,cut=/hair|brow|lash|short0|long0|bob|ponytail|braid/i.test(m.name);
       m.transparent=false;m.alphaTest=cut?.38:0;m.depthWrite=true;m.side=cut?THREE.DoubleSide:THREE.FrontSide;m.envMapIntensity=.45;
+      if(/pants|wool|trouser/i.test(m.name)){m.polygonOffset=true;m.polygonOffsetFactor=-2;m.polygonOffsetUnits=-4;}
       if(/\.body$/.test(m.name))m.roughness=.6;else if(!cut&&!/low-poly/.test(m.name))m.roughness=Math.max(m.roughness??.8,.74);m.metalness=0;o.castShadow=false;o.frustumCulled=false;});
     // dados de repouso (iguais em todos os clones)
     const bones=[];sc.traverse(o=>{if(o.isBone)bones.push(o);});const idx=new Map(bones.map((b,i)=>[b,i]));
@@ -2155,16 +2161,66 @@ function realLoad(key){if(REAL.assets[key]||REAL.loading[key]||REAL.failed[key])
       off['thigh_'+sd]=new THREE.Quaternion().setFromUnitVectors(dirOf('thigh_'+sd,'calf_'+sd),new THREE.Vector3(0,-1,0));
       off['calf_'+sd]=new THREE.Quaternion().setFromUnitVectors(dirOf('calf_'+sd,'foot_'+sd),new THREE.Vector3(0,-1,0));
       off['foot_'+sd]=off['calf_'+sd];}
-    const pel=by('pelvis');REAL.assets[key]={scene:sc,rest,map,off,pelvis:pel,pelvisUp:new THREE.Vector3(0,1,0).applyQuaternion(rest[pel].pWorld.clone().invert())};REAL.loading[key]=0;
+    const pel=by('pelvis');REAL.assets[key]={scene:sc,rest,map,off,pelvis:pel,headY:rest[by('head')].wpos.y,pelvisUp:new THREE.Vector3(0,1,0).applyQuaternion(rest[pel].pWorld.clone().invert())};REAL.loading[key]=0;
     for(const g of [...REAL.waiting]){REAL.waiting.delete(g);if(g.userData)realSync(g,g.userData.lod??1);}},undefined,()=>{REAL.loading[key]=0;REAL.failed[key]=1;});}
 function realAttach(g,key){const a=REAL.assets[key],d=g.userData;const obj=cloneSkinned(a.scene);const bones=[];obj.traverse(o=>{if(o.isBone)bones.push(o);});
   obj.traverse(o=>{if(o.isMesh)o.castShadow=g===heroMesh&&SETTINGS.quality!=='baixa';});
-  d.real={obj,bones,key,a,W:a.rest.map(()=>new THREE.Quaternion())};g.add(obj);}
+  d.real={obj,bones,key,a,W:a.rest.map(()=>new THREE.Quaternion())};g.add(obj);realStyle(g);}
+/* ---- personalização do modelo realista: o editor do personagem vale aqui também ----
+   Cores: tecido/cabelo/íris são recoloridos no shader (luminância da textura × cor escolhida, preservando partes claras
+   como camisa e branco do olho). Corte de cabelo: malhas de cabelo (models/hair) presas ao esqueleto. Rosto: morphs. */
+const TINT_KEYS=new WeakMap();
+function texLum(tex){if(!tex||!tex.image)return .5;if(TINT_KEYS.has(tex))return TINT_KEYS.get(tex);let v=.5;try{const {c,g}=makeCanvas(24,24);g.drawImage(tex.image,0,0,24,24);const px=g.getImageData(0,0,24,24).data;let s=0,n=0;
+  for(let i=0;i<px.length;i+=4){if(px[i+3]<128)continue;s+=(.299*px[i]+.587*px[i+1]+.114*px[i+2])/255;n++;}v=n?s/n:.5;}catch(e){}TINT_KEYS.set(tex,v);return v;}
+function tintMat(m,col,keep0,keep1){const t=m.clone();const lum=texLum(m.map);t.userData.tint={col:new THREE.Color(col),gain:Math.min(6,.62/Math.max(.05,lum)),k0:keep0,k1:keep1};
+  t.onBeforeCompile=sh=>{const u=t.userData.tint;sh.uniforms.uTint={value:u.col};sh.uniforms.uGain={value:u.gain};sh.uniforms.uK={value:new THREE.Vector2(u.k0,u.k1)};
+    sh.fragmentShader='uniform vec3 uTint;uniform float uGain;uniform vec2 uK;\n'+sh.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n{float l=dot(diffuseColor.rgb,vec3(.299,.587,.114));float keep=smoothstep(uK.x,uK.y,l);diffuseColor.rgb=mix(clamp(vec3(l*uGain)*uTint,0.,1.),diffuseColor.rgb,keep);}');};
+  t.customProgramCacheKey=()=>'tint';return t;}
+const REAL_HAIR={curto:'short02',raspado:'short04',degradê:'short04',médio:'short03',repartido:'short01',ondulado:'toigo_curled_under_bob',cacheado:'afro01',
+  longo:'long01',coque:'braid01',preso:'ponytail01',franja:'toigo_blunt_bob_with_bangs',careca:null};
+const HAIRA={assets:{},loading:{},failed:{}};
+function hairLoad(name,cb){if(HAIRA.assets[name])return cb(HAIRA.assets[name]);if(HAIRA.failed[name])return;(HAIRA.loading[name]=HAIRA.loading[name]||[]).push(cb);if(HAIRA.loading[name].length>1)return;
+  REAL.loader=REAL.loader||new GLTFLoader();REAL.loader.load('models/hair/'+name+'.glb',gl=>{let mesh=null;gl.scene.traverse(o=>{if(o.isSkinnedMesh&&!mesh)mesh=o;});
+    if(mesh){const m=mesh.material;m.transparent=false;m.alphaTest=.38;m.side=THREE.DoubleSide;m.depthWrite=true;m.roughness=.62;m.metalness=0;}HAIRA.assets[name]=mesh;const L=HAIRA.loading[name];HAIRA.loading[name]=null;for(const f of L)f(mesh);},
+    undefined,()=>{HAIRA.failed[name]=1;});}
+function realStyle(g){const d=g.userData,r=d.real;if(!r)return;const L=d.look,player=!!L.name,a=r.a;
+  // corpo: largura (massa), ombros e quadril
+  const mass=cl(Number(L.mass)||1,.78,1.24);r.obj.scale.set(Math.sqrt(mass),1,Math.sqrt(mass)*.5+.5);
+  r.bones.forEach((b,i)=>{const n=a.rest[i].name,base=a.rest[i].pos;if(/^upperarm_/.test(n))b.position.copy(base).multiplyScalar(cl(Number(L.shoulders)||1,.84,1.16));else if(/^thigh_/.test(n))b.position.copy(base).multiplyScalar(cl(Number(L.hips)||1,.84,1.16));});
+  r.obj.traverse(o=>{if(!o.isMesh||o===r.hair)return;const nm=(o.userData.base||o.material).name||'';
+    // rosto (morphs)
+    if(o.morphTargetDictionary){const set=(k,v)=>{const i=o.morphTargetDictionary[k];if(i!=null)o.morphTargetInfluences[i]=cl(v,0,1);};
+      const fw=(Number(L.faceWidth)||1)-1,jw=(Number(L.jaw)||1)-1,ns=(Number(L.nose)||1)-1,ey=(Number(L.eyes)||1)-1;
+      set('fw+',fw/.17);set('fw-',-fw/.17*.5);set('jaw+',jw/.21);set('jaw-',-jw/.21*.6);set('nose+',ns/.32);set('nose-',-ns/.32*.8);set('eyes+',ey/.2);set('eyes-',-ey/.2*.6);}
+    if(!player)return;
+    if(!o.userData.base)o.userData.base=o.material;const base=o.userData.base;
+    if(/\.body$/.test(nm)){const idx=Math.max(0,PAL.skin.indexOf(L.skin));const dark=/[mf]2c?$/.test(r.key);const k=dark?[1,1,1,1,.92,.78][idx]:[1,.97,.9,.76,.62,.5][idx];
+      const m=base.clone();m.color.setScalar(k);if(!dark)m.color.multiply(new THREE.Color(1,.97+.03*k,.94+.06*k));o.material=m;}
+    else if(/low-poly/.test(nm)){const iris={castanho:0x5a3a28,verde:0x4c6b4a,azul:0x3f6a8c}[L.iris]||0x5a3a28;o.material=tintMat(base,iris,.34,.46);}
+    else if(/shirt|t-shirt|tshirt|crude|tucked/i.test(nm))o.material=tintMat(base,L.top??0xe9edf2,2,3);
+    else if(/pants|wool/i.test(nm))o.material=tintMat(base,L.pants??0x2b2f36,2,3);
+    else if(/suit/i.test(nm))o.material=tintMat(base,L.top??0x2b2f36,.5,.68);
+    else if(o.userData.isHair||/hair|short0|long0|bob|ponytail|braid|afro/i.test(nm)){o.visible=false;}});
+  if(!player)return;
+  // corte de cabelo trocável (malha do pacote de cabelos presa ao esqueleto deste modelo)
+  const want=REAL_HAIR[L.hairStyle]===undefined?'short02':REAL_HAIR[L.hairStyle],g2=r.key[0];
+  const hw=Math.round((Math.max(0,(Number(L.faceWidth)||1)-1)/.17*.07+Math.max(0,(Number(L.jaw)||1)-1)/.21*.03)*100)/100; // cabelo acompanha a largura da cabeça
+  if(r.hair&&(r.hair.userData.name!==want||r.hair.userData.hw!==hw)){r.obj.remove(r.hair);r.hair.geometry.dispose();r.hair=null;}
+  if(want&&!r.hair){const name=g2+'_'+want;hairLoad(name,src=>{if(!d.real||d.real!==r||!src||r.hair)return;const bones=src.skeleton.bones.map(b=>r.obj.getObjectByName(b.name)||b);
+      // o cabelo foi ajustado numa cabeça média: infla 4% em volta do crânio (cobre cabeças um pouco maiores) e alarga com o rosto
+      const geo=src.geometry.clone(),P_=geo.attributes.position;let y1=-1e9,zs=0,n=0;for(let i=0;i<P_.count;i++)y1=Math.max(y1,P_.getY(i));
+      for(let i=0;i<P_.count;i++)if(P_.getY(i)>y1-.05){zs+=P_.getZ(i);n++;}const cy=y1-.1,cz=n?zs/n:0;
+      for(let i=0;i<P_.count;i++){const y=P_.getY(i),w=sstep(cy-.2,cy-.06,y),k=1+(.04+hw)*w;P_.setX(i,P_.getX(i)*k);P_.setZ(i,cz+(P_.getZ(i)-cz)*(1+(.04+hw*.5)*w));if(y>cy)P_.setY(i,cy+(y-cy)*(1+.05*w));}
+      P_.needsUpdate=true;geo.computeBoundingSphere();
+      const m=new THREE.SkinnedMesh(geo,tintMat(src.material,L.hair??0x3a2a1e,2,3));m.frustumCulled=false;m.userData.name=want;m.userData.hw=hw;m.userData.isHair=0;
+      r.obj.add(m);m.bind(new THREE.Skeleton(bones,src.skeleton.boneInverses),src.bindMatrix);r.hair=m;});}
+  if(r.hair){r.hair.material.userData.tint.col.set(L.hair??0x3a2a1e);r.hair.material.needsUpdate=false;}}
 function realDrop(g){const d=g.userData;if(!d.real)return;g.remove(d.real.obj);d.real=null;}
 function realSync(g,lod){const d=g.userData;if(!d||!d.look)return;const want=lod<2&&d.realOK!==false&&realBudget()>0;const key=realKeyFor(d.look);
   if(d.real&&d.real.key!==key)realDrop(g);
   if(want&&!d.real){if(REAL.assets[key])realAttach(g,key);else{REAL.waiting.add(g);realLoad(key);}}
   const on=!!(want&&d.real);if(d.real)d.real.obj.visible=on;d.mesh.visible=!on;}
+function realRestyle(g){if(g&&g.userData&&g.userData.real)realStyle(g);}
 const _rq=new THREE.Quaternion(),_rq2=new THREE.Quaternion(),_rinv=new THREE.Quaternion();
 function realPose(d){const r=d.real,a=r.a,R=d.rig,P={};
   // rotação "de mundo" de cada osso procedural (o repouso dele é identidade)
@@ -2317,7 +2373,7 @@ function workerLook(worker){
 function setPersonLook(group,look){
   const data=group.userData, lod=data.lod;
   releasePersonAsset(data.asset);
-  data.asset=null;data.lod=null;data.look=look;realDrop(group);
+  data.asset=null;data.lod=null;const sameKey=data.real&&data.real.key===realKeyFor(look);data.look=look;if(!sameKey)realDrop(group);else realStyle(group);
   group.scale.setScalar(look.height||1);
   personLOD(group,lod);
 }
@@ -2757,7 +2813,7 @@ function drawPreview(dt){
   const face=previewFace();
   previewFloor.visible=!face;
   const speed=PREVIEW_MOTIONS[previewMotion].speed;
-  const h=preview.scale.y, target=(face?1.657:.90)*h;
+  const h=preview.scale.y, rh=preview.userData.real&&preview.userData.real.obj.visible?preview.userData.real.a.headY:null, target=(face?(rh?rh+.075:1.657):(rh?(rh+.1)*.5:.90))*h;
   const bodyDist=speed?3.68:3.27;
   const dist=(face?Math.max(1,r.height/r.width*.69)*.71:bodyDist)*h;
   previewCamera.aspect=r.width/r.height;previewCamera.updateProjectionMatrix();
@@ -5251,6 +5307,9 @@ function renderMenu(page){const m=document.getElementById('menu');CAM.mode=page=
     '<div class="pcard"><i class="pav">'+ini+'</i><div>'+card+'<br><span id="mNet">'+esc(netLabel())+'</span></div></div></div>';
   m.classList.toggle('home',page==='home');
   if(page==='home'){m.innerHTML=serversHTML(sv);bindServers();return;}
+  m.classList.toggle('persofull',page==='perso');
+  if(page==='perso'){m.innerHTML='<div class="page on character full" id="mPage">'+pageHTML(page)+'</div>';bindPage(page);
+    const bk=document.getElementById('pBack');if(bk)bk.onclick=()=>renderMenu('home');return;}
   html+='<div class="page on'+(page==='perso'?' character':'')+'" id="mPage">'+pageHTML(page)+'</div>';
   m.innerHTML=html;
   m.querySelectorAll('.nb[data-p]').forEach(b=>b.onclick=()=>{const p=b.dataset.p;if(p==='friends'){openFriends();MP.refreshAll().then(()=>{if(document.getElementById('chatBox'))openFriends();});return;}if(p==='new')return confirmNew();renderMenu(p===page?'home':p);});
@@ -5331,9 +5390,11 @@ function avatarOptions(){
     avatarTab==='Rosto'?['faceWidth','jaw','nose','eyes','brows']:[];
   const suggestion=avatarTab==='Roupa'&&started
     ?'<button class="chip" type="button" id="pPhaseLook">Aplicar visual da fase '+S.phase+'</button>':'';
-  const g=genderOf(),rk=Object.keys(REAL_DEFS).filter(k=>REAL_DEFS[k].g===g);
-  const realRow=avatarTab==='Corpo'?chipRow('real','Modelo realista',['auto',...rk],false,['Automático',...rk.map(k=>REAL_DEFS[k].n)]):'';
-  return suggestion+realRow+AVATAR_CHOICES[avatarTab].map(row=>chipRow(...row)).join('')+ranges.map(key=>{
+  const g=genderOf(),rk=Object.keys(REAL_DEFS).filter(k=>REAL_DEFS[k].g===g),realOn=realBudget()>0;
+  const realRow=avatarTab==='Corpo'&&realOn?chipRow('real','Pessoa',['auto',...rk],false,['Automático (pelo tom de pele)',...rk.map(k=>REAL_DEFS[k].n)]):'';
+  const skipReal=realOn?new Set(['beard','build','shoeStyle','waist','brows']):new Set();
+  const note=realOn&&avatarTab==='Acessórios'?'<p class="rnote">Acessórios e joias aparecem no seu personagem de longe; o modelo realista ainda não os usa.</p>':'';
+  return suggestion+realRow+note+AVATAR_CHOICES[avatarTab].filter(row=>!skipReal.has(row[0])).map(row=>chipRow(...row)).join('')+ranges.filter(k=>!skipReal.has(k)).map(key=>{
     const [label,min,max]=AVATAR_RANGES[key],id=key==='height'?'pH':'p-'+key;
     return '<div class="rrow"><label class="opt" for="'+id+'">'+label+'</label><button type="button" class="rstep" data-for="'+id+'" data-d="-1" aria-label="Menos">−</button><input class="rng" type="range" id="'+id+'" data-shape="'+key+
       '" min="'+min+'" max="'+max+'" step="0.01" value="'+cl(Number(AVATAR[key])||1,min,max)+'"><button type="button" class="rstep" data-for="'+id+'" data-d="1" aria-label="Mais">+</button></div>';
@@ -5344,7 +5405,7 @@ function characterHTML(){
     '<select class="view-motion" id="pMotion" aria-label="Movimento do personagem">'+
     Object.entries(PREVIEW_MOTIONS).map(([mode,{label}])=>'<option value="'+mode+'">'+label+'</option>').join('')+
     '</select><button type="button" class="view-mode" id="pView">Aproximar</button></div>'+
-    '<section class="avatar-editor"><div class="aehead"><h1 class="ph1">Seu personagem</h1>'+(started?'<span class="lookb">Estilo '+lookScore()+' · '+lookLabel()+'</span>':'')+'<input type="text" id="pName" aria-label="Nome do personagem" maxlength="24" placeholder="Nome do personagem" disabled title="Seu nome de usuário é o da conta" value="'+esc(AVATAR.name||'')+'"></div>'+
+    '<section class="avatar-editor"><div class="aehead"><button type="button" class="pback" id="pBack" aria-label="Voltar">‹ Voltar</button><h1 class="ph1">Seu personagem</h1>'+(started?'<span class="lookb">Estilo '+lookScore()+' · '+lookLabel()+'</span>':'')+'<input type="text" id="pName" aria-label="Nome do personagem" maxlength="24" placeholder="Nome do personagem" disabled title="Seu nome de usuário é o da conta" value="'+esc(AVATAR.name||'')+'"></div>'+
     '<div class="avatar-tabs" role="tablist" aria-label="Categorias">'+AVATAR_TABS.map((tab,i)=>
       '<button role="tab" id="pTab'+i+'" aria-controls="pOptions" aria-selected="'+(tab===avatarTab)+'" data-tab="'+tab+'">'+tab+'</button>').join('')+
     '</div><div class="avatar-options" role="tabpanel" id="pOptions"></div>'+

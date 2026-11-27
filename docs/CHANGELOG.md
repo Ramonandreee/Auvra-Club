@@ -2,6 +2,20 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.19.0 — 2026-11-27
+- **feat(town): tela Personagem em tela cheia.** Abre sem o menu lateral, com o botão "‹ Voltar".
+- **feat(town): editor funciona no modelo realista.** Antes os controles só mexiam no personagem de longe. Agora mexem no realista também:
+  - **Pessoa:** automática pelo tom de pele ou uma das 5.
+  - **Tom de pele:** ajusta a textura da pele.
+  - **Cabelo:** 12 cortes trocáveis (`models/hair/`, CC0) e qualquer cor.
+  - **Íris:** castanho, verde ou azul.
+  - **Cores da roupa:** camiseta, calça e terno.
+  - **Rosto:** largura, maxilar, nariz e olhos viram *morphs* gerados dos targets do MakeHuman.
+  - **Corpo:** massa, ombros e quadril.
+- **Editor mais enxuto no modo realista:** barba, silhueta, cintura, sobrancelhas e calçado só valiam para o modelo de longe e foram ocultados. Em Acessórios há um aviso de que ainda não aparecem no realista.
+- **fix(town): manchas brancas na cintura.** A camiseta atravessava a calça; agora a calça é desenhada por cima (polygon offset).
+- **chore:** modelos regenerados com morphs (+~160 KB cada) e 20 malhas de cabelo (~0,3–0,6 MB, baixadas só se usadas). `sw.js` v36, cache de modelos v3. O coque usa a trança (o coque `rehmanpolanski` é AGPL e não foi usado).
+
 ## 2.18.1 — 2026-11-27
 - **fix(town): pernas dos personagens realistas.** Os modelos vêm em pose "A" (pés afastados), e o andar ficava com as pernas abertas em "V". Agora coxa, canela e pé são alinhados na vertical sob o quadril.
 - **fix(town): passada mais curta nos modelos realistas.** A animação foi feita para pernas mais curtas. Os ângulos de perna e braço passam a ser escalados (`realPose`), o que acaba com a "passada de espacate" ao correr.
