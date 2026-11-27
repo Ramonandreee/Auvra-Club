@@ -53,6 +53,13 @@ menu ou painel aberto.
 
 ## Vida em Wall Street (estilo mundo aberto)
 
+- **Passeios em 3D (acompanhados pela câmera, com ⏩ Pular):**
+  - **Rydr:** pelas ruas, freando nas curvas e no trânsito.
+  - **Helicóptero:** decolagem, voo panorâmico sobre Battery Park, a Estátua da Liberdade e o East River, ou voo particular até outro heliponto, e pouso.
+  - **Balsa de Staten Island:** você no convés, passando perto da Estátua.
+  - **Elevador:** cabine com portas, painel de andares e "ding".
+  - **Portas:** transição ao entrar e sair dos lugares.
+- **Logos das empresas da bolsa:** originais, no estilo de cada setor (as marcas são fictícias).
 - **Celular = central de apps:** Agenda, Mensagens, Contatos, Amigos, **J.P. Halloway & Co.** (banco: conta, extrato, futuros, investimentos, crédito), Investir, **Rydr** (corridas), Vagas e Notícias. As datas são de calendário (o dia 1 é a data em que você começou).
 - **Rydr** (no lugar do táxi): RydrX, Comfort e Black (este dá ⭐ +0,3), tarifa dinâmica 1,3× no rush (8–9:30 e 17–19:30), motorista com nota e avaliação/gorjeta no fim da corrida.
 - **Bolsa:** 21 ações fictícias inspiradas nas gigantes (Aurora Devices, Seekr, Parcelo, Circlet, Harbor Pay, Fizzco, Berkwell, J.P. Halloway, Rydr…) mais o fundo NX 500.
