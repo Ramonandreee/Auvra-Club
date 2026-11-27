@@ -167,3 +167,11 @@ O recurso mais escasso de Auvra Club não é dinheiro — é a **atenção/tempo
 ---
 
 > **Anterior:** [← 02 — Market Analysis](02-MARKET-ANALYSIS.md) · **Próximo:** [04 — World Design →](04-WORLD-DESIGN.md)
+
+
+---
+
+## Implementado no jogo web (nov/2026)
+A versão jogável (`town/`) já traz a camada de **vida diegética**: agenda com hora marcada e deslocamento real,
+empregos pela cidade como rampa da fase 1–2, entrevistas e reuniões cara a cara dentro dos prédios, casa/carro/garagem
+como degraus visíveis, e uma cidade que reconhece o jogador conforme a fama cresce. Ver `town/README.md`.
