@@ -66,6 +66,28 @@ menu ou painel aberto.
   empreendedora, estudante, vendedor de cachorro-quente — cada encontro tem um efeito pequeno.
 - **Mais gente na rua:** multidão 16/34/52 pessoas (qualidade baixa/média/alta).
 
+## Carreira e agenda (a jogabilidade que é só nossa)
+
+- **Relógio e agenda viva:** o HUD mostra a hora (07:00–23:00). Com compromisso marcado o tempo desacelera (⏱ modo
+  agenda) para dar tempo de chegar; pontualidade muda o resultado. A economia continua por dia (simulação intacta).
+- **📱 AuvraOS (ferramenta Celular):** Agenda (toque para marcar o destino), Mensagens, Vagas e Notícias.
+- **Empregos pela cidade (💼 no mapa):** barista, entregador de bike, assistente jurídico, analista júnior (fase 1),
+  corretor e operador de pregão (fase 2), consultor (fase 3). Entrevista com a chefia, turnos diários na agenda e
+  mini-jogos de toque (pedidos do café, entrega cronometrada pelo mapa real, achar números errados, pregão ao vivo,
+  objeções de cliente, diagnóstico). 5 turnos bons = promoção (Júnior → Sócio); 3 faltas = demissão; conflito de interesse
+  se o chefe descobrir sua empresa. Pedir demissão é uma conversa com a chefia.
+- **Entrevistas no RH:** candidatos esperam na recepção das suas empresas (mais candidatos com reputação de talento).
+  Até 3 perguntas revelam competência real, ambição/lealdade, sinais de alerta e pretensão; ofereça −10%, o pedido ou +10%.
+  Talentos estrela têm proposta de concorrente com prazo.
+- **Assédio de concorrentes:** funcionário infeliz recebe proposta (📞); converse e cubra a oferta antes do prazo.
+- **Reuniões com contatos:** convites chegam pelo celular (The Exchange Grill, sua sede ou a escadaria do Federal Hall).
+  3 rodadas de argumentos (Números, Carisma, Visão, Histórico) — resultado por tipo de contato (aporte, renegociação de
+  dívida, habilidades, contrato, talento estrela). Faltar ou fracassar fecha a porta por alguns dias.
+- **Garagem:** casas maiores têm mais vagas (1/1/2/4/6); comprar com vaga livre aumenta a coleção. Na garagem: escolher
+  o carro e pintar. Manutenção diária pequena.
+- **Fama:** com reputação pública alta, pedestres param, olham e tiram fotos; fofocas espalham suas notícias.
+- **Mapa (🗺 ou toque no minimapa):** legenda com filtros, toque para marcar/desmarcar destino, guia na tela e marcador 3D.
+
 ## Menu principal
 
 **Jogar / Continuar**, **Novo jogo**, **Personagem**, **Amigos**, **Indicadores**, **Ajustes** e

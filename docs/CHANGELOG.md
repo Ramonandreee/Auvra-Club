@@ -2,6 +2,11 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## [1.4.0] — 2026-11-27 — *Vida em Wall Street: carreira, agenda e mundo aberto*
+- Jogo (`town/`): interiores 3D, casa, carro e garagem, pedestres abordáveis, relógio + agenda + AuvraOS, empregos com
+  turnos e mini-jogos, entrevistas no RH, assédio de concorrentes, reuniões com contatos, fama visível, mapa com destinos,
+  colisão com carros e trânsito que vira nas esquinas. Detalhes em `town/README.md`.
+
 ## [1.3.1] — 2026-11-26 — *Repositório = o que está rodando*
 - **Removidos** (ficam só no histórico do git): o protótipo 3D `world/` (cidade fictícia antiga), o simulador de sistemas `game/` e o scaffold Unreal `ue5/`. O distrito 2D já tinha sido substituído pelo `town/` 3D.
 - O repositório passa a ter só: `town/` (o jogo), `supabase/`, `tools/`, `docs/`, `index.html`, `CLAUDE.md`, `CONTRIBUTING.md`.
