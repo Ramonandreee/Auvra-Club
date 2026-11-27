@@ -2,6 +2,16 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.6.0 — 2026-11-27
+- **feat(town): Distrito Financeiro ampliado (etapa 1).** O mapa passa de 72×48 para 104×98. O núcleo original foi deslocado (OX=30, OY=36) sem mudar nenhum quarteirão.
+  - **Ruas reais:** West St, Greenwich, Church St/Trinity Pl, Fulton (calçadão do Seaport), Maiden Ln, Liberty, Cedar, Rector e State St. Rio Hudson, Upper Bay e Battery Park.
+  - **Novos marcos** (fatos verificados): One World Trade Center (torre com elevador), Memorial 9/11, Oculus, St. Paul's Chapel (interior de igreja), Zuccotti Park, Castle Clinton, terminal da balsa (passeio grátis) e Pier 17 (salão).
+  - **Quarteirões:** cerca de 60 novos prédios de enchimento, todos com interior (comércios, torres e residenciais).
+  - **Desbloqueio:** novas áreas na fase 4 (raio 30) e na fase 5.
+  - **Entorno:** Manhattan ao norte, Brooklyn e Jersey City ao fundo. A torre de vidro fictícia do entorno saiu (agora é o 1 WTC de verdade).
+  - **Save:** saves `wallstreet` são migrados (sede, empresas, concorrentes, herói e compromissos deslocados). O novo formato é `fidi`.
+  - **Trânsito:** cruzamentos em T com a vez de quem chegou antes. A conversão à esquerda bloqueia o cruzamento enquanto acontece, e ninguém para dentro do cruzamento. Teste com 50 veículos: 0 batidas e 0 presos.
+
 ## 2.5.0 — 2026-11-27
 - **feat(town): entrar nos prédios (etapa 3).** Todos os marcos têm interior.
   - **Torres:** saguão, elevador com painel e animação de andares, escritórios e lajes por andar, Sky Lounge na cobertura com código de vestimenta (estilo 30+).

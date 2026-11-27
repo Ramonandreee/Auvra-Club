@@ -493,7 +493,7 @@ function icon(name){
 }
 
 const cv=document.getElementById('c');
-const TILE=48, TS=4, MAPW=72, MAPH=48;
+const TILE=48, TS=4, MAPW=104, MAPH=98, OX=30, OY=36; // OX/OY: deslocamento do mapa original (Wall St) dentro do Distrito Financeiro ampliado
 const M=v=>v/TILE*TS, PX=v=>v/TS*TILE;      // px lógicos <-> metros
 const T={LOT:0,ROAD:1,PED:2,WATER:3,PARK:4,WALK:5,BLD:6};
 const BSPRITES={office:{wt:2,ht:2},startup:{wt:2,ht:2},factory:{wt:3,ht:2},cafe:{wt:2,ht:2},hq:{wt:2,ht:2}};
@@ -529,6 +529,13 @@ const LM_INFO={
   '55wall':{name:'55 Wall Street',ico:'🏛️',txt:'Antiga Merchants’ Exchange (1842), com duas fileiras sobrepostas de colunas de granito.'},
   '60wall':{name:'60 Wall Street',ico:'🏢',txt:'Torre pós-moderna de 1989, com coroa de treliça no topo.'},
   '70pine':{name:'70 Pine Street',ico:'🏢',txt:'Art déco de 1932: já foi o 3º prédio mais alto do mundo. No topo, uma lanterna de vidro que brilha à noite.'},
+  '1wtc':{name:'One World Trade Center',ico:'🏙️',txt:'Com 541 m até a ponta da antena, é o prédio mais alto do Hemisfério Ocidental. Foi inaugurado em 2014.'},
+  memorial:{name:'Memorial 9/11',ico:'🕊️',txt:'Duas piscinas ocupam as pegadas das Torres Gêmeas. Nos parapeitos de bronze estão gravados os nomes das vítimas dos atentados de 2001 e de 1993.'},
+  oculus:{name:'Oculus',ico:'🕊️',txt:'Estação projetada por Santiago Calatrava e aberta em 2016. As costelas brancas lembram as asas de uma pomba saindo das mãos de uma criança.'},
+  stpaul:{name:'St. Paul’s Chapel',ico:'⛪',txt:'Concluída em 1766, é a igreja mais antiga ainda de pé em Manhattan. George Washington rezou aqui no dia da posse, em 1789.'},
+  castle:{name:'Castle Clinton',ico:'🏰',txt:'Forte circular construído por volta de 1811 para defender o porto. Hoje é onde se compram os ingressos para a Estátua da Liberdade.'},
+  ferry:{name:'Terminal da balsa de Staten Island',ico:'⛴️',txt:'A balsa é gratuita e cruza a baía em cerca de 25 minutos, passando perto da Estátua da Liberdade.',act:'ferry'},
+  pier17:{name:'Pier 17',ico:'⚓',txt:'Píer do South Street Seaport, a antiga zona portuária da cidade. Hoje tem um pavilhão de vidro com terraço na cobertura.'},
   bowling:{name:'Bowling Green',ico:'🐂',txt:'O parque mais antigo de Nova York (1733). O touro de bronze virou símbolo do mercado em alta.'},
 };
 function genWorld(){
@@ -536,66 +543,104 @@ function genWorld(){
   LANDMARKS.length=0;FILLERS.length=0;STREETS.length=0;decor.length=0;
   // ruas: axis 'v' -> colunas a0..a1, linhas b0..b1 · axis 'h' -> linhas a0..a1, colunas b0..b1
   const st=(name,axis,a0,a1,b0,b1,kind,dirs)=>{if(axis==='v')fill(a0,b0,a1-a0+1,b1-b0+1,kind);else fill(b0,a0,b1-b0+1,a1-a0+1,kind);STREETS.push({name,axis,a0,a1,b0,b1,kind,dirs:dirs||0});};
-  st('Broadway','v',8,11,0,MAPH-1,T.ROAD,2);
-  st('Nassau St','v',23,24,0,13,T.ROAD,-1);
-  st('Nassau St','v',23,24,14,17,T.PED);
-  st('Broad St','v',23,26,21,30,T.PED);
-  st('Broad St','v',23,26,31,MAPH-1,T.ROAD,2);
-  st('William St','v',37,38,0,MAPH-1,T.ROAD,1);
-  st('Pearl St','v',51,52,0,MAPH-1,T.ROAD,-1);
-  st('Water St','v',59,61,0,MAPH-1,T.ROAD,2);
-  st('South St','v',66,67,0,MAPH-1,T.ROAD,2);
-  st('Pine St','h',6,7,8,61,T.ROAD,1);
-  st('Wall St','h',18,20,8,11,T.ROAD,0);   // cruzamento com a Broadway (só sinalização)
-  st('Wall St','h',18,20,12,36,T.PED);     // trecho de pedestres (Bolsa / Federal Hall)
-  st('Wall St','h',18,20,37,65,T.ROAD,1);
-  st('Exchange Pl','h',31,32,8,61,T.ROAD,-1);
-  st('Beaver St','h',41,42,8,61,T.ROAD,1);
-  fill(68,0,2,MAPH,T.PED);   // East River Esplanade
-  fill(70,0,2,MAPH,T.WATER); // East River
-  fill(0,6,7,28,T.PARK);     // cemitério da Trinity
-  fill(12,43,8,5,T.PARK);    // Bowling Green
+  // --- o núcleo original (Wall St), agora deslocado em (OX,OY) e com as ruas seguindo pelo distrito ---
+  const X=v=>v+OX,Y=v=>v+OY,SS=86; // State St = limite sul das ruas
+  st('Broadway','v',X(8),X(11),0,SS,T.ROAD,2);
+  st('Nassau St','v',X(23),X(24),0,Y(13),T.ROAD,-1);
+  st('Nassau St','v',X(23),X(24),Y(14),Y(17),T.PED);
+  st('Broad St','v',X(23),X(26),Y(21),Y(30),T.PED);
+  st('Broad St','v',X(23),X(26),Y(31),SS,T.ROAD,2);
+  st('William St','v',X(37),X(38),0,SS,T.ROAD,1);
+  st('Pearl St','v',X(51),X(52),0,SS,T.ROAD,-1);
+  st('Water St','v',X(59),X(61),0,SS,T.ROAD,2);
+  st('South St','v',X(66),X(67),0,SS,T.ROAD,2);
+  st('Pine St','h',Y(6),Y(7),X(8),X(61),T.ROAD,1);
+  st('Wall St','h',Y(18),Y(20),X(8),X(11),T.ROAD,0);
+  st('Wall St','h',Y(18),Y(20),X(12),X(36),T.PED);
+  st('Wall St','h',Y(18),Y(20),X(37),X(65),T.ROAD,1);
+  st('Exchange Pl','h',Y(31),Y(32),X(8),X(61),T.ROAD,-1);
+  st('Beaver St','h',Y(41),Y(42),X(8),X(61),T.ROAD,1);
+  // --- ampliação: lado oeste (WTC, Hudson), norte (Fulton → Cedar), sul (Battery) e Seaport ---
+  st('West St','v',4,7,0,SS,T.ROAD,2);
+  st('Greenwich St','v',18,19,0,SS,T.ROAD,-1);
+  st('Church St','v',27,28,0,SS,T.ROAD,1); // vira Trinity Pl ao sul da Liberty
+  st('Fulton St','h',6,7,4,X(61),T.ROAD,-1);
+  st('Fulton St','h',6,7,X(62),X(65),T.PED); // calçadão de pedras do Seaport
+  st('Maiden Ln','h',15,16,X(8),X(67),T.ROAD,1);
+  st('Liberty St','h',24,25,4,X(52),T.ROAD,-1);
+  st('Cedar St','h',33,34,27,X(52),T.ROAD,1);
+  st('Rector St','h',60,61,4,28,T.ROAD,-1);
+  st('State St','h',85,86,4,X(67),T.ROAD,2);
+  fill(X(68),0,2,96,T.PED);   // East River Esplanade
+  fill(X(70),0,4,MAPH,T.WATER); // East River
+  fill(2,0,2,96,T.PED);       // Hudson River Greenway
+  fill(0,0,2,MAPH,T.WATER);   // Hudson
+  fill(0,96,MAPW,2,T.WATER);  // baía (Upper Bay)
+  fill(4,88,X(41),8,T.PARK);  // Battery Park
+  fill(X(53),88,X(67)-X(53)+1,6,T.PED); // praça da balsa
+  fill(X(53),94,X(67)-X(53)+1,2,T.WATER);fill(X(42),94,X(53)-X(42),2,T.WATER);
+  fill(X(0),Y(6),7,28,T.PARK);  // cemitério da Trinity
+  fill(X(12),Y(43),8,5,T.PARK); // Bowling Green
+  fill(9,15,8,8,T.PARK);        // praça do Memorial 9/11
+  fill(10,16,3,3,T.WATER);fill(13,19,3,3,T.WATER); // as duas piscinas, nas pegadas das torres
+  fill(X(0),27,7,5,T.PARK);     // Zuccotti Park
+  fill(X(0),0,3,5,T.PARK);      // cemitério da St. Paul's
   // calçadas: todo lote vizinho de rua/praça vira calçada; e o lado oeste da Broadway
   for(let y=0;y<MAPH;y++)for(let x=0;x<MAPW;x++){if(map[y][x]!==T.LOT)continue;
     for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const t=tileAt(x+dx,y+dy);if(t===T.ROAD||t===T.PED){map[y][x]=T.WALK;break;}}}
-  fill(7,0,1,MAPH,T.WALK);
+  fill(X(7),Y(0),1,48,T.WALK);
   // marcos (pegada em tiles; face = lado da fachada principal)
   const lm=(kind,x,y,w,h,face)=>{fill(x,y,w,h,T.BLD);LANDMARKS.push({kind,gx:x,gy:y,w,h,face,info:LM_INFO[kind]});};
-  lm('trinity',1,15,6,8,'e'); lm('14wall',13,10,6,7,'s'); lm('federal',26,10,5,7,'s'); lm('40wall',31,9,5,8,'s');
-  lm('1wall',13,22,5,7,'n'); lm('nyse',18,22,4,7,'e'); lm('23wall',28,22,4,4,'n');
-  lm('60wall',44,10,6,7,'s'); lm('55wall',40,22,8,5,'n'); lm('70pine',44,0,5,5,'s');
+  lm('trinity',X(1),Y(15),6,8,'e'); lm('14wall',X(13),Y(10),6,7,'s'); lm('federal',X(26),Y(10),5,7,'s'); lm('40wall',X(31),Y(9),5,8,'s');
+  lm('1wall',X(13),Y(22),5,7,'n'); lm('nyse',X(18),Y(22),4,7,'e'); lm('23wall',X(28),Y(22),4,4,'n');
+  lm('60wall',X(44),Y(10),6,7,'s'); lm('55wall',X(40),Y(22),8,5,'n'); lm('70pine',X(44),Y(0),5,5,'s');
+  lm('1wtc',9,9,8,6,'w'); lm('memorial',16,18,1,2,'e'); lm('oculus',21,9,5,7,'e'); lm('stpaul',X(3),0,4,5,'e');
+  lm('castle',13,89,5,5,'n'); lm('ferry',X(44),88,8,6,'n'); lm('pier17',X(70),9,4,6,'w');
   // parcelas: o que sobrou de lote vira prédio de enchimento (cânion de Manhattan) ou terreno à venda
-  const r=rngSeed(1653), cx=24, cy=19;
+  const r=rngSeed(1653), cx=X(24), cy=Y(19);
   const blocks=[[13,9,21,16],[26,9,35,16],[40,9,49,16],[13,22,21,29],[28,22,35,29],[40,22,49,29],[13,0,21,4],[26,0,35,4],[40,0,49,4],
-    [54,0,57,4],[54,9,57,16],[54,22,57,29],[54,34,57,39],[13,34,21,39],[28,34,35,39],[40,34,49,39],[63,0,64,16],[63,22,64,47],[0,0,5,4],[0,35,5,47],[20,43,21,47],[28,44,35,47],[40,44,49,47],[54,44,57,47]];
+    [54,0,57,4],[54,9,57,16],[54,22,57,29],[54,34,57,39],[13,34,21,39],[28,34,35,39],[40,34,49,39],[63,0,64,16],[63,22,64,47],[0,0,5,4],[0,35,5,47],[20,43,21,47],[28,44,35,47],[40,44,49,47],[54,44,57,47]].map(([a,b_,c,d])=>[X(a),Y(b_),X(c),Y(d)]);
   const allLot=(x0,y0,x1,y1)=>{for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)if(tileAt(x,y)!==T.LOT)return false;return true;};
   for(const [bx0,by0,bx1,by1] of blocks){const depth=by1-by0+1;const rows=depth>6?[[by0,by0+Math.floor(depth/2)-1],[by0+Math.floor(depth/2),by1]]:[[by0,by1]];
     for(const [ry0,ry1] of rows){let x=bx0;while(x<=bx1){let w=3+((r()*3)|0);if(bx1-(x+w-1)<2)w=bx1-x+1;const x1=Math.min(bx1,x+w-1);
-      if(allLot(x,ry0,x1,ry1)){const d=Math.hypot((x+x1)/2-cx,(ry0+ry1)/2-cy);const east=x>=53;
+      if(allLot(x,ry0,x1,ry1)){const d=Math.hypot((x+x1)/2-cx,(ry0+ry1)/2-cy);const east=x>=X(53);
         const pFill=d<10?0.12:d<17?0.42:east?0.5:0.6;
         if(r()<pFill){fill(x,ry0,x1-x+1,ry1-ry0+1,T.BLD);
-          const canyon=Math.abs((ry0+ry1)/2-19)<13&&x<50;const style=east?(r()<.6?'seaport':'walkup'):(r()<.42?'prewar':r()<.5?'deco':'glass');
+          const canyon=Math.abs((ry0+ry1)/2-Y(19))<13&&x<X(50);const style=east?(r()<.6?'seaport':'walkup'):(r()<.42?'prewar':r()<.5?'deco':'glass');
           const floors=style==='seaport'?3+((r()*3)|0):style==='walkup'?4+((r()*3)|0):canyon?16+((r()*30)|0):8+((r()*20)|0);
           FILLERS.push({gx:x,gy:ry0,w:x1-x+1,h:ry1-ry0+1,style,floors,seed:(r()*1e9)|0});}}
       x=x1+1;}}}
+  { const r2=rngSeed(2026),nb=[];const cols=[[X(12),X(22)],[X(26),X(36)],[X(40),X(50)],[X(54),X(58)],[X(63),X(65)]];
+    for(const [y0,y1] of [[0,4],[9,13],[18,22],[27,31]])for(const [a,b_] of cols)nb.push([a,y0,b_,y1]);
+    nb.push([X(54),27,X(58),35],[X(63),18,X(65),35],[X(0),9,X(6),13],[X(0),18,X(6),22],[9,0,16,4],[21,0,25,4],[21,16,25,22]);
+    for(const [x0,x1] of [[9,16],[21,25]])for(let y=27;y<=83;y+=5){if(y<=61&&y+4>=59)continue;nb.push([x0,y,x1,Math.min(y+4,y<59?58:83)]);}
+    for(const [bx0,by0,bx1,by1] of nb){let x=bx0;while(x<=bx1){let w=3+((r2()*3)|0);if(bx1-(x+w-1)<2)w=bx1-x+1;const x1=Math.min(bx1,x+w-1);
+      if(allLot(x,by0,x1,by1)&&r2()<0.82){fill(x,by0,x1-x+1,by1-by0+1,T.BLD);const east=x>=X(53),west=x<27;
+        const style=east?(r2()<.6?'seaport':'walkup'):west?(r2()<.6?'glass':'deco'):(r2()<.4?'prewar':r2()<.5?'deco':'glass');
+        const floors=style==='seaport'?3+((r2()*3)|0):style==='walkup'?4+((r2()*3)|0):west&&by0<30?30+((r2()*24)|0):10+((r2()*26)|0);
+        FILLERS.push({gx:x,gy:by0,w:x1-x+1,h:by1-by0+1,style,floors,seed:(r2()*1e9)|0});}
+      x=x1+1;}} }
   // árvores, postes, semáforos, metrô, vapor, balizadores
   const rd=rngSeed(77);
-  for(let i=0;i<46;i++){const gx=(rd()*7)|0,gy=6+((rd()*28)|0);if(tileAt(gx,gy)===T.PARK)decor.push({kind:'tree',gx:gx+rd()*.6,gy:gy+rd()*.6,s:0.8+rd()*0.5});}
-  for(let i=0;i<90;i++){const gx=(rd()*7)|0,gy=6+((rd()*28)|0);if(tileAt(gx,gy)===T.PARK)decor.push({kind:'grave',gx:gx+rd(),gy:gy+rd(),s:0.7+rd()*0.6,a:rd()*0.3-0.15});}
-  for(let i=0;i<10;i++){const gx=12+((rd()*8)|0),gy=43+((rd()*5)|0);if(tileAt(gx,gy)===T.PARK)decor.push({kind:'tree',gx:gx+rd()*.6,gy:gy+rd()*.6,s:0.9+rd()*0.4});}
-  decor.push({kind:'bull',gx:13.2,gy:43.3});decor.push({kind:'fountain',gx:16,gy:45.6});
-  decor.push({kind:'statue',gx:28.5,gy:16.45}); // Washington na escadaria do Federal Hall
+  for(let i=0;i<46;i++){const gx=X((rd()*7)|0),gy=Y(6+((rd()*28)|0));if(tileAt(gx,gy)===T.PARK)decor.push({kind:'tree',gx:gx+rd()*.6,gy:gy+rd()*.6,s:0.8+rd()*0.5});}
+  for(let i=0;i<90;i++){const gx=X((rd()*7)|0),gy=Y(6+((rd()*28)|0));if(tileAt(gx,gy)===T.PARK)decor.push({kind:'grave',gx:gx+rd(),gy:gy+rd(),s:0.7+rd()*0.6,a:rd()*0.3-0.15});}
+  for(let i=0;i<10;i++){const gx=X(12+((rd()*8)|0)),gy=Y(43+((rd()*5)|0));if(tileAt(gx,gy)===T.PARK)decor.push({kind:'tree',gx:gx+rd()*.6,gy:gy+rd()*.6,s:0.9+rd()*0.4});}
+  decor.push({kind:'bull',gx:X(13.2),gy:Y(43.3)});decor.push({kind:'fountain',gx:X(16),gy:Y(45.6)});
+  decor.push({kind:'statue',gx:X(28.5),gy:Y(16.45)});
+  { const rp=rngSeed(911);for(let i=0;i<260;i++){const gx=4+rp()*X(41),gy=15+rp()*81;const t=tileAt(Math.floor(gx),Math.floor(gy));if(t===T.PARK&&!(gy>=15&&gy<23&&gx>=9&&gx<17&&rp()<0.55))decor.push({kind:'tree',gx,gy,s:0.8+rp()*0.45});}
+    for(let i=0;i<14;i++){const gx=X(0)+rp()*3,gy=rp()*5;if(tileAt(Math.floor(gx),Math.floor(gy))===T.PARK)decor.push({kind:'grave',gx,gy,s:0.7+rp()*0.5,a:rp()*0.3-0.15});}
+    decor.push({kind:'rim',gx:10,gy:16,w:3,h:3},{kind:'rim',gx:13,gy:19,w:3,h:3}); } // Washington na escadaria do Federal Hall
   for(const s of STREETS){if(s.kind!==T.ROAD&&s.name!=='Wall St')continue;
     if(s.axis==='v'){for(let y=s.b0+2;y<=s.b1;y+=6){for(const x of [s.a0-1,s.a1+1])if(tileAt(x,y)===T.WALK)decor.push({kind:'lamp',gx:x+(x<s.a0?0.75:0.25),gy:y+0.5,face:x<s.a0?1:-1,axis:'v'});}
       for(let y=s.b0+4;y<=s.b1;y+=9){const x=s.a0-1;if(tileAt(x,y)===T.WALK&&rd()<0.55)decor.push({kind:'tree',gx:x+0.5,gy:y+0.5,s:0.75+rd()*0.3,street:1});}}
     else{for(let x=s.b0+2;x<=s.b1;x+=6){for(const y of [s.a0-1,s.a1+1])if(tileAt(x,y)===T.WALK)decor.push({kind:'lamp',gx:x+0.5,gy:y+(y<s.a0?0.75:0.25),face:y<s.a0?1:-1,axis:'h'});}}}
-  for(const [gx,gy] of [[12.4,17.4],[12.4,21.6],[36.6,17.4],[39.4,21.6]])decor.push({kind:'subway',gx,gy});
-  for(const [gx,gy] of [[52,25],[60,38],[9.5,36]])decor.push({kind:'steam',gx,gy});
+  for(const [gx,gy] of [[12.4,17.4],[12.4,21.6],[36.6,17.4],[39.4,21.6]])decor.push({kind:'subway',gx:X(gx),gy:Y(gy)});for(const [gx,gy] of [[X(12.4),8.4],[X(36.6),8.4],[26.4,22.4],[X(12.4),87.4]])decor.push({kind:'subway',gx,gy});
+  for(const [gx,gy] of [[52,25],[60,38],[9.5,36]])decor.push({kind:'steam',gx:X(gx),gy:Y(gy)});decor.push({kind:'steam',gx:X(30),gy:11},{kind:'steam',gx:23,gy:40});
   // balizadores de segurança nas entradas da zona de pedestres (Bolsa)
-  for(let y=18.3;y<=20.8;y+=0.85){decor.push({kind:'bollard',gx:12.45,gy:y});decor.push({kind:'bollard',gx:36.55,gy:y});}
-  for(let x=23.3;x<=26.8;x+=0.85){decor.push({kind:'bollard',gx:x,gy:30.55});decor.push({kind:'bollard',gx:x-0.1,gy:14.3});}
+  for(let y=18.3;y<=20.8;y+=0.85){decor.push({kind:'bollard',gx:X(12.45),gy:Y(y)});decor.push({kind:'bollard',gx:X(36.55),gy:Y(y)});}
+  for(let x=23.3;x<=26.8;x+=0.85){decor.push({kind:'bollard',gx:X(x),gy:Y(30.55)});decor.push({kind:'bollard',gx:X(x-0.1),gy:Y(14.3)});}
   // placas verdes nas esquinas principais
-  for(const [gx,gy,a,b] of [[12.2,17.8,'Wall St','Broadway'],[22.8,17.8,'Wall St','Nassau St'],[27.2,21.2,'Wall St','Broad St'],[39.2,17.8,'Wall St','William St'],[53.2,17.8,'Wall St','Pearl St'],[12.2,5.8,'Pine St','Broadway'],[12.2,33.2,'Exchange Pl','Broadway']])decor.push({kind:'sign',gx,gy,a,b});
+  for(const [gx,gy,a,b] of [[12.2,17.8,'Wall St','Broadway'],[22.8,17.8,'Wall St','Nassau St'],[27.2,21.2,'Wall St','Broad St'],[39.2,17.8,'Wall St','William St'],[53.2,17.8,'Wall St','Pearl St'],[12.2,5.8,'Pine St','Broadway'],[12.2,33.2,'Exchange Pl','Broadway']].map(([x_,y_,a_,b_])=>[X(x_),Y(y_),a_,b_]).concat([[X(12.2),8.8,'Fulton St','Broadway'],[26.2,23.2,'Liberty St','Church St'],[X(12.2),32.2,'Cedar St','Broadway'],[X(22.8),14.2,'Maiden Ln','Nassau St'],[X(12.2),84.2,'State St','Broadway'],[17.2,23.2,'Liberty St','Greenwich St']]))decor.push({kind:'sign',gx,gy,a,b});
   // centro do distrito = esquina Wall x Broad (Bolsa); sede e concorrentes iniciais nos terrenos mais próximos
   const free=(x,y,w,h,res)=>{for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++){if(tileAt(xx,yy)!==T.LOT||res.has(xx+','+yy))return false;}return true;};
   const res=new Set(), spots=[];
@@ -816,6 +861,21 @@ function placeMatrix(gx,gy,w,h,face){const W=w*TS,D=h*TS;const rot={s:0,n:Math.P
 
 /* ============================ MARCOS DE WALL STREET ============================ */
 const LM_BUILD={
+  '1wtc'(B,W,D){const s=Math.min(W,D)-2;tbox(B,MAT.glassDark,null,0,0,0,s,18,s);sbox(B,MAT.steel,0,18,0,s+0.4,0.4,s+0.4);
+    B.add(MAT.glass,xf(new THREE.CylinderGeometry(s*0.36,s*0.707,300,4,1),0,18.4+150,0,Math.PI/4));sbox(B,MAT.steel,0,318.4,0,s*0.52,3,s*0.52);
+    B.add(MAT.steel,xf(new THREE.CylinderGeometry(0.4,1.4,70,8),0,321.4+35,0));B.add(MAT.steel,xf(new THREE.CylinderGeometry(2.6,2.6,1.2,12),0,330,0));},
+  memorial(B,W,D){sbox(B,MAT.dark,0,0,0,W-0.6,1.1,D-1);sbox(B,MAT.granite,0,1.1,0,W-0.4,0.12,D-0.8);},
+  oculus(B,W,D){B.add(MAT.white,xf(new THREE.SphereGeometry(1,24,12,0,Math.PI*2,0,Math.PI/2),0,0,0,0,0,0,W*0.36,7,D*0.44));
+    for(let i=0;i<14;i++){const z=-D*0.4+i*(D*0.8/13),h=10+Math.sin(i/13*Math.PI)*16;for(const sd of [-1,1])B.add(MAT.white,xf(new THREE.BoxGeometry(0.5,h,0.5),sd*W*0.2,h/2*0.92+2,z,0,0,sd*-0.55));}},
+  stpaul(B,W,D){const w=W-1.2,d=D-2;tbox(B,MAT.brown,null,0,0,-1,w,11,d-2);prism(B,MAT.slate,0,11,-1,w+0.4,4,d-1.6);
+    for(let i=0;i<4;i++)cyl(B,MAT.white,-w/2+1.2+i*(w-2.4)/3,0,D/2-1.4,0.35,0.4,9,10);prism(B,MAT.white,0,9,D/2-1.4,w+0.2,3,1.6);
+    const tz=-d/2+1.4;sbox(B,MAT.brown,0,15,tz,4,7,4);sbox(B,MAT.white,0,22,tz,3.2,5,3.2);cyl(B,MAT.white,0,27,tz,1.4,1.6,4,8);B.add(MAT.slate,xf(new THREE.CylinderGeometry(0.1,1.3,10,8),0,36,tz));},
+  castle(B,W,D){const R=Math.min(W,D)/2-0.6;B.add(MAT.granite,xf(new THREE.CylinderGeometry(R,R+0.3,7,32,1,true),0,3.5,0));B.add(MAT.granite,xf(new THREE.CylinderGeometry(R-1.2,R-1.2,7,32,1,true),0,3.5,0));
+    B.add(MAT.stone,xf(new THREE.RingGeometry(R-1.2,R,32,1).rotateX(-Math.PI/2),0,7,0));sbox(B,MAT.dark,0,0,R-0.1,2.4,3.6,1.6);},
+  ferry(B,W,D){const w=W-1,d=D-1;tbox(B,MAT.glass,MAT.roof,0,0,0,w,12,d);sbox(B,MAT.steel,0,12,0,w+1.4,0.6,d+1.4);sbox(B,MAT.steel,0,0,d/2+0.6,w,0.3,1.2);
+    const sm=std({map:signTex('Staten Island Ferry','#1d4f8a','#ffffff'),roughness:.4,emissive:new THREE.Color(0xffffff),emissiveIntensity:0});sm.emissiveMap=sm.map;NIGHT_MATS.push({mat:sm,k:0.7});B.add(sm,xf(new THREE.PlaneGeometry(w*0.7,w*0.13),0,9.4,d/2+0.08));},
+  pier17(B,W,D){const w=W-0.6,d=D-0.6;sbox(B,MAT.concrete,0,-0.6,0,w,0.9,d);tbox(B,MAT.glass,MAT.roof,0,0.3,0,w-2,10,d-2);sbox(B,MAT.steel,0,10.3,0,w-1,0.4,d-1);
+    for(const sx of [-1,1])for(const sz of [-1,1])cyl(B,MAT.dark,sx*(w/2-0.6),-6,sz*(d/2-0.6),0.3,0.3,6,8);},
   trinity(B,W,D){const nz=-D/2+2,nl=D-8;tbox(B,MAT.brown,null,0,0,nz+nl/2-1,13,15,nl);prism(B,MAT.slate,0,15,nz+nl/2-1,14.4,8,nl+0.4);
     tbox(B,MAT.brown,MAT.roof,-8.5,0,nz+nl/2-1,4,9,nl-2);tbox(B,MAT.brown,MAT.roof,8.5,0,nz+nl/2-1,4,9,nl-2);
     const tz=D/2-4;tbox(B,MAT.brown,null,0,0,tz,7.6,46,7.6);sbox(B,MAT.brown,0,44,tz,8.6,1.2,8.6);
@@ -2088,7 +2148,7 @@ function initScene(){
   paintOverlay();overlayTex=texFrom(overlayCanvas.c);overlayTex.wrapS=overlayTex.wrapT=THREE.ClampToEdgeWrapping;
   overlayMesh=new THREE.Mesh(new THREE.PlaneGeometry(MWm,MHm),new THREE.MeshBasicMaterial({map:overlayTex,transparent:true,depthWrite:false}));overlayMesh.rotation.x=-Math.PI/2;overlayMesh.position.set(MWm/2,0.05,MHm/2);overlayMesh.visible=false;scene.add(overlayMesh);
   const outer=new THREE.Mesh(new THREE.PlaneGeometry(5000,5000),MAT.concrete);outer.rotation.x=-Math.PI/2;outer.position.set(MWm/2,-0.08,MHm/2);outer.receiveShadow=true;scene.add(outer);
-  const river=new THREE.Mesh(new THREE.PlaneGeometry(1500,5000),MAT.water);river.rotation.x=-Math.PI/2;river.position.set(70*TS+750,-0.04,MHm/2);scene.add(river);
+  for(const [w,h,x,z] of [[1500,5000,(70+OX)*TS+750,MHm/2],[1500,5000,2*TS-750,MHm/2],[5000,1500,MWm/2,(MAPH-2)*TS+750]]){const wm=new THREE.Mesh(new THREE.PlaneGeometry(w,h),MAT.water);wm.rotation.x=-Math.PI/2;wm.position.set(x,-0.04,z);scene.add(wm);} // East River, Hudson e a baía
   cityGroup=new THREE.Group();scene.add(cityGroup);dynGroup=new THREE.Group();scene.add(dynGroup);
   const SB=new Batch();
   for(const L of LANDMARKS){const {m,local}=placeMatrix(L.gx,L.gy,L.w,L.h,L.face);const B=new Batch();LM_BUILD[L.kind](B,local[0],local[1]);B.xform(m);B.into(SB);}
@@ -2122,9 +2182,10 @@ function buildStreetStatic(SB){
       add(xf(new THREE.SphereGeometry(0.6,12,10),0,1.35,2.25,0,0.5,0,0.75,0.8,1.05));for(const s of [-1,1]){add(xf(new THREE.ConeGeometry(0.11,1.1,8),s*0.62,1.85,2.25,0,0.5,-s*1.15));
         add(xf(new THREE.CylinderGeometry(0.16,0.13,1.35,8),s*0.45,0.68,1.15,0,-0.35,0));add(xf(new THREE.CylinderGeometry(0.17,0.13,1.35,8),s*0.45,0.68,-1.25,0,0.25,0));}
       add(xf(new THREE.CylinderGeometry(0.05,0.07,1.4,6),0,2.3,-1.9,0,-0.9,0));B.xform(new THREE.Matrix4().makeRotationY(Math.PI).setPosition(x,0,z));B.into(SB);}
+    else if(d.kind==='rim'){const x0=d.gx*TS,z0=d.gy*TS,w=d.w*TS,h=d.h*TS;for(const [cx,cz,ww,dd] of [[x0+w/2,z0-0.25,w+1,0.5],[x0+w/2,z0+h+0.25,w+1,0.5],[x0-0.25,z0+h/2,0.5,h],[x0+w+0.25,z0+h/2,0.5,h]])sbox(SB,MAT.dark,cx,0,cz,ww,1.05,dd);SB.add(MAT.water,xf(new THREE.BoxGeometry(w*0.34,0.05,h*0.34),x0+w/2,-1.4,z0+h/2));sbox(SB,MAT.dark,x0+w/2,-3,z0+h/2,w*0.36,1.6,h*0.36);}
     else if(d.kind==='fountain'){cyl(SB,MAT.marbleS,x,0,z,3.2,3.3,0.6,28);SB.add(MAT.water,xf(new THREE.CylinderGeometry(2.95,2.95,0.05,28),x,0.55,z));cyl(SB,MAT.marbleS,x,0,z,0.5,0.7,1.8,12);cyl(SB,MAT.marbleS,x,1.8,z,1.2,0.3,0.35,16);}}
   // FDR Drive (elevado sobre a South St) + parapeito do East River
-  const MHm=MAPH*TS,fx=67*TS;sbox(SB,MAT.concrete,fx,8,MHm/2,13,1,MHm+900);sbox(SB,MAT.dark,fx,7.2,MHm/2,9,0.8,MHm+900);
+  const MHm=MAPH*TS,fx=(67+OX)*TS;sbox(SB,MAT.concrete,fx,8,MHm/2-400,13,1,MHm+100);sbox(SB,MAT.dark,fx,7.2,MHm/2-400,9,0.8,MHm+100);
   for(const s of [-1,1])sbox(SB,MAT.concrete,fx+s*6.3,9,MHm/2,0.35,1,MHm+900);
   for(let z=-440;z<MHm+440;z+=16)for(const s of [-1,1])cyl(SB,MAT.concrete,fx+s*4,0,z,0.55,0.6,7.2,10);
   sbox(SB,MAT.steel,70*TS-0.2,1.05,MHm/2,0.08,0.08,MHm+600);for(let z=-300;z<MHm+300;z+=2.4)sbox(SB,MAT.steel,70*TS-0.2,0,z,0.07,1.1,0.07);
@@ -2135,15 +2196,15 @@ function buildStreetStatic(SB){
     for(let x=120;x<=940;x+=10){const y=x<300?84-(300-x)/180*44:x>760?84-(x-760)/180*44:40+44*Math.pow(Math.abs(x-530)/230,2);const p=new THREE.Vector3(x,y,zz);if(prev)pts.push(prev,p);prev=p;if(x>310&&x<750&&x%20===0)pts.push(new THREE.Vector3(x,y,zz),new THREE.Vector3(x,40,zz));}}
   const cg=new THREE.BufferGeometry().setFromPoints(pts);cityGroup.add(new THREE.LineSegments(cg,cab));}
 function B_cape(SB,x,z){prism(SB,MAT.bronze,x,5,z-0.12,0.9,1.4,0.18);} // capa / casaca da estátua
-function buildSurroundings(SB){ // Manhattan continua em volta (névoa esconde o fim); Brooklyn do outro lado do rio
-  const MWm=MAPW*TS,MHm=MAPH*TS;const r=rngSeed(4242);const geo=new THREE.BoxGeometry(1,1,1);geo.translate(0,0.5,0);
-  const list=[];for(let x=-470;x<250;x+=34)for(let z=-540;z<760;z+=30){if(x>-40&&x<MWm+6&&z>-36&&z<MHm+6)continue;if(x>14&&x<52)continue;
-    const near=Math.max(0,1-Math.hypot(x-MWm/2,z-MHm/2)/700);const h=24+Math.pow(r(),2)*190*(0.5+near);list.push([x+3+r()*4,z+3+r()*4,22+r()*8,h,18+r()*8,r()]);}
-  for(let x=640;x<1100;x+=40)for(let z=-520;z<760;z+=36){if(r()<.35)continue;list.push([x,z,26,12+Math.pow(r(),3)*80,24,r()]);}
+function buildSurroundings(SB){ // Manhattan segue ao norte (névoa esconde o fim); Brooklyn do outro lado do East River; Jersey City além do Hudson
+  const MWm=MAPW*TS,MHm=MAPH*TS;const r=rngSeed(4242);const geo=new THREE.BoxGeometry(1,1,1);geo.translate(0,0.5,0);const bx0=(OX+8)*TS-2,bx1=(OX+12)*TS+2;
+  const list=[];for(let x=20;x<MWm-24;x+=34)for(let z=-640;z<-30;z+=30){if(x+30>bx0&&x<bx1)continue;
+    const near=Math.max(0,1-Math.hypot(x-MWm/2,z)/700);const h=24+Math.pow(r(),2)*190*(0.5+near);list.push([x+3+r()*4,z+3+r()*4,22+r()*8,h,18+r()*8,r()]);}
+  for(let x=MWm+340;x<MWm+820;x+=40)for(let z=-600;z<MHm+200;z+=36){if(r()<.35)continue;list.push([x,z,26,12+Math.pow(r(),3)*80,24,r()]);}
+  for(let x=-900;x<-520;x+=46)for(let z=-500;z<MHm-60;z+=40){if(r()<.4)continue;list.push([x,z,30,14+Math.pow(r(),2)*120,28,r()]);}
   const im=new THREE.InstancedMesh(geo,MAT.far,list.length);const m=new THREE.Matrix4(),q=new THREE.Quaternion(),c=new THREE.Color();
   list.forEach((b,i)=>{m.compose(new THREE.Vector3(b[0]+b[2]/2,0,b[1]+b[4]/2),q,new THREE.Vector3(b[2],b[3],b[4]));im.setMatrixAt(i,m);c.setHSL(0.08+b[5]*0.5,0.12+b[5]*0.08,0.55+b[5]*0.25);im.setColorAt(i,c);});
   im.castShadow=false;im.receiveShadow=false;cityGroup.add(im);
-  tbox(SB,MAT.glass,MAT.roof,-260,0,-430,46,400,46);cyl(SB,MAT.steel,-260,400,-430,0.4,1.6,90,8); // super-torre de vidro a noroeste
 }
 function buildInstancedDecor(){const m=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),c=new THREE.Color(),v=new THREE.Vector3(),s=new THREE.Vector3();
   const trees=decor.filter(d=>d.kind==='tree'),graves=decor.filter(d=>d.kind==='grave'),lamps=decor.filter(d=>d.kind==='lamp');
@@ -2190,7 +2251,7 @@ function buildTraffic(){LANES.length=0;INTERS.length=0;GROUPS.length=0;
       const G={id:GROUPS.length,axis:s.axis,dir:+d,lanes:ls,from:s.b0*TS,to:(s.b1+1)*TS,st:s,boxes:[]};GROUPS.push(G);ls.forEach((L,i)=>{L.idx=i;L.n=ls.length;L.G=G;});}}
   for(const G of GROUPS){for(const I of INTERS){if((G.axis==='v'?I.v:I.h)!==G.st)continue;const lo=G.axis==='v'?I.z0:I.x0,hi=G.axis==='v'?I.z1:I.x1;G.boxes.push({I,enter:G.dir>0?lo:hi,exit:G.dir>0?hi:lo});}
     G.boxes.sort((a,b)=>(a.enter-b.enter)*G.dir);}
-  const fx=67*TS;LANES.push({axis:'v',c:fx-3,dir:1,from:-300,to:MAPH*TS+300,y:8.5,fdr:true});LANES.push({axis:'v',c:fx+3,dir:-1,from:-300,to:MAPH*TS+300,y:8.5,fdr:true});
+  const fx=(67+OX)*TS;LANES.push({axis:'v',c:fx-3,dir:1,from:-300,to:86*TS,y:8.5,fdr:true});LANES.push({axis:'v',c:fx+3,dir:-1,from:-300,to:86*TS,y:8.5,fdr:true});
   // semáforos: vermelho, amarelo e verde para cada eixo
   for(const ax of ['v','h']){SIG[ax+'r']=std({color:0x3a0a0a,emissive:new THREE.Color(0xff2a1a),emissiveIntensity:0});SIG[ax+'y']=std({color:0x3a2a0a,emissive:new THREE.Color(0xffb21a),emissiveIntensity:0});SIG[ax+'g']=std({color:0x0a2a12,emissive:new THREE.Color(0x30ff7a),emissiveIntensity:0});}
   const B=new Batch();for(const I of INTERS){for(const [x,z,ax] of [[I.x0-1.2,I.z0-1.2,'v'],[I.x1+1.2,I.z1+1.2,'v'],[I.x1+1.2,I.z0-1.2,'h'],[I.x0-1.2,I.z1+1.2,'h']]){
@@ -2213,15 +2274,16 @@ function pickMove(L,bx){const all=boxOpts(L.G,bx);let ok=all.filter(o=>o.k==='s'
 function turnLane(L,o){const ls=o.G2.lanes,n2=ls.length;return o.k==='r'?ls[Math.min(n2-1,L.idx)]:ls[Math.max(0,n2-1-(L.n-1-L.idx))];} // curva dupla: cada faixa na sua
 function turnExt(car){return Math.max(0,(car.mesh.userData.half||[1,2.5])[1]-2.5);} // ônibus e caminhões abrem mais a curva
 function startTurn(car,L,bx,o){const L2=turnLane(L,o),ext=turnExt(car);const P0=laneXZ(L,bx.enter-L.dir*ext),P2=laneXZ(L2,o.b2.exit+L2.dir*ext),P1=L.axis==='v'?[L.c,L2.c]:[L2.c,L.c];
-  let len=0,pr=P0;for(let i=1;i<=8;i++){const p=bez(P0,P1,P2,i/8);len+=Math.hypot(p[0]-pr[0],p[1]-pr[1]);pr=p;}car.turn={P0,P1,P2,t:Math.max(0,(car.s-bx.enter)*L.dir+ext)/Math.max(1,len),len,L2,s2:o.b2.exit+L2.dir*ext,k:o.k};}
+  let len=0,pr=P0;for(let i=1;i<=8;i++){const p=bez(P0,P1,P2,i/8);len+=Math.hypot(p[0]-pr[0],p[1]-pr[1]);pr=p;}car.turn={P0,P1,P2,t:Math.max(0,(car.s-bx.enter)*L.dir+ext)/Math.max(1,len),len,L2,s2:o.b2.exit+L2.dir*ext,k:o.k,I:bx.I};}
 function carAxis(o){const y=o.yaw||0;return Math.abs(Math.sin(y))>Math.abs(Math.cos(y))?'h':'v';}
-function boxBusy(I,ax,me){for(const o of CARS){if(o===me||!o.lane||o.lane.fdr||!o.mesh.visible)continue;const q=o.mesh.position;if(q.x<I.x0-0.6||q.x>I.x1+0.6||q.z<I.z0-0.6||q.z>I.z1+0.6)continue;if(carAxis(o)!==ax)return true;}return false;}
+function boxBusy(I,ax,me){for(const o of CARS){if(o===me||!o.lane||o.lane.fdr||!o.mesh.visible)continue;const q=o.mesh.position;if(q.x<I.x0-0.6||q.x>I.x1+0.6||q.z<I.z0-0.6||q.z>I.z1+0.6)continue;if(carAxis(o)!==ax||(o.turn&&o.turn.k==='l'))return true;}return false;}
 // conversão à esquerda espera quem vem de frente
 function oncoming(L,bx,me){for(const o of CARS){const L2=o.lane;if(!L2||L2.fdr||L2.st!==L.st||L2.dir===L.dir||o.turn||!o.mesh.visible)continue;if(o.next&&o.next.o&&o.next.o.k==='l')continue;
   const b2=L2.G.boxes.find(b=>b.I===bx.I);if(!b2)continue;const d=(b2.enter-o.s)*L2.dir,w=Math.abs(b2.exit-b2.enter);if(d>-w&&d<22&&(o.v>0.8||d<0))return true;}return false;}
 // não bloqueia o cruzamento: só entra se houver espaço depois dele
-function roomAfter(L,sx,need,me){for(const o of CARS){if(o===me||o.lane!==L||o.turn||!o.mesh.visible)continue;const d=(o.s-sx)*L.dir-(o.mesh.userData.half||[1,2.5])[1];if(d>-1&&d<need&&o.v<3)return false;}
-  for(const o of CARS)if(o!==me&&o.turn&&o.turn.L2===L)return false;return true;}
+function roomAfter(L,sx,need,me,myD,I){if(myD!=null)for(const o of CARS){if(o===me||o.turn||!o.lane||o.lane.fdr||!o.next||!o.next.o||o.next.o.k==='s'||!o.mesh.visible||o.next.b.I!==I)continue;if(turnLane(o.lane,o.next.o)!==L)continue;const od=(o.next.b.enter-o.s)*o.lane.dir;if(od>-1&&(od<myD-0.05||(Math.abs(od-myD)<=0.05&&CARS.indexOf(o)<CARS.indexOf(me))))return false;} // vez de quem chegou antes
+  for(const o of CARS){if(o===me||o.lane!==L||o.turn||!o.mesh.visible)continue;const d=(o.s-sx)*L.dir-(o.mesh.userData.half||[1,2.5])[1];if(d>-1&&d<need&&o.v<3)return false;}
+  for(const o of CARS)if(o!==me&&o.turn&&o.turn.L2===L&&(!I||o.turn.I===I))return false;return true;}
 function laneFreeAt(L,s,skip){const p=laneXZ(L,s);for(const o of CARS)if(o!==skip&&o.lane&&o.mesh.visible&&!!o.lane.fdr===!!L.fdr&&Math.hypot(o.mesh.position.x-p[0],o.mesh.position.z-p[1])<11)return false;for(const o of CARS)if(o!==skip&&o.lane===L&&!o.turn&&Math.abs(o.s-s)<11)return false;return true;}
 function inBoxS(G,s){return !!G&&G.boxes.some(b=>(s-b.enter)*G.dir>-4&&(s-b.exit)*G.dir<3);}
 function spawnCar(car,initial){car.turn=null;car.next=null;car.blink=0;car.yaw=null;car.still=0;car.wait=0;
@@ -2255,9 +2317,9 @@ function updateTraffic(dt){lightT+=dt;blinkT+=dt;
         const o=car.next.o;car.blink=o&&o.k!=='s'&&dE<34?(o.k==='r'?1:-1):0;
         if(dE>-0.3){const stopD=dE-half-1.4,st=lightState(L.axis);
           if(st==='y'&&car.commit!==nb){const left=yellowLeft(L.axis);if(car.v>1.5&&(stopD<1||stopD/car.v<left-0.2))car.commit=nb;} // dá tempo de passar no amarelo
-          if(st==='r'&&car.commit===nb&&stopD>car.v*car.v/10+0.3)car.commit=null; // no vermelho só segue quem já não consegue parar
+          if(st==='r'&&car.commit===nb&&(stopD>car.v*car.v/10+0.3||car.v<1))car.commit=null; // no vermelho só segue quem já não consegue parar
           if((st==='r'||st==='y')&&car.commit!==nb){if(stopD>-0.8){target=Math.min(target,Math.max(0,stopD)*0.9);car.why='sinal';}}
-          else if(stopD<4){const why=boxBusy(nb.I,L.axis,car)?'cruz-ocupado':(o&&o.k==='l'&&oncoming(L,nb,car))?'cruz-frente':(o&&!roomAfter(o.k==='s'?L:turnLane(L,o),o.b2.exit,half*2+2.5,car))?'cruz-sem-espaco':null;if(why){target=Math.min(target,Math.max(0,stopD)*0.9);car.why=why;}}
+          else if(stopD<4&&stopD>-0.5){const why=boxBusy(nb.I,L.axis,car)?'cruz-ocupado':(o&&o.k==='l'&&oncoming(L,nb,car))?'cruz-frente':(o&&!roomAfter(o.k==='s'?L:turnLane(L,o),o.b2.exit,half*2+2.5,car,o.k==='s'?null:dE,nb.I))?'cruz-sem-espaco':null;if(why){target=Math.min(target,Math.max(0,stopD)*0.9);car.why=why;}}
           if(!o)target=Math.min(target,Math.max(0,stopD)*0.9); // sem saída: espera (raro)
           else if(o.k!=='s')target=Math.min(target,Math.max(o.k==='r'?4:5,dE*0.7));}
         if(o&&o.k!=='s'&&dE<=turnExt(car))startTurn(car,L,nb,o);}}
@@ -2585,6 +2647,7 @@ function doInteract(t){t=t||interactTarget;if(!t)return;if(t.kind==='gb'){gbEnte
   else if(t.kind==='prop')t.p.fn();else if(t.kind==='iperson'){const p=t.p;if(p.staff)openStaff(p);else if(p.cand)interview(p.co,p.cand,p);else if(p.e)openEmployee(p);else{INT.talkP=p;modal('💬','Conversa rápida','<p class="quote">"'+ambientLine().replace(/^"|"$/g,'')+'"</p>',[{t:'↩ Ok',fn:closeModal}]);}}
   else if(t.kind==='c')openContact(t.w.contact);else openLandmark(t.L);}
 function openLandmark(L){{const g=GB.find(x=>x.L===L&&x.face===L.face);if(g)return gbEnter(g);}if(L.kind==='nyse'){enterInterior({kind:'nyse',title:'Bolsa de Nova York',exit:landmarkFront(L),key:'nyse'});return;}const I=L.info;const acts=[];if(I.act==='market')acts.push({t:'📈 Entrar no pregão',d:'Mercado, concorrentes e empresas de amigos',fn:()=>{closeModal();onTool('market');}});
+  if(I.act==='ferry')acts.push({t:'⛴️ Pegar a balsa (grátis)',d:S.ferry===S.day?'Já foi hoje':'Ida e volta pela baía · ⚡+4 · ~1 h',dis:S.ferry===S.day,fn:()=>{S.ferry=S.day;closeModal();const fd=document.getElementById('fade');fd.innerHTML='<div>⛴️</div><b>Balsa para Staten Island</b><span>A Estátua da Liberdade passa pela janela</span>';fd.classList.add('on');setTimeout(()=>{fd.classList.remove('on');dayAcc+=DAY_SEC/24;S.energy=Math.min(S.energy+4,120);refreshHUD();toast('⛴️ Que passeio. ⚡+4');},2000);}});
   if(I.act==='bank')acts.push({t:'🏦 Falar com o banco',d:'Empréstimos e juros',fn:()=>{closeModal();openBank();}});acts.push({t:'↩ Voltar para a rua',fn:closeModal});
   modal(I.ico,I.name,'<p>'+I.txt+'</p><p class="small">Wall Street · Lower Manhattan</p>',acts);}
 
@@ -2834,7 +2897,7 @@ function drawBigMap(){const el=document.getElementById('bigmap'),cvm=el.querySel
   const done=new Set();for(const s of STREETS){if(s.kind!==T.ROAD&&s.kind!==T.PED)continue;const key=s.name+s.a0;if(done.has(key))continue;done.add(key);
     const len=s.b1-s.b0+1,reps=Math.max(1,Math.floor(len*k/420));for(let i=0;i<reps;i++){const along=s.b0+len*(i+0.5)/reps,mid=(s.a0+s.a1+1)/2;const x=s.axis==='v'?tx(mid):tx(along),y=s.axis==='v'?ty(along):ty(mid);
       g.save();g.translate(x,y);if(s.axis==='v')g.rotate(-Math.PI/2);g.strokeStyle='rgba(10,12,16,.85)';g.lineWidth=3.5;g.strokeText(s.name,0,0);g.fillStyle='#f2efe8';g.fillText(s.name,0,0);g.restore();}}
-  g.save();g.translate(tx(71),ty(MAPH/2));g.rotate(-Math.PI/2);g.font='italic 600 '+cl(k*0.8,11,22)+'px system-ui,sans-serif';g.fillStyle='#8fc3ea';g.fillText('East River',0,0);g.restore();
+  g.font='italic 600 '+cl(k*0.8,11,22)+'px system-ui,sans-serif';g.fillStyle='#8fc3ea';for(const [lx,ly,t] of [[OX+71,MAPH/2,'East River'],[1,MAPH/2,'Hudson River']]){g.save();g.translate(tx(lx),ty(ly));g.rotate(-Math.PI/2);g.fillText(t,0,0);g.restore();}g.fillText('Upper Bay',tx(MAPW/2),ty(MAPH-1));
   if(BM.mode==='ride'&&BM.ride){const R=BM.ride;g.lineJoin='round';g.lineCap='round';for(const [lw,cs] of [[cl(k*0.32,4,9)+3,'rgba(255,255,255,.9)'],[cl(k*0.32,4,9),'#f2b705']]){g.strokeStyle=cs;g.lineWidth=lw;g.beginPath();R.pts.forEach((p,i)=>{const x=tx(p[0]/TS),y=ty(p[1]/TS);i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();}
     if(R.pos){const x=tx(R.pos[0]/TS),y=ty(R.pos[1]/TS);g.save();g.translate(x,y);g.fillStyle='#f2b705';g.strokeStyle='#1a1a1a';g.lineWidth=2.5;g.beginPath();g.arc(0,0,cl(k*0.7,12,20),0,7);g.fill();g.stroke();g.font=Math.round(cl(k*0.8,14,22))+'px sans-serif';g.fillText('🚕',0,1);g.restore();}}
   else if(BM.mode==='taxi'&&BM.tdest&&hero){const pr=planRoute(M(hero.x),M(hero.y),M(BM.tdest.x),M(BM.tdest.y),'car');if(pr){g.strokeStyle='#f2b705';g.lineWidth=cl(k*0.28,3,8);g.setLineDash([8,6]);g.beginPath();pr.forEach((p,i)=>{const x=tx(p[0]/TS),y=ty(p[1]/TS);i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();g.setLineDash([]);}}
@@ -3318,15 +3381,15 @@ function setupBuildingsInside(){GB.length=0;const used=new Set(Object.values(SPE
     else{g.name=addr;g.ico='🏠';g.apt=Math.max(2,Math.min(F.floors-1,Math.round(F.floors*(0.3+r(7)*0.4))));}
     GB.push(g);}
   // marcos: torres com saguão/elevador/andares, salões históricos, e uma loja no térreo de cada um (fachada lateral)
-  const TOWER_TOP={'1wall':114,'14wall':120,'40wall':238,'60wall':200,'70pine':258},HALL={'55wall':'salao','23wall':'banco','federal':'museu','trinity':'igreja'},shopSeq=['deli','cafe','farmacia','banca','mercado','flores','deli'];let si=0;
-  for(const L of LANDMARKS){if(L.kind==='nyse')continue;let h=7;for(const ch of L.kind)h=(Math.imul(h,31)+ch.charCodeAt(0))|0;
+  const TOWER_TOP={'1wall':114,'14wall':120,'40wall':238,'60wall':200,'70pine':258,'1wtc':318},HALL={'55wall':'salao','23wall':'banco','federal':'museu','trinity':'igreja','stpaul':'igreja','pier17':'salao'},shopSeq=['deli','cafe','farmacia','banca','mercado','flores','deli'];let si=0;
+  for(const L of LANDMARKS){if(['nyse','memorial','oculus','castle','ferry'].includes(L.kind))continue;let h=7;for(const ch of L.kind)h=(Math.imul(h,31)+ch.charCodeAt(0))|0;
     const F={gx:L.gx,gy:L.gy,w:L.w,h:L.h,seed:h>>>0,style:'lm',floors:TOWER_TOP[L.kind]?Math.round(TOWER_TOP[L.kind]/3.6):3},front=landmarkFront(L),r=k=>gbRand(F,k);
     if(L.kind==='70pine')GB.push({F,L,face:L.face,front,type:'resid',addr:L.info.name,name:L.info.name,ico:'🏠',noDoor:true,floors:F.floors+1,apt:Math.round(F.floors*0.45)});
     else if(TOWER_TOP[L.kind]){const n=F.floors,picks=[...new Set([0.15,0.35,0.55,0.75,0.9].map(f=>Math.max(2,Math.min(n-1,Math.round(n*f)))))];
       GB.push({F,L,face:L.face,front,type:'torre',addr:L.info.name,name:L.info.name,ico:'🏢',noDoor:true,floors:n+1,heli:L.kind==='1wall',roofY:TOWER_TOP[L.kind],
         list:picks.map((fl,i)=>{const f=GB_FIRMS[(r(10+i)*GB_FIRMS.length)|0];return {n:fl,firm:r(20+i)<0.8?f[0]+' '+f[1]:null};})});}
     else if(HALL[L.kind])GB.push({F,L,face:L.face,front,type:HALL[L.kind],addr:L.info.name,name:L.info.name,ico:L.info.ico,noDoor:true,floors:1});
-    if(L.kind==='trinity'||L.kind==='federal')continue;
+    if(['trinity','federal','stpaul','memorial','oculus','castle','ferry','pier17','1wtc'].includes(L.kind))continue;
     // loja de rua na fachada lateral (se houver calçada)
     for(const f of ['e','w','s','n']){if(f===L.face)continue;const mx=L.gx+(L.w>>1),my=L.gy+(L.h>>1),t=f==='n'?[mx,L.gy-1]:f==='s'?[mx,L.gy+L.h]:f==='e'?[L.gx+L.w,my]:[L.gx-1,my];if(tileAt(t[0],t[1])!==T.WALK)continue;
       const cx=(L.gx+L.w/2)*TILE,cy=(L.gy+L.h/2)*TILE,fr=f==='s'?[cx,(L.gy+L.h+0.7)*TILE]:f==='n'?[cx,(L.gy-0.7)*TILE]:f==='e'?[(L.gx+L.w+0.7)*TILE,cy]:[(L.gx-0.7)*TILE,cy];
@@ -3334,7 +3397,7 @@ function setupBuildingsInside(){GB.length=0;const used=new Set(Object.values(SPE
       const shop=shopSeq[si++%shopSeq.length],D_=GB_SHOP[shop],short=st.replace(' St','').replace(' Pl','').replace(' Street','');
       GB.push({F:Object.assign({},F,{seed:F.seed+11,floors:1}),L,face:f,front:fr,type:'loja',shop,inset:0.2,addr:L.info.name,st,name:shop==='mercado'?D_.n:shop==='deli'?short+' Deli':shop==='cafe'?'Café '+short:D_.n+' '+short,ico:D_.ico,floors:1});break;}}
   // heliporto público no píer do East River
-  GB.push({F:{gx:68,gy:43,w:2,h:3,seed:4242,style:'pier',floors:0},type:'porto',heli:true,ground:true,face:'e',front:[68.7*TILE,44.5*TILE],addr:'Heliporto de Downtown',name:'Heliporto de Downtown',ico:'🚁',noDoor:true,floors:1});
+  GB.push({F:{gx:68+OX,gy:43+OY,w:2,h:3,seed:4242,style:'pier',floors:0},type:'porto',heli:true,ground:true,face:'e',front:[(68.7+OX)*TILE,(44.5+OY)*TILE],addr:'Heliporto de Downtown',name:'Heliporto de Downtown',ico:'🚁',noDoor:true,floors:1});
   // fachada: porta de vidro com moldura dourada; comércios ganham toldo e letreiro
   const B=new Batch(),door=std({color:0x0d1318,roughness:.08,metalness:.4,envMapIntensity:1.2}),frame=MAT.gold,awn={};
   for(const g of GB){if(g.noDoor)continue;const F=g.F,yaw=YAW[g.face],W=F.w*TS-0.3,D=F.h*TS-0.3,x=F.gx*TS+F.w*TS/2,z=F.gy*TS+F.h*TS/2,dist=((g.face==='e'||g.face==='w')?W:D)/2-(g.inset||0);
@@ -3348,7 +3411,7 @@ function setupBuildingsInside(){GB.length=0;const used=new Set(Object.values(SPE
   B.build(cityGroup);}
 function gbNear(){let best=null,bd=TILE*1.45;for(const g of GB){if(g.L&&g.face===g.L.face)continue;const d=Math.hypot(hero.x-g.front[0],hero.y-g.front[1]);if(d<bd){bd=d;best=g;}}return best?{g:best,d:bd}:null;}
 function gbLabel(g){if(g.type==='porto')return ['🚁','Entrar',g.name+' · voos panorâmicos e particulares'];return g.type==='loja'?[g.ico,'Entrar',g.name+' · '+GB_SHOP[g.shop].n.toLowerCase()]:g.type==='torre'?['🏢','Entrar',g.addr+' · torre comercial · '+g.floors+' andares'+(g.heli?' · heliponto':'')]:['🏠','Entrar',g.addr+' · residencial · '+g.floors+' andares'];}
-function gbMeta(g){if(g.ground)return {x:71.4*TS,z:44.5*TS,H:-3.2,y:0.9};const F=g.F,x=F.gx*TS+F.w*TS/2,z=F.gy*TS+F.h*TS/2,H=g.roofY||4.8+F.floors*3.6+(F.style==='deco'?3:0);return {x,z,H,y:H+4.2};}
+function gbMeta(g){if(g.ground)return {x:(71.4+OX)*TS,z:(44.5+OY)*TS,H:-3.2,y:0.9};const F=g.F,x=F.gx*TS+F.w*TS/2,z=F.gy*TS+F.h*TS/2,H=g.roofY||4.8+F.floors*3.6+(F.style==='deco'?3:0);return {x,z,H,y:H+4.2};}
 function gbEnter(g,floor){const ex=g.front,base={gb:g,exit:ex,key:'gb'+g.F.seed+(floor?'-'+floor:'')};
   if(g.type==='loja')return enterInterior(Object.assign(base,{kind:'store',title:g.name}));
   if(g.type==='porto')floor='heli';
@@ -3636,7 +3699,7 @@ function updateDriving(dt){if(!PCAR)return;const c=PCAR;if(!c.driving){return;}c
   if(!dragCam&&Math.abs(c.v)>1){const want=c.yaw+Math.PI*(c.v>0?1:0);let dy=Math.atan2(Math.sin(want-CAM.yaw),Math.cos(want-CAM.yaw));CAM.yaw+=dy*Math.min(1,dt*2.2);}}
 /* ---- lugares especiais no mapa: Residências (sua casa) e Manhattan Motors (concessionária) ---- */
 const SPECIAL={};
-function setupSpecialPlaces(){const pickF=(tx,ty,not)=>{let best=null,bd=1e9;for(const F of FILLERS){if(F===not)continue;const d=Math.hypot(F.gx+F.w/2-tx,F.gy+F.h/2-ty);if(d<bd&&F.w>=3){bd=d;best=F;}}return best;};
+function setupSpecialPlaces(){const pickF=(tx,ty,not)=>{tx+=OX;ty+=OY;let best=null,bd=1e9;for(const F of FILLERS){if(F===not)continue;const d=Math.hypot(F.gx+F.w/2-tx,F.gy+F.h/2-ty);if(d<bd&&F.w>=3){bd=d;best=F;}}return best;};
   const home=pickF(47,6),dealer=pickF(55,24,home);
   for(const [k,F,name,ico,bg,fg] of [['home',home,'Residências Pearl St','🏠','#1d2a3a','#e9f0f7'],['dealer',dealer,'Manhattan Motors','🚗','#14171c','#e8c060']]){if(!F)continue;
     const face=faceOf(F.gx,F.gy,F.w,F.h);const cx=(F.gx+F.w/2)*TILE,cy=(F.gy+F.h/2)*TILE;const front=face==='s'?[cx,(F.gy+F.h+0.7)*TILE]:face==='n'?[cx,(F.gy-0.7)*TILE]:face==='e'?[(F.gx+F.w+0.7)*TILE,cy]:[(F.gx-0.7)*TILE,cy];
@@ -3692,7 +3755,7 @@ function addPlace(k,F,name,ico,cat,col,bg,fg){if(!F)return;const face=faceOf(F.g
   const sm=std({map:signTex(name,bg,fg),roughness:.4,emissive:new THREE.Color(0xffffff),emissiveIntensity:0});sm.emissiveMap=sm.map;NIGHT_MATS.push({mat:sm,k:0.7});
   const sg=new THREE.Mesh(new THREE.PlaneGeometry(6,1.12),sm);sg.position.set(M(cx)+Math.sin(yaw)*dist,4.4,M(cy)+Math.cos(yaw)*dist);sg.rotation.y=yaw;cityGroup.add(sg);
   const ic=new THREE.Sprite(new THREE.SpriteMaterial({map:emojiTex(ico),transparent:true}));ic.scale.set(1.1,1.1,1);ic.position.set(M(front[0]),3,M(front[1]));cityGroup.add(ic);SPECIAL[k].icon=ic;}
-function setupCareerPlaces(){const used=new Set(Object.values(SPECIAL).map(s=>s.F));const pickF=(tx,ty)=>{let best=null,bd=1e9;for(const F of FILLERS){if(used.has(F))continue;const d=Math.hypot(F.gx+F.w/2-tx,F.gy+F.h/2-ty);if(d<bd){bd=d;best=F;}}if(best)used.add(best);return best;};
+function setupCareerPlaces(){const used=new Set(Object.values(SPECIAL).map(s=>s.F));const pickF=(tx,ty)=>{tx+=OX;ty+=OY;let best=null,bd=1e9;for(const F of FILLERS){if(used.has(F))continue;const d=Math.hypot(F.gx+F.w/2-tx,F.gy+F.h/2-ty);if(d<bd){bd=d;best=F;}}if(best)used.add(best);return best;};
   for(const j of JOBS)addPlace('job:'+j.id,pickF(j.at[0],j.at[1]),j.co,j.ico,'job','#8fd07a','#20301c','#e8f5e2');
   addPlace('rest',pickF(30,35),'The Exchange Grill','🍽️','place','#8fc8ff','#3a1a14','#f4e2c8');
   for(const [k,x,y] of [['basics',20,44],['front',58,22],['maiden',42,12],['verlaine',15,38],['ravelle',46,40]]){const H_=SHOPS[k];addPlace('shop:'+k,pickF(x,y),H_.n,H_.ico,'place','#f0a8d0',H_.col,'#f6f0e4');}
@@ -3931,7 +3994,7 @@ function frame(now){const dt=Math.min((now-last)/1000,0.05);last=now;
   finally{requestAnimationFrame(frame);}
 }
 /* ============================ DISTRITO (expande por fase) ============================ */
-const UNLOCK_R=[0,10,15,21,28,99]; // raio (tiles) a partir da esquina Wall x Broad
+const UNLOCK_R=[0,10,15,21,30,99]; // raio (tiles) a partir da esquina Wall x Broad
 function tileUnlocked(x,y){if(!WORLD||!started)return true;const r=UNLOCK_R[S.phase]||99;return Math.max(Math.abs(x-WORLD.cxA-0.5),Math.abs(y-WORLD.cyA-0.5))<=r+0.5;}
 function lotFree(type,gx,gy){if(!footprintFree(type,gx,gy))return false;const s=BSPRITES[type];for(let y=gy;y<gy+s.ht;y++)for(let x=gx;x<gx+s.wt;x++){if(map[y][x]!==0)return false;}return true;}
 function canBuild(type,gx,gy){if(!lotFree(type,gx,gy))return false;const s=BSPRITES[type];for(let y=gy;y<gy+s.ht;y++)for(let x=gx;x<gx+s.wt;x++)if(!tileUnlocked(x,y))return false;return true;}
@@ -4260,7 +4323,7 @@ function tryPlace(gx,gy){const d=placing;if(!d)return;if(!canBuild(d.spr,gx,gy))
 let SAVE_KEY='bs_town_v2';
 function serialize(){return {v:3,savedAt:Date.now(),S,companies:companies.map(c=>{const o=Object.assign({},c);delete o.b;o.gx=c.b?c.b.gx:null;o.gy=c.b?c.b.gy:null;return o;}),
   rivals:rivals.map(r=>{const o=Object.assign({},r);delete o.b;o.gx=r.b?r.b.gx:null;o.gy=r.b?r.b.gy:null;return o;}),contacts,sede:sede?{gx:sede.gx,gy:sede.gy}:null,
-  hero:hero?{x:hero.x,y:hero.y}:null,feed:FEED.slice(0,30),avatar:AVATAR,hist:HIST.slice(-200),map:'wallstreet'};}
+  hero:hero?{x:hero.x,y:hero.y}:null,feed:FEED.slice(0,30),avatar:AVATAR,hist:HIST.slice(-200),map:'fidi'};}
 function saveLocal(){if(!started)return;try{localStorage.setItem(SAVE_KEY,JSON.stringify(serialize()));}catch(e){}}
 function readLocal(){try{const t=localStorage.getItem(SAVE_KEY);return t?JSON.parse(t):null;}catch(e){return null;}}
 function wipeSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
@@ -4274,7 +4337,10 @@ function newGame(name){S=newState(name);S.wardrobe=[];if(name!=='Visitante'){AVA
   contacts=[];spawnContacts();ambient();const h=heroStart();makeHero(h.x,h.y);
   log('🌱 '+S.name+' chegou a Wall Street com '+money(S.cash)+' e um notebook velho.');lastPhase=S.phase;}
 function loadGame(d){S=Object.assign(newState(),d.S);S.speed=1;companies=[];rivals=[];buildings.length=0;workers.length=0;FEED.length=0;HIST.length=0;(d.feed||[]).forEach(f=>FEED.push(f));(d.hist||[]).forEach(h=>HIST.push(h));
-  const fresh=d.map!=='wallstreet'; // save do mapa antigo: empresas são re-assentadas nos terrenos de Wall Street
+  if(d.map==='wallstreet'){ // save da Wall Street original: tudo é deslocado para o mesmo lugar no distrito ampliado
+    const sh=o=>{if(o&&o.gx!=null){o.gx+=OX;o.gy+=OY;}};sh(d.sede);(d.companies||[]).forEach(sh);(d.rivals||[]).forEach(sh);
+    if(d.hero){d.hero.x+=OX*TILE;d.hero.y+=OY*TILE;}for(const a of (d.S&&d.S.agenda)||[])if(a.place&&a.place.x!=null){a.place.x+=OX*TILE;a.place.y+=OY*TILE;}d.map='fidi';}
+  const fresh=d.map!=='fidi'; // save de um mapa muito antigo: empresas são re-assentadas nos terrenos
   const sd=!fresh&&d.sede&&footprintFree('hq',d.sede.gx,d.sede.gy)?d.sede:{gx:WORLD.SEDE_AT[0],gy:WORLD.SEDE_AT[1]};placeSede(sd.gx,sd.gy);
   for(const c of d.companies||[]){const gx=c.gx,gy=c.gy;delete c.gx;delete c.gy;let b=null;const spr=NICHE[c.niche].spr;if(!fresh&&gx!=null&&footprintFree(spr,gx,gy))b=placeBuilding(spr,gx,gy);else{const sp=findFreeSpot(spr,false);if(sp)b=placeBuilding(spr,sp.gx,sp.gy);}c.b=b;if(b)b.co=c;companies.push(c);if(b)c.employees.forEach(()=>spawnWorker(b,c));}
   for(const r of d.rivals||[]){const gx=r.gx,gy=r.gy;delete r.gx;delete r.gy;r.b=null;rivals.push(r);const spr=NICHE[r.niche].spr;if(!fresh&&gx!=null&&footprintFree(spr,gx,gy))placeRival(r,gx,gy);else placeRival(r,null,null);}
