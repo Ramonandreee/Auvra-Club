@@ -405,6 +405,8 @@
   #bigmap .bmchips button{padding:4px 8px!important;font-size:11px!important}
   #bigmap .bmx{width:32px!important;height:32px!important;font-size:14px!important}
   .dmbox{max-height:calc(var(--uh,1vh)*42);min-height:120px;display:flex;flex-direction:column;gap:5px}.dm{align-self:flex-start;max-width:80%;background:#24282f;border-radius:12px 12px 12px 3px;padding:6px 10px;font-size:13px;line-height:1.35}.dm.me{align-self:flex-end;background:#3a5f2e;border-radius:12px 12px 3px 12px}.dm i{display:block;font-style:normal;font-size:10px;color:var(--dim);text-align:right;margin-top:2px}.badge{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:#e8503a;color:#fff;font-size:11px;font-weight:800;text-align:center}
+  #mpNote{position:fixed;top:calc(52px + var(--st));left:50%;transform:translate(-50%,-14px);z-index:95;display:flex;align-items:center;gap:8px;max-width:min(560px,calc(100% - 32px));background:rgba(14,18,16,.95);border:1px solid #4fe08a;border-radius:14px;padding:8px 10px 8px 14px;color:var(--cream);font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;box-shadow:var(--e-2)}
+  #mpNote.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}#mpNote .mpn-t{flex:1;min-width:0;line-height:1.35}#mpNote .mpn-x{background:none;border:0;color:var(--dim);font-size:15px;padding:4px 6px}
   .elev{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}.ebtn{display:grid;grid-template-columns:38px 1fr;grid-template-rows:auto auto;align-items:center;text-align:left;background:#1d2026;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:6px 8px;color:var(--cream);column-gap:8px}
   .ebtn b{grid-row:1/3;width:34px;height:34px;border-radius:50%;border:2px solid #c89a3a;display:flex;align-items:center;justify-content:center;font-size:14px;color:#f1cf7a}.ebtn span{font-weight:700;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ebtn i{font-style:normal;font-size:11px;color:var(--dim)}.ebtn.cur{opacity:.45}.ebtn.cur b{background:#c89a3a;color:#1a1408}
   #bigmap .bmtabs{display:grid;grid-template-columns:1fr 1fr;background:#1c1f24;border-radius:10px;padding:3px;gap:3px;flex:none}
@@ -3726,13 +3728,14 @@ function placeOf(key){if(key==='sede')return {x:bFront(sede)[0],y:bFront(sede)[1
   const sp=SPECIAL[key];return sp?{x:sp.front[0],y:sp.front[1],name:sp.name}:null;}
 /* ---- AuvraOS: o celular do jogador ---- */
 let osTab='agenda';
-function openOS(tab){osTab=tab||osTab;const unread=S.inbox.filter(m=>!m.read).length;const tabs=[['agenda','📅 Agenda'],['msg','✉️ Mensagens'+(unread?' ('+unread+')':'')],['amigos','👥 Contatos'+(dmUnreadTotal()?' ('+dmUnreadTotal()+')':'')],['invest','📈 Investir'],['taxi','🚕 Táxi'],['jobs','💼 Vagas'],['news','📰 Notícias']];
+function openOS(tab){osTab=tab||osTab;const unread=S.inbox.filter(m=>!m.read).length;const tabs=[['agenda','📅 Agenda'],['msg','✉️ Mensagens'+(unread?' ('+unread+')':'')],['rede','📇 Contatos'],['amigos','👥 Amigos'+(dmUnreadTotal()?' ('+dmUnreadTotal()+')':'')],['invest','📈 Investir'],['taxi','🚕 Táxi'],['jobs','💼 Vagas'],['news','📰 Notícias']];
   let body='<div class="seg" style="margin-bottom:8px">'+tabs.map(([k,l])=>'<button data-os="'+k+'" class="'+(k===osTab?'on':'')+'">'+l+'</button>').join('')+'</div>';
   if(osTab==='agenda'){const it=S.agenda.filter(a=>a.day>=S.day).sort((a,b)=>a.day-b.day||a.hour-b.hour);
     body+='<p class="small">Agora: dia '+S.day+' · '+fmtHour(nowHour())+(timeScale()<1?' · ⏱ modo agenda (tempo mais lento)':'')+'</p>'+(it.length?it.map(a=>'<div class="lrow" data-wp="'+a.id+'"><span>'+(a.status==='done'?'✅':'📍')+' <b>'+esc(a.title)+'</b><br><span class="small">Dia '+a.day+' · '+fmtHour(a.hour)+' · '+esc(a.place?a.place.name:'')+'</span></span><span class="small">'+(a.status==='pending'?'Ir ›':a.status==='done'?'feito':'perdido')+'</span></div>').join(''):'<p class="small">Nenhum compromisso. Arrume um emprego ou aceite convites de reunião.</p>');}
   else if(osTab==='msg')body+=S.inbox.length?S.inbox.map(m=>{m.read=true;return '<div class="lrow"><span>'+m.ico+' <b>'+esc(m.from)+'</b><br><span class="small">'+esc(m.txt)+'</span></span><span class="small">dia '+m.d+'</span></div>';}).join(''):'<p class="small">Sem mensagens.</p>';
   else if(osTab==='invest'){osTab='agenda';closeModal();openInvest();return;}
   else if(osTab==='amigos'){osTab='agenda';closeModal();openContacts();return;}
+  else if(osTab==='rede'){osTab='agenda';closeModal();openNetwork();return;}
   else if(osTab==='taxi'&&!TAXI&&!INT.active&&!(PCAR&&PCAR.driving)){osTab='agenda';closeModal();openTaxiMap();return;}
   else if(osTab==='taxi')body+=taxiTab();
   else if(osTab==='jobs')body+=JOBS.map(j=>{const sp=SPECIAL['job:'+j.id];const ok=S.phase>=j.phase;const mine=S.job&&S.job.id===j.id;return '<div class="lrow" data-job="'+j.id+'"><span>'+j.ico+' <b>'+esc(j.t)+'</b> · '+esc(j.co)+'<br><span class="small">'+money(jobPay(j,0))+'/turno · turno às '+fmtHour(j.hour)+' · '+(ok?esc(j.req):'🔒 fase '+j.phase+'+')+'</span></span><span class="small">'+(mine?'seu emprego':'ver no mapa ›')+'</span></div>';}).join('');
@@ -4353,7 +4356,7 @@ function loadGame(d){S=Object.assign(newState(),d.S);S.speed=1;companies=[];riva
   contacts=d.contacts||[];spawnContacts();ambient();
   const h=(!fresh&&d.hero&&walkable(d.hero.x,d.hero.y))?d.hero:heroStart();makeHero(h.x,h.y);
   if(d.avatar&&!readJSON('auvra_avatar')){Object.assign(AVATAR,d.avatar);normalizeAvatar();saveAvatar();rebuildHero();}lastPhase=S.phase;}
-addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){saveLocal();MP.saveCloud();}});addEventListener('pagehide',()=>{saveLocal();MP.saveCloud();});
+addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){saveLocal();MP.saveCloud();}});addEventListener('pagehide',()=>{saveLocal();MP.saveCloud();MP.seen();});
 /* ============================ ENCONTRO MULTIPLAYER ============================
    Quem está online aparece no mapa (mesmo lugar = rua, ou o mesmo prédio/andar), com o próprio visual e o nome.
    Perto dele(a): acenar, pagar café/drink, dar dinheiro ou roupa, adicionar aos contatos e conversar pelo celular.
@@ -4377,7 +4380,7 @@ function remoteFor(id,p){let r=REMOTES.get(id);if(!REMOTE_G){REMOTE_G=new THREE.
   if(p.name&&(p.name!==r.name||!r.tag)){r.name=p.name;if(r.tag){r.tag.parent&&r.tag.parent.remove(r.tag);r.tag.material.map.dispose();r.tag.material.dispose();}r.tag=nameTag(r.name);}
   if(r.mesh&&r.tag&&r.tag.parent!==r.mesh)r.mesh.add(r.tag);return r;}
 function dropRemote(id){const r=REMOTES.get(id);if(!r)return;if(r.mesh){REMOTE_G.remove(r.mesh);disposePerson(r.mesh);}if(r.car){REMOTE_G.remove(r.car);r.car.geometry.dispose();}REMOTES.delete(id);}
-function remotePos(p){if(!p||p.id===MP.uid)return;const r=remoteFor(p.id,MP.online[p.id]||{name:p.name});r.x=p.x;r.y=p.y;r.h=p.h||0;r.sp=p.sp;r.hy=p.hy||0;r.dr=!!p.dr;r.t=performance.now();if(r.cx==null||r.sp!==r.lastSp){r.cx=p.x;r.cy=p.y;}r.lastSp=r.sp;}
+function remotePos(p){if(!p||p.id===MP.uid)return;const r=remoteFor(p.id,MP.online[p.id]||{name:p.name});r.x=p.x;r.y=p.y;r.h=p.h||0;r.sp=p.sp;r.hy=p.hy||0;r.dr=!!p.dr;r.pl=p.pl||'';r.ex=p.ex||null;r.t=performance.now();if(r.cx==null||r.sp!==r.lastSp){r.cx=p.x;r.cy=p.y;}r.lastSp=r.sp;}
 function updateRemotes(dt){if(!REMOTES.size)return;const here=mySpace(),now=performance.now();
   for(const r of REMOTES.values()){if(!r.mesh)continue;const vis=r.sp===here&&now-r.t<25000&&!!MP.online[r.id];
     if(r.dr&&vis){if(!r.car){r.car=buildCar('black');REMOTE_G.add(r.car);}}
@@ -4391,14 +4394,31 @@ function remoteEmote(id,e){const r=REMOTES.get(id);if(!r||!r.mesh)return;if(r.em
   r.emo=new THREE.Sprite(new THREE.SpriteMaterial({map:emojiTex(e),transparent:true,depthWrite:false}));r.emo.scale.set(0.7,0.7,1);r.emo.position.y=2.75;r.mesh.add(r.emo);r.emoT=3.2;
   if(r.mesh.visible&&hero&&Math.hypot(hero.x-r.cx,hero.y-r.cy)<TILE*6)toast(e+' '+r.name);}
 function remoteNear(){let best=null,bd=TILE*1.1;for(const r of REMOTES.values()){if(!r.mesh||!r.mesh.visible)continue;const d=Math.hypot(hero.x-r.cx,hero.y-r.cy);if(d<bd){bd=d;best=r;}}return best?{r:best,d:bd}:null;}
+/* ---- onde está cada jogador + aviso quando um contato entra/sai ---- */
+function placeTitle(a){if(a.kind==='home')return 'em casa';if(a.kind==='sede')return 'na sede da empresa';if(a.kind==='office'||a.kind==='garage')return 'numa das empresas';if(a.kind==='heli')return 'no '+(a.title||'heliponto');return 'em '+(a.title||'um prédio');}
+function whereIs(id){const r=REMOTES.get(id);if(!r||!r.t)return null;if(r.sp==='city'){if(r.dr)return 'dirigindo pela '+(streetAt(M(r.x),M(r.y))||'cidade');const st=streetAt(M(r.x),M(r.y));return st?'na '+st:'andando pelo distrito';}return r.pl||'dentro de um prédio';}
+function goToPlayer(id){const r=REMOTES.get(id);if(!r||!r.t)return toast('Ainda sem localização. Tente em alguns segundos.');const nm=r.name;
+  const pt=r.sp==='city'?[r.x,r.y]:r.ex;if(!pt)return toast(nm+' está num lugar privado.');if(INT.active)exitInterior();closeModal();setWaypoint(pt[0],pt[1],nm+(r.sp==='city'?'':' · '+r.pl.replace(/^(em|no|na) /,'')));toast('📍 Rota até '+nm);}
+let mpNoteT=null,firstPresence=true;
+function mpNote(html,id){let el=document.getElementById('mpNote');if(!el){el=document.createElement('div');el.id='mpNote';document.body.appendChild(el);}
+  el.innerHTML='<div class="mpn-t">'+html+'</div>'+(id?'<button class="sbtn" data-go="'+id+'">📍 Ir até lá</button><button class="sbtn" data-msg="'+id+'">💬</button>':'')+'<button class="mpn-x" aria-label="Fechar">✕</button>';el.classList.add('on');
+  const r=REMOTES.get(id);el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{el.classList.remove('on');goToPlayer(b.dataset.go);});
+  el.querySelectorAll('[data-msg]').forEach(b=>b.onclick=()=>{el.classList.remove('on');openDM(b.dataset.msg,(r&&r.name)||(MP.online[b.dataset.msg]||{}).name||'Jogador');});
+  el.querySelector('.mpn-x').onclick=()=>el.classList.remove('on');clearTimeout(mpNoteT);mpNoteT=setTimeout(()=>el.classList.remove('on'),9000);}
+function friendNotices(before,now){if(!started)return;const fr=S.friends||[];if(!fr.length){firstPresence=false;return;}
+  const on=fr.filter(f=>now[f.id]),came=on.filter(f=>!before[f.id]),left=fr.filter(f=>before[f.id]&&!now[f.id]);
+  if(firstPresence){firstPresence=false;if(on.length)setTimeout(()=>mpNote('🟢 '+(on.length===1?'<b>'+esc(on[0].name)+'</b> está online'+locTxt(on[0].id):on.length+' contatos online: '+on.map(f=>'<b>'+esc(f.name)+'</b>').join(', ')),on.length===1?on[0].id:null),2500);return;}
+  if(came.length)setTimeout(()=>{const f=came[0];mpNote('🟢 <b>'+esc(f.name)+'</b> entrou no jogo'+locTxt(f.id)+(came.length>1?' (+'+(came.length-1)+')':''),f.id);log('🟢 '+f.name+' entrou no jogo.');},1800); // dá tempo de chegar a posição
+  else if(left.length){mpNote('⚪ <b>'+esc(left[0].name)+'</b> saiu do jogo');}}
+function locTxt(id){const w=whereIs(id);return w?'<br><span class="small">📍 '+esc(w)+'</span>':'';}
 /* ---- contatos (jogadores) ---- */
 function isFriend(id){return (S.friends||[]).some(f=>f.id===id);}
-function addFriend(id,name){S.friends=S.friends||[];if(!isFriend(id)){S.friends.push({id,name});log('📇 '+name+' agora está nos seus contatos.');saveLocal();toast('📇 '+name+' adicionado(a) aos contatos');}}
+function addFriend(id,name){S.friends=S.friends||[];if(!isFriend(id)){S.friends.push({id,name});log('👥 '+name+' agora é seu amigo(a) no jogo.');saveLocal();toast('👥 '+name+' adicionado(a) aos amigos');}}
 function playerPlace(){const a=INT.active;if(!a)return 'na rua';return 'em '+(a.title||'um prédio');}
 function openPlayer(r){const p=MP.online[r.id]||{},fr=isFriend(r.id);INT.talkP=null;
   modal('🙂',esc(r.name),'<div class="kpis">'+kpi('Fase',p.phase||1)+kpi('Patrimônio',money(p.net||0),'var(--gold)')+'</div><p class="small">Jogador(a) online agora, '+playerPlace()+'.</p>',[
     {t:'💬 Mandar mensagem',d:'Abre a conversa no seu celular',fn:()=>openDM(r.id,r.name)},
-    {t:fr?'✔ Está nos seus contatos':'📇 Adicionar aos contatos',dis:fr,fn:()=>{addFriend(r.id,r.name);openPlayer(r);}},
+    {t:fr?'✔ É seu amigo(a)':'👥 Adicionar aos amigos',dis:fr,fn:()=>{addFriend(r.id,r.name);openPlayer(r);}},
     {t:'👋 Acenar',fn:()=>{closeModal();MP.emote('👋');}},
     {t:'☕ Pagar um café · $5',d:'Ele(a) ganha ⚡+3',fn:()=>giveTreat(r,'coffee',5)},
     {t:'🍸 Pagar um drink · $18',d:'Ele(a) ganha ⚡+6',fn:()=>giveTreat(r,'drink',18)},
@@ -4428,23 +4448,26 @@ async function claimGifts(){if(!MP.on||!started)return;const {data,error}=await 
     else continue;inbox(n,txt,'🎁');log('🎁 '+txt);toast('🎁 '+txt);}
   refreshHUD();saveLocal();}
 /* ---- celular: contatos e conversas ---- */
-const DM={open:null,unread:{},names:{},recent:[],contactsOpen:false};
+const DM={open:null,unread:{},names:{},recent:[],contactsOpen:false,seenAt:{}};
+function agoTxt(t){if(!t)return 'offline';const m=Math.max(0,(Date.now()-t)/60000);return m<1?'visto agora há pouco':m<60?'visto há '+Math.round(m)+' min':m<24*60?'visto há '+Math.round(m/60)+' h':m<48*60?'visto ontem':'visto em '+new Date(t).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});}
+async function loadSeen(ids){if(!MP.on||!ids.length)return;const {data}=await MP.sb.from('players').select('id,name,last_seen').in('id',ids);for(const p of data||[]){const t=Date.parse(p.last_seen);if(!DM.seenAt[p.id]||t>DM.seenAt[p.id])DM.seenAt[p.id]=t;DM.names[p.id]=p.name;}}
 async function loadRecentDMs(){if(!MP.on)return;const {data}=await MP.sb.from('dms').select('from_id,to_id,created_at').or('from_id.eq.'+MP.uid+',to_id.eq.'+MP.uid).order('created_at',{ascending:false}).limit(120);
   const ids=[];for(const d of data||[]){const o=d.from_id===MP.uid?d.to_id:d.from_id;if(!ids.includes(o))ids.push(o);}const miss=ids.filter(i=>!DM.names[i]);
   if(miss.length){const {data:pl}=await MP.sb.from('players').select('id,name').in('id',miss);for(const p of pl||[])DM.names[p.id]=p.name;}DM.recent=ids.slice(0,12);}
-function openContacts(fresh){if(!fresh)loadRecentDMs().then(()=>{if(DM.contactsOpen)openContacts(true);});const on=Object.values(MP.online).filter(p=>p.id!==MP.uid),fr=S.friends||[];const ids=new Set(fr.map(f=>f.id));
+function openContacts(fresh){if(!fresh)Promise.all([loadRecentDMs(),loadSeen((S.friends||[]).map(f=>f.id).filter(id=>!MP.online[id]))]).then(()=>{if(DM.contactsOpen)openContacts(true);});const on=Object.values(MP.online).filter(p=>p.id!==MP.uid),fr=S.friends||[];const ids=new Set(fr.map(f=>f.id));
   const extra=[...new Set(Object.keys(DM.unread).filter(id=>DM.unread[id]).concat(DM.recent))].filter(id=>!ids.has(id)).map(id=>({id,name:DM.names[id]||'Jogador'}));
-  const row=(f,online)=>'<div class="lrow" data-dm="'+f.id+'" data-nm="'+esc(f.name)+'"><span>'+(online?'🟢':'⚪')+' <b>'+esc(f.name)+'</b>'+(DM.unread[f.id]?' <span class="badge">'+DM.unread[f.id]+'</span>':'')+'<br><span class="small">'+(online?'online agora':'offline')+'</span></span><span class="small">conversar ›</span></div>';
+  const row=(f,online)=>'<div class="lrow" data-dm="'+f.id+'" data-nm="'+esc(f.name)+'"><span>'+(online?'🟢':'⚪')+' <b>'+esc(f.name)+'</b>'+(DM.unread[f.id]?' <span class="badge">'+DM.unread[f.id]+'</span>':'')+'<br><span class="small">'+(online?'📍 '+esc(whereIs(f.id)||'online agora'):agoTxt(DM.seenAt[f.id]))+'</span></span><span>'+(online&&whereIs(f.id)?'<button class="sbtn" data-go="'+f.id+'">📍 Ir</button> ':'')+'<span class="small">conversar ›</span></span></div>';
   const body=!MP.on?'<p class="small">Sem conexão com o servidor. Faça login para conversar com outros jogadores.</p>':
-    (fr.length||!extra.length?'<div class="sec">📇 SEUS CONTATOS</div>':'')+(fr.map(f=>row(f,!!MP.online[f.id])).join('')||(extra.length?'':'<p class="small">Ninguém ainda. Chegue perto de um jogador no mapa e toque em <b>Falar</b>, ou adicione alguém online abaixo.</p>'))+(extra.length?'<div class="sec">💬 CONVERSAS</div>'+extra.map(f=>row(f,!!MP.online[f.id])).join(''):'')+
-    '<div class="sec">🟢 ONLINE AGORA</div>'+(on.map(p=>'<div class="lrow"><span><b>'+esc(p.name)+'</b><br><span class="small">Fase '+(p.phase|0)+' · '+money(p.net||0)+'</span></span><span>'+(ids.has(p.id)?'<span class="small">contato ✔</span>':'<button class="sbtn" data-addf="'+p.id+'" data-nm="'+esc(p.name)+'">Adicionar</button>')+' <button class="sbtn" data-dm="'+p.id+'" data-nm="'+esc(p.name)+'">💬</button></span></div>').join('')||'<p class="small">Só você está online agora.</p>');
-  const m=modal('👥','Contatos',body,[{t:'↩ Celular',fn:()=>{DM.contactsOpen=false;openOS('agenda');}},{t:'Fechar',fn:()=>{DM.contactsOpen=false;closeModal();}}]);DM.contactsOpen=true;
+    (fr.length||!extra.length?'<div class="sec">👥 SEUS AMIGOS</div>':'')+(fr.map(f=>row(f,!!MP.online[f.id])).join('')||(extra.length?'':'<p class="small">Nenhum amigo ainda. Amigos são outros jogadores: chegue perto de um no mapa e toque em <b>Falar</b>, ou adicione alguém online abaixo.</p>'))+(extra.length?'<div class="sec">💬 CONVERSAS</div>'+extra.map(f=>row(f,!!MP.online[f.id])).join(''):'')+
+    '<div class="sec">🟢 ONLINE AGORA</div>'+(on.map(p=>'<div class="lrow"><span><b>'+esc(p.name)+'</b><br><span class="small">Fase '+(p.phase|0)+' · '+money(p.net||0)+(whereIs(p.id)?' · 📍 '+esc(whereIs(p.id)):'')+'</span></span><span>'+(ids.has(p.id)?'<span class="small">amigo ✔</span>':'<button class="sbtn" data-addf="'+p.id+'" data-nm="'+esc(p.name)+'">Adicionar</button>')+' <button class="sbtn" data-dm="'+p.id+'" data-nm="'+esc(p.name)+'">💬</button></span></div>').join('')||'<p class="small">Só você está online agora.</p>');
+  const m=modal('👥','Amigos',body,[{t:'↩ Celular',fn:()=>{DM.contactsOpen=false;openOS('agenda');}},{t:'Fechar',fn:()=>{DM.contactsOpen=false;closeModal();}}]);DM.contactsOpen=true;
   m.querySelectorAll('[data-dm]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();DM.contactsOpen=false;openDM(b.dataset.dm,b.dataset.nm);});
+  m.querySelectorAll('[data-go]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();DM.contactsOpen=false;goToPlayer(b.dataset.go);});
   m.querySelectorAll('[data-addf]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();addFriend(b.dataset.addf,b.dataset.nm);openContacts();});}
 function dmHtml(m){const mine=m.from_id===MP.uid;return '<div class="dm'+(mine?' me':'')+'">'+esc(m.text)+'<i>'+new Date(m.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</i></div>';}
 async function openDM(id,name){if(!MP.on)return toast('Sem conexão com o servidor');DM.open=id;DM.names[id]=name;DM.unread[id]=0;
   const m=modal('💬',esc(name),'<div class="chat dmbox" id="dmBox"><p class="small">Carregando…</p></div><div class="chatin"><input id="dmIn" maxlength="500" placeholder="Mensagem para '+esc(name)+'…"><button class="sbtn" id="dmSend">Enviar</button></div>',
-    [{t:isFriend(id)?'↩ Contatos':'📇 Adicionar aos contatos',fn:()=>{if(!isFriend(id))addFriend(id,name);openContacts();}},{t:'Fechar',fn:()=>{DM.open=null;closeModal();}}]);
+    [{t:isFriend(id)?'↩ Amigos':'👥 Adicionar aos amigos',fn:()=>{if(!isFriend(id))addFriend(id,name);openContacts();}},{t:'Fechar',fn:()=>{DM.open=null;closeModal();}}]);
   const send=async()=>{const i=document.getElementById('dmIn');const t=i&&i.value.trim();if(!t)return;i.value='';const row={from_id:MP.uid,to_id:id,text:t,created_at:new Date().toISOString()};
     const b=document.getElementById('dmBox');if(b){b.insertAdjacentHTML('beforeend',dmHtml(row));b.scrollTop=b.scrollHeight;}
     const {error}=await MP.sb.from('dms').insert({to_id:id,text:t});if(error){toast('⚠️ Mensagem não enviada');return;}
@@ -4459,6 +4482,13 @@ function onDM(p){if(!p||p.to!==MP.uid)return;DM.names[p.from]=p.name;const b=doc
 async function loadUnreadDMs(){if(!MP.on)return;const {data}=await MP.sb.from('dms').select('from_id').eq('to_id',MP.uid).is('read_at',null).limit(200);if(!data||!data.length)return;
   for(const d of data)DM.unread[d.from_id]=(DM.unread[d.from_id]||0)+1;const ids=Object.keys(DM.unread);const {data:pl}=await MP.sb.from('players').select('id,name').in('id',ids);for(const p of pl||[])DM.names[p.id]=p.name;
   const n=Object.values(DM.unread).reduce((a,b)=>a+b,0);if(n)toast('💬 '+n+' mensagem(ns) nova(s) no celular');buildToolbar();}
+// Contatos = sua rede de network (pessoas do jogo que você conheceu na cidade)
+function openNetwork(){const L=contacts.slice().sort((a,b)=>b.rel-a.rel);const lvl=r=>r>=60?'aliado(a)':r>=35?'próximo(a)':r>=15?'conhecido(a)':'estranho(a)';
+  const body=L.length?'<p class="small">Pessoas que você conheceu pela cidade. A relação cai se vocês ficam muito tempo sem se falar.</p>'+L.map((c,i)=>'<div class="lrow"><span>'+(c.ico||'👤')+' <b>'+esc(c.name)+'</b><br><span class="small">'+esc(c.role||'')+' · '+lvl(c.rel)+' ('+Math.round(c.rel)+') · '+(c.last>0?(S.day-c.last===0?'falaram hoje':'último encontro há '+(S.day-c.last)+' dia(s)'):'ainda não conversaram')+'</span></span><span><button class="sbtn" data-call="'+i+'">📞 Ligar</button> <button class="sbtn" data-where="'+i+'">📍</button></span></div>').join(''):
+    '<p class="small">Nenhum contato de network ainda. Puxe conversa com as pessoas na rua (botão <b>Abordar</b>) e troque contato com quem vale a pena: investidores, banqueiros, clientes, mentores…</p>';
+  const m=modal('📇','Contatos · network',body,[{t:'👥 Amigos (jogadores)',fn:()=>openContacts()},{t:'↩ Celular',fn:()=>openOS('agenda')}]);
+  m.querySelectorAll('[data-call]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();openContact(L[+b.dataset.call]);});
+  m.querySelectorAll('[data-where]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();const c=L[+b.dataset.where],w=workers.find(x=>x.contact===c);if(!w)return toast(c.name.split(' ')[0]+' não está na rua agora');if(INT.active)exitInterior();closeModal();setWaypoint(w.x,w.y,c.name);toast('📍 Rota até '+c.name.split(' ')[0]);});}
 function dmUnreadTotal(){return Object.values(DM.unread).reduce((a,b)=>a+(b||0),0);}
 
 /* ============================ MULTIPLAYER (Supabase: save na nuvem, ranking, M&A entre amigos, presença e chat) ============================ */
@@ -4516,7 +4546,7 @@ const MP={sb:null,uid:null,on:false,status:'offline (servidor não configurado)'
     checkPhase();refreshHUD();refreshObj();saveLocal();this.saveCloud();this.sync();await this.fetchDeals();openFriends();},
   async cancel(id){const {error}=await this.sb.rpc('cancel_offer',{p_deal:id});if(error)return toast('Erro: '+error.message);await this.processDeals();openFriends();},
   joinRealtime(){const ch=this.sb.channel('meridian',{config:{presence:{key:this.uid}}});this.ch=ch;
-    ch.on('presence',{event:'sync'},()=>{const st=ch.presenceState();this.online={};for(const k in st){const p=st[k][0];if(p)this.online[k]=p;}for(const k in this.online)if(k!==this.uid)remoteFor(k,this.online[k]);for(const id of [...REMOTES.keys()])if(!this.online[id])dropRemote(id);this.sendPos(true);refreshHUD();})
+    ch.on('presence',{event:'sync'},()=>{const st=ch.presenceState();const before=this.online;this.online={};for(const k in st){const p=st[k][0];if(p)this.online[k]=p;}for(const k in this.online)if(k!==this.uid)remoteFor(k,this.online[k]);for(const id of [...REMOTES.keys()])if(!this.online[id])dropRemote(id);for(const id in before)if(!this.online[id])DM.seenAt[id]=Date.now();friendNotices(before,this.online);this.sendPos(true);refreshHUD();})
       .on('broadcast',{event:'pos'},({payload})=>remotePos(payload))
       .on('broadcast',{event:'emo'},({payload})=>payload&&remoteEmote(payload.id,payload.e))
       .on('broadcast',{event:'dm'},({payload})=>onDM(payload))
@@ -4530,12 +4560,13 @@ const MP={sb:null,uid:null,on:false,status:'offline (servidor não configurado)'
   news(text){if(this.ch)this.ch.send({type:'broadcast',event:'news',payload:{text}});},
   onDay(){if(!this.on)return;this.sync();this.saveCloud();this.processDeals();},
   async start(){if(!(await this.init()))return;await this.begin();},
-  async begin(){if(!this.on)return;this.joinRealtime();await this.sync();this.processDeals();this.fetchBoard();claimGifts();loadUnreadDMs();},
+  async begin(){if(!this.on)return;this.joinRealtime();await this.sync();this.processDeals();this.fetchBoard();claimGifts();loadUnreadDMs();this.seen();},
   trackMe(){if(this.ch)this.ch.track({id:this.uid,name:S.name,phase:S.phase,net:Math.round(netWorth()),av:AVATAR});},
   posT:0,hbT:0,last:null,
-  sendPos(force){if(!this.ch||!started||!hero)return;const sp=mySpace(),dr=!!(PCAR&&PCAR.driving),p={id:this.uid,name:S.name,x:Math.round(hero.x),y:Math.round(hero.y),h:+(dr?PCAR.yaw:(hero.heading||0)).toFixed(2),sp,hy:+HEROY.toFixed(1),dr:dr?1:0};
+  sendPos(force){if(!this.ch||!started||!hero)return;const sp=mySpace(),dr=!!(PCAR&&PCAR.driving),a=INT.active,p={id:this.uid,name:S.name,x:Math.round(hero.x),y:Math.round(hero.y),h:+(dr?PCAR.yaw:(hero.heading||0)).toFixed(2),sp,hy:+HEROY.toFixed(1),dr:dr?1:0,pl:a?placeTitle(a):'',ex:a&&a.exit?[Math.round(a.exit[0]),Math.round(a.exit[1])]:null};
     const l=this.last;if(!force&&l&&l.sp===sp&&Math.abs(l.x-p.x)<2&&Math.abs(l.y-p.y)<2&&Math.abs(l.h-p.h)<0.05&&this.hbT<4)return;this.last=p;this.hbT=0;this.ch.send({type:'broadcast',event:'pos',payload:p});},
-  posTick(dt){this.posT-=dt;this.hbT+=dt;this.gT=(this.gT||0)+dt;if(this.gT>20){this.gT=0;claimGifts();}if(this.posT>0)return;this.posT=0.25;this.sendPos(false);}, // ~4 msgs/s no máximo (o Realtime limita ~10/s por cliente)
+  seen(){if(this.on&&this.uid)this.sb.from('players').update({last_seen:new Date().toISOString()}).eq('id',this.uid).then(()=>{});},
+  posTick(dt){this.posT-=dt;this.hbT+=dt;this.gT=(this.gT||0)+dt;this.sT=(this.sT||0)+dt;if(this.sT>60){this.sT=0;this.seen();}if(this.gT>20){this.gT=0;claimGifts();}if(this.posT>0)return;this.posT=0.25;this.sendPos(false);}, // ~4 msgs/s no máximo (o Realtime limita ~10/s por cliente)
   emote(e){if(this.ch)this.ch.send({type:'broadcast',event:'emo',payload:{id:this.uid,e}});toast(e);}};
 
 

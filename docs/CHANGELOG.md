@@ -2,6 +2,10 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.7.1 — 2026-11-27
+- **feat(town): avisos de amigos e "onde está".** Aviso quando um amigo entra ou sai, com "📍 Ir até lá" (GPS até a rua ou a porta do prédio) e 💬, e resumo ao abrir o jogo. A posição em tempo real passa a levar o nome do lugar e a porta do prédio.
+- **feat(town): Contatos e Amigos separados no celular.** 📇 Contatos é a rede de network (NPCs): relação, último encontro, ligar e onde está. 👥 Amigos são os jogadores: onde estão, "visto por último" (coluna `players.last_seen`, atualizada a cada 60 s e ao sair) e conversas.
+
 ## 2.7.0 — 2026-11-27
 - **feat(town): jogadores se encontram no mapa.** Antes o jogo só sabia quem estava online, sem posição nem avatar.
   - **Encontro:** posição por broadcast (até 4/s e só quando há movimento, mais um sinal de vida a cada 4 s). Visual pela presença. Os outros jogadores são desenhados com interpolação, animação, placa de nome e "espaço" (a rua ou o mesmo interior e andar). Quem está dirigindo aparece como carro.
