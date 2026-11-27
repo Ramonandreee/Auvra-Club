@@ -81,8 +81,9 @@ menu ou painel aberto.
   mostra os carros, leva no test drive, negocia desconto e fecha à vista ou financiado. Na rua, cada pessoa tem um
   arquétipo (turista, golpista, investidora, jornalista, rival…) e um jeito, com escolhas que mexem em caixa,
   reputação, habilidades, contatos e equipe.
-- **Guarda-roupa:** você começa com camiseta, jeans e tênis. Roupas boas se compram nas lojas (Front Street
-  Outfitters, Maiden Lane Tailors, Maison Verlaine) e elevam o seu **estilo** (0–100), que pesa em contatos,
+- **Guarda-roupa:** você começa com camiseta, jeans e tênis. Roupas boas se compram nas lojas (Bowling Green Basics,
+  Front Street Outfitters, Maiden Lane Tailors, Maison Verlaine e o Atelier Ravelle, com hora marcada para quem tem
+  $1M+), do básico de $15 ao relógio de $380k e elevam o seu **estilo** (0–100), que pesa em contatos,
   negociações, pitch e dress code (o sino da Bolsa pede traje executivo).
 - **Investimentos:** a Bolsa de Nova York tem pregão por dentro (cotações ao vivo, especialista, sino de abertura).
   Abra conta numa das três corretoras fictícias (AuvraOS → 📈 Investir ou no balcão delas), deposite e compre ações de
