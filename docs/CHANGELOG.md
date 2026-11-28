@@ -2,6 +2,15 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.20.1 — 2026-11-28
+- **fix(town): postura natural ao andar e correr.**
+  - **Causa:** o alinhamento por osso usava a direção "osso → filho". Na coluna do MakeHuman essa direção é inclinada mesmo com o tronco reto, o que jogava o peito à frente e os ombros para trás.
+  - **Correção:** coluna, pescoço, cabeça e clavículas passam a ser "neutro = neutro" (`MOCAP_NEUTRAL`), mais uma leve correção de postura ereta (`MOCAP_UPRIGHT`, menor na corrida).
+- **fix(town): corpo masculino com aspecto feminino.** O controle "ombros" só afastava os braços. Agora alarga o tórax inteiro (escala do peito com compensação em pescoço e clavículas).
+- **fix(town): sombra sob o cabelo.** O couro cabeludo usa uma máscara exata, calculada pela distância da pele até a malha do cabelo (`scalpMask`). Só escurece onde há fio por cima, com textura de raiz curta. A testa fica limpa.
+- **feat(town): olhos realistas.** Texturas CC0 do MakeHuman: esclera branca, íris com detalhe e pupila. O branco não muda mais de cor. Íris novas: **mel** e **cinza**.
+- **chore:** `sw.js` v38 com cache de modelos v5; `models/eyes/*.jpg` (~20 KB cada).
+
 ## 2.20.0 — 2026-11-28
 - **feat(town): movimento de captura real (mocap).** Andar, andar formal (com terno), trotar, correr, parado, conversando e sentado vêm da **Universal Animation Library**, de Quaternius (CC0), transferidos osso a osso para os personagens realistas (`realMocap`, `models/anim.json`).
   - Andar, trotar e correr são misturados pela velocidade, com a cadência sincronizada à passada (o pé não patina).

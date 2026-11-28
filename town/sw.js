@@ -2,8 +2,8 @@
 // HTML: rede primeiro (atualização chega na hora), cache como reserva offline.
 // Bibliotecas de CDN (versão fixada, incl. módulos three/addons) e ícones: cache primeiro.
 // Chamadas ao Supabase (API/realtime) nunca passam pelo cache.
-const CACHE = 'auvra-town-v37';
-const MODELS = 'auvra-models-v4'; // personagens realistas (.glb): cache próprio, não é apagado a cada versão do jogo // v28: câmera de dentro, falas, pôr do sol, portas
+const CACHE = 'auvra-town-v38';
+const MODELS = 'auvra-models-v5'; // personagens realistas (.glb): cache próprio, não é apagado a cada versão do jogo // v28: câmera de dentro, falas, pôr do sol, portas
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './logo.png'];
 const CDN = [
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js',
