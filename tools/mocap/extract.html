@@ -1,0 +1,24 @@
+<!doctype html><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+const g=await new Promise((r,e)=>new GLTFLoader().load('AnimationLibrary_Godot_Standard.glb',r,undefined,e));const sc=g.scene;sc.updateMatrixWorld(true);
+const S=['L','R'],sl=s=>s.toLowerCase();
+const pairs=[['DEF-hips','pelvis'],['DEF-spine001','spine_01'],['DEF-spine002','spine_02'],['DEF-spine003','spine_03'],['DEF-neck','neck_01'],['DEF-head','head']];
+for(const s of S){pairs.push(['DEF-shoulder'+s,'clavicle_'+sl(s)],['DEF-upper_arm'+s,'upperarm_'+sl(s)],['DEF-forearm'+s,'lowerarm_'+sl(s)],['DEF-hand'+s,'hand_'+sl(s)],
+  ['DEF-thigh'+s,'thigh_'+sl(s)],['DEF-shin'+s,'calf_'+sl(s)],['DEF-foot'+s,'foot_'+sl(s)],['DEF-toe'+s,'ball_'+sl(s)]);
+  for(const f of ['index','middle','ring','pinky'])for(const k of ['01','02','03'])pairs.push(['DEF-f_'+f+k+s,f+'_'+k+'_'+sl(s)]);
+  for(const k of ['01','02','03'])pairs.push(['DEF-thumb'+k+s,'thumb_'+k+'_'+sl(s)]);}
+const nodes=pairs.map(([a])=>sc.getObjectByName(a));const miss=pairs.filter((p,i)=>!nodes[i]).map(p=>p[0]);
+const q=new THREE.Quaternion(),v=new THREE.Vector3();
+const rest=nodes.map(n=>n.getWorldQuaternion(q).toArray().map(x=>+x.toFixed(5)));const restPos=nodes.map(n=>n.getWorldPosition(v).toArray().map(x=>+x.toFixed(4)));
+const mixer=new THREE.AnimationMixer(sc);const want=['Idle_Loop','Walk_Loop','Walk_Formal_Loop','Jog_Fwd_Loop','Sprint_Loop','Idle_Talking_Loop','Sitting_Idle_Loop','Driving_Loop'];
+const clips={};const FPS=30;
+for(const name of want){const clip=g.animations.find(a=>a.name===name);const act=mixer.clipAction(clip);mixer.stopAllAction();act.reset().play();
+  const n=Math.max(2,Math.round(clip.duration*FPS));const Q=new Int16Array(n*nodes.length*4),H=[];
+  for(let f=0;f<n;f++){mixer.setTime(f/FPS*(clip.duration*FPS/n));sc.updateMatrixWorld(true);
+    nodes.forEach((nd,i)=>{nd.getWorldQuaternion(q);const o=(f*nodes.length+i)*4;Q[o]=Math.round(q.x*32767);Q[o+1]=Math.round(q.y*32767);Q[o+2]=Math.round(q.z*32767);Q[o+3]=Math.round(q.w*32767);});
+    nodes[0].getWorldPosition(v);H.push(+v.x.toFixed(4),+v.y.toFixed(4),+v.z.toFixed(4));}
+  act.stop();let s='';const u8=new Uint8Array(Q.buffer);for(let i=0;i<u8.length;i++)s+=String.fromCharCode(u8[i]);
+  clips[name]={n,dur:+clip.duration.toFixed(4),q:btoa(s),h:H};}
+window.OUT={fps:FPS,src:pairs.map(p=>p[0]),tgt:pairs.map(p=>p[1]),rest,restPos,clips,miss};
+</script>
