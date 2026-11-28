@@ -1879,7 +1879,7 @@ function personGeometry(look,lod=0){
           const fa=((a+Math.PI)/(2*Math.PI)*NA%NA+NA)%NA,ai=Math.floor(fa),ta=fa-ai,a2=(ai+1)%NA;
           const g=(yy,aa)=>sm[yy*NA+aa];const r=lerp(lerp(g(yi,ai),g(yi,a2),ta),lerp(g(yi+1,ai),g(yi+1,a2),ta),ty);return r;},
         max(a){const fa=((a+Math.PI)/(2*Math.PI)*NA%NA+NA)%NA;return maxA[Math.floor(fa)%NA];}};}
-    const irisColor={castanho:0x614132,verde:0x526850,azul:0x416778}[L.iris]??0x614132;
+    const irisColor={castanho:0x614132,mel:0x8a5a2a,verde:0x526850,azul:0x416778,cinza:0x7a8288}[L.iris]??0x614132;
     for(const [side,s] of [['L',-1],['R',1]]){
       if(detail){
         const browDepth=[1.502,1.496,1.484,1.471,1.453,1.433,1.411,1.386,1.361,1.328,1.293,1.249,1.193];
@@ -2183,10 +2183,11 @@ function tintMat(m,col,keep0,keep1,target,fixedGain){const t=m.clone();const lum
 // couro cabeludo na cor do cabelo: o cabelo do MakeHuman é feito de "cartões" com transparência; sem isso a pele aparece entre os fios
 function scalpMat(m,info,col,amt){const t=m.clone();const U={uScC:{value:new THREE.Color(col)},uScA:{value:amt},uScT:{value:info.top},uScZ:{value:info.cz}};t.userData.scalp=U;
   t.onBeforeCompile=sh=>{Object.assign(sh.uniforms,U);
-    sh.vertexShader='uniform float uScT;uniform float uScZ;varying float vScalp;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n{vec2 d=vec2(position.x,position.z-uScZ);float fr=d.y/max(length(d),1e-4);float hl=fr>=0.?mix(uScT-.103,uScT-.071,smoothstep(.3,.9,fr)):mix(uScT-.103,uScT-.172,smoothstep(0.,.9,-fr));vScalp=smoothstep(hl-.004,hl+.012,position.y);}');
-    sh.fragmentShader='uniform vec3 uScC;uniform float uScA;varying float vScalp;\n'+sh.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n{float l=dot(diffuseColor.rgb,vec3(.299,.587,.114));diffuseColor.rgb=mix(diffuseColor.rgb,uScC*(.5+.4*l),vScalp*uScA);}').replace('#include <opaque_fragment>','outgoingLight*=1.-.62*vScalp*uScA;\n#include <opaque_fragment>').replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,1.,vScalp*uScA);');};
+    sh.vertexShader='attribute float scalpM;varying float vScalp;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvScalp=scalpM;');
+    sh.fragmentShader='uniform vec3 uScC;uniform float uScA;varying float vScalp;\n'+sh.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n{float l=dot(diffuseColor.rgb,vec3(.299,.587,.114));vec2 sg=floor(vMapUv*vec2(1900.,1900.));float n1=fract(sin(dot(sg,vec2(12.9898,78.233)))*43758.5453);float n2=fract(sin(dot(floor(vMapUv*vec2(700.,700.)),vec2(39.346,11.135)))*43758.5453);diffuseColor.rgb=mix(diffuseColor.rgb,uScC*(.36+.3*l)*(.55+.75*n1*n2+.25*n1),vScalp*uScA);}').replace('#include <opaque_fragment>','outgoingLight*=1.-.62*vScalp*uScA;\n#include <opaque_fragment>').replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,1.,vScalp*uScA);');};
   t.customProgramCacheKey=()=>'scalp';return t;}
 // cortes: malhas CC0 do MakeHuman (models/hair). "coque" = cabelo puxado (short02) + coque modelado na nuca.
+const EYE_TEX={};function eyeTex(k,cb){if(EYE_TEX[k]){if(EYE_TEX[k].image)cb(EYE_TEX[k]);else EYE_TEX[k].cbs.push(cb);return;}const t=new THREE.TextureLoader().load('models/eyes/'+k+'.jpg',()=>{for(const f of t.cbs)f(t);t.cbs=[];});t.cbs=[cb];t.flipY=false;t.colorSpace=THREE.SRGBColorSpace;EYE_TEX[k]=t;}
 const REAL_HAIR={curto:'short02',raspado:'short04',degradê:'short04',médio:{m:'short03',f:'bob02'},repartido:'short01',ondulado:'toigo_curled_under_bob',cacheado:'afro01',
   longo:'long01',coque:'short02',preso:'ponytail01',franja:'toigo_blunt_bob_with_bangs',careca:null};
 const SCALP_AMT={careca:0,raspado:.9,degradê:.95};
@@ -2250,11 +2251,26 @@ function realFaceFit(r,o,nm,infl){const ff=realFaceInfo(r.a),geo=o.geometry;if(!
   let cy=0,n=0;for(let i=0;i<P_.count;i++){cy+=g0[i*3+1];n++;}cy/=n||1;
   for(let i=0;i<P_.count;i++){let x=g0[i*3],y=g0[i*3+1],z=g0[i*3+2];const sx=Math.sign(x)||1,cx=sx*ff.c;x=x*kf;const c2=cx*kf;x=c2+(x-c2)*ke;y=cy+(y-cy)*ke;P_.setXYZ(i,x,y,z);}
   P_.needsUpdate=true;o.geometry.computeBoundingSphere();}
+// máscara do couro cabeludo: 1 onde há cabelo logo acima da pele (mesma pose para as duas malhas), 0 no resto — sem "sombra" na testa
+function scalpMask(body,hair,H){const g=body.geometry,P_=g.attributes.position,N=P_.count,out=new Float32Array(N);if(!hair)return out;
+  {let t=body;while(t.parent)t=t.parent;t.updateMatrixWorld(true);}if(body.skeleton)body.skeleton.update();if(hair.skeleton)hair.skeleton.update();
+  const hp=[],v=new THREE.Vector3(),HP=hair.geometry.attributes.position;for(let i=0;i<HP.count;i+=1){hair.getVertexPosition(i,v);hp.push(v.x,v.y,v.z);}
+  const eyeY=H.top-.105;for(let i=0;i<N;i++){const y=P_.getY(i),z=P_.getZ(i);if(y<H.top-.24)continue;
+    const front=sstep(H.cz,H.cz+.06,z),reg=front*sstep(eyeY+.035,eyeY+.05,y)+(1-front)*sstep(H.top-.21,H.top-.18,y);if(reg<=0)continue;
+    body.getVertexPosition(i,v);let d2=1;for(let k=0;k<hp.length;k+=3){const dx=hp[k]-v.x,dy=hp[k+1]-v.y,dz=hp[k+2]-v.z,q=dx*dx+dy*dy+dz*dz;if(q<d2)d2=q;}
+    out[i]=reg*(1-sstep(.011,.02,Math.sqrt(d2)));}
+  return out;}
+function setScalp(o,mask){const g=o.geometry;const a=g.getAttribute('scalpM');if(a&&a.array.length===mask.length){a.array.set(mask);a.needsUpdate=true;}else g.setAttribute('scalpM',new THREE.BufferAttribute(mask,1));}
 function realStyle(g){const d=g.userData,r=d.real;if(!r)return;const L=d.look,player=!!L.name,a=r.a,H=realHeadInfo(a);
   // corpo: massa (largura do tronco e membros), ombros e quadril bem visíveis
   const mass=cl(Number(L.mass)||1,.78,1.24),mw=Math.pow(mass,.9);r.obj.scale.set(mw,1,lerp(1,mw,.7));
-  const sh=1+(cl(Number(L.shoulders)||1,.84,1.16)-1)*1.6,hp=1+(cl(Number(L.hips)||1,.84,1.16)-1)*2.2;
-  r.bones.forEach((b,i)=>{const n=a.rest[i].name,base=a.rest[i].pos;if(/^upperarm_/.test(n))b.position.copy(base).multiplyScalar(sh);else if(/^thigh_/.test(n))b.position.set(base.x*hp,base.y,base.z);});
+  // ombros: o tórax inteiro alarga (escala do osso do peito), e pescoço/clavículas compensam para não deformar braços e cabeça
+  const sh=1+(cl(Number(L.shoulders)||1,.84,1.16)-1)*1.15,hp=1+(cl(Number(L.hips)||1,.84,1.16)-1)*1.1;
+  r.bones.forEach((b,i)=>{const n=a.rest[i].name,base=a.rest[i].pos;b.scale.set(1,1,1);
+    if(n==='spine_03')b.scale.set(sh,1,lerp(1,sh,.35));else if(n==='spine_02')b.scale.set(lerp(1,sh,.5),1,1);
+    else if(/^(neck_01|clavicle_[lr])$/.test(n))b.scale.set(1/sh,1,1/lerp(1,sh,.35));
+    if(/^thigh_/.test(n))b.position.set(base.x*hp,base.y,base.z);});
+  {const i2=a.rest.findIndex(x=>x.name==='spine_03'),i1=a.rest.findIndex(x=>x.name==='spine_02');if(i2>=0&&i1>=0)r.bones[i2].scale.x/=lerp(1,sh,.5);}
   const hair=L.hairStyle||'curto',hc=L.hair??0x3a2a1e;
   r.obj.traverse(o=>{if(!o.isMesh||o===r.hair||(r.accs||[]).includes(o))return;if(!o.userData.base)o.userData.base=o.material;const base=o.userData.base,nm=base.name||'';
     // rosto (morphs): os extremos dos controles passam do peso 1 do MakeHuman para ficar visível
@@ -2262,7 +2278,9 @@ function realStyle(g){const d=g.userData,r=d.real;if(!r)return;const L=d.look,pl
       const fw=(Number(L.faceWidth)||1)-1,jw=(Number(L.jaw)||1)-1,ns=(Number(L.nose)||1)-1,ey=(Number(L.eyes)||1)-1;
       set('fw+',fw/.17);set('fw-',-fw/.17*.8);set('jaw+',jw/.21*1.6);set('jaw-',-jw/.21*1.2);set('nose+',ns/.32*1.6);set('nose-',-ns/.32*1.3);set('eyes+',ey/.2);set('eyes-',-ey/.2*.8);}
     if(/\.body$/.test(nm)){
-      if(!player){if(!base.userData.npcScalp){let hcol=new THREE.Color(.05,.035,.025);a.scene.traverse(q=>{if(q.isMesh&&/hair|short0|long0|bob|ponytail|braid|afro/i.test(q.material.name||'')&&q.material.map)hcol=texAvg(q.material.map).clone().multiplyScalar(.8);});base.userData.npcScalp=scalpMat(base,H,hcol,.9);}o.material=base.userData.npcScalp;return;}
+      if(!player){if(!base.userData.npcScalp){let hcol=new THREE.Color(.05,.035,.025),hm=null;r.obj.traverse(q=>{if(q.isMesh&&/hair|short0|long0|bob|ponytail|braid|afro/i.test((q.userData.base||q.material).name||'')){hm=q;if(q.material.map)hcol=texAvg(q.material.map).clone().multiplyScalar(.8);}});
+        if(!o.geometry.getAttribute('scalpM'))setScalp(o,scalpMask(o,hm,H));base.userData.npcScalp=scalpMat(base,H,hcol,.9);}o.material=base.userData.npcScalp;return;}
+      if(!o.userData.ownGeo){o.geometry=o.geometry.clone();o.userData.ownGeo=1;setScalp(o,new Float32Array(o.geometry.attributes.position.count));}
       // tom de pele: a textura é levada à cor média escolhida (6 tons distintos em qualquer pessoa)
       if(!o.userData.skinMat)o.userData.skinMat=scalpMat(base,H,hc,.92);const m=o.userData.skinMat,avg=texAvg(base.map),tgt=new THREE.Color(L.skin??PAL.skin[1]);
       m.color.setRGB(cl(tgt.r/Math.max(.02,avg.r),.15,2.6),cl(tgt.g/Math.max(.02,avg.g),.15,2.6),cl(tgt.b/Math.max(.02,avg.b),.15,2.6));
@@ -2270,7 +2288,8 @@ function realStyle(g){const d=g.userData,r=d.real;if(!r)return;const L=d.look,pl
     if(!player)return;
     const tinted=(k,mk_)=>{if(!o.userData[k])o.userData[k]=mk_();return o.userData[k];};
     if(/low-poly|eyebrow|eyelash/.test(nm)&&r.infl)realFaceFit(r,o,nm,r.infl);
-    if(/low-poly/.test(nm)){const iris={castanho:0x6b4226,verde:0x5f9a4c,azul:0x4f8fd0}[L.iris]||0x6b4226;const m=tinted('iris',()=>tintMat(base,iris,.42,.58,0,3.6));m.userData.tint.col.set(iris);o.material=m;}
+    if(/low-poly/.test(nm)){const k=['castanho','mel','verde','azul','cinza'].includes(L.iris)?L.iris:'castanho';const m=tinted('eye',()=>{const e=base.clone();e.roughness=.12;e.envMapIntensity=.9;e.color.setScalar(1.12);return e;});
+      if(m.userData.k!==k){m.userData.k=k;eyeTex(k,t=>{m.map=t;m.needsUpdate=true;});}o.material=m;}
     else if(/shirt|t-shirt|tshirt|crude|tucked/i.test(nm)){const m=tinted('t',()=>tintMat(base,L.top??0xe9edf2,2,3,.8));m.userData.tint.col.set(L.top??0xe9edf2);o.material=m;}
     else if(/pants|wool/i.test(nm)){const m=tinted('t',()=>tintMat(base,L.pants??0x2b2f36,2,3,.8));m.userData.tint.col.set(L.pants??0x2b2f36);o.material=m;}
     else if(/suit/i.test(nm)){const m=tinted('t',()=>tintMat(base,L.top??0x2b2f36,.5,.68,.8));m.userData.tint.col.set(L.top??0x2b2f36);o.material=m;}
@@ -2291,7 +2310,9 @@ function realStyle(g){const d=g.userData,r=d.real;if(!r)return;const L=d.look,pl
         for(let t=0;t<I.length;t+=3){if(cut(I[t])||cut(I[t+1])||cut(I[t+2]))continue;keep.push(I[t],I[t+1],I[t+2]);}geo.setIndex(keep);}
       geo.computeBoundingSphere();
       const m=new THREE.SkinnedMesh(geo,tintMat(src.material,d.look.hair??0x3a2a1e,2,3,.9));m.frustumCulled=false;m.userData.name=want+(HAIR_TRIM[hair]?'~t':'');m.userData.hw=hw;
-      r.obj.add(m);m.bind(new THREE.Skeleton(bones,src.skeleton.boneInverses),src.bindMatrix);r.hair=m;});}
+      r.obj.add(m);m.bind(new THREE.Skeleton(bones,src.skeleton.boneInverses),src.bindMatrix);r.hair=m;
+      r.obj.traverse(q=>{if(q.isMesh&&q.userData.ownGeo&&/\.body$/.test((q.userData.base||q.material).name||''))setScalp(q,scalpMask(q,m,H));});});}
+  if(!want)r.obj.traverse(q=>{if(q.isMesh&&q.userData.ownGeo)setScalp(q,new Float32Array(q.geometry.attributes.position.count));});
   if(r.hair)r.hair.material.userData.tint.col.set(hc);}
 function realDrop(g){const d=g.userData;if(!d.real)return;g.remove(d.real.obj);d.real=null;}
 function realSync(g,lod){const d=g.userData;if(!d||!d.look)return;const want=lod<2&&d.realOK!==false&&realBudget()>0;const key=realKeyFor(d.look);
@@ -2308,6 +2329,7 @@ const MOCAP={d:null,loading:0,failed:0};
 const MOCAP_CH={pelvis:'spine_01',spine_01:'spine_02',spine_02:'spine_03',spine_03:'neck_01',neck_01:'head'};
 for(const s_ of ['l','r']){Object.assign(MOCAP_CH,{['clavicle_'+s_]:'upperarm_'+s_,['upperarm_'+s_]:'lowerarm_'+s_,['lowerarm_'+s_]:'hand_'+s_,['hand_'+s_]:'middle_01_'+s_,['thigh_'+s_]:'calf_'+s_,['calf_'+s_]:'foot_'+s_,['foot_'+s_]:'ball_'+s_});
   for(const f of ['index','middle','ring','pinky','thumb']){MOCAP_CH[f+'_01_'+s_]=f+'_02_'+s_;MOCAP_CH[f+'_02_'+s_]=f+'_03_'+s_;}}
+const MOCAP_NEUTRAL=/^(pelvis|spine_0[123]|neck_01|head|clavicle_[lr])$/;
 const MOCAP_NAT={Walk_Loop:1.08,Walk_Formal_Loop:1.08,Jog_Fwd_Loop:3.0,Sprint_Loop:5.4}; // velocidade natural de cada ciclo (m/s)
 function mocapLoad(){if(MOCAP.d||MOCAP.loading||MOCAP.failed)return;MOCAP.loading=1;
   fetch('models/anim.json').then(r=>{if(!r.ok)throw 0;return r.json();}).then(j=>{for(const c of Object.values(j.clips)){const bin=atob(c.q),u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);
@@ -2315,14 +2337,16 @@ function mocapLoad(){if(MOCAP.d||MOCAP.loading||MOCAP.failed)return;MOCAP.loadin
 function mocapMap(a){const J=MOCAP.d,B=J.tgt.length,ti=J.tgt.map(n=>a.rest.findIndex(r=>r.name===n)),Q=[],A=[],v3=(x)=>new THREE.Vector3(x[0],x[1],x[2]);
   for(let i=0;i<B;i++){if(ti[i]<0){Q.push(null);A.push(new THREE.Quaternion());continue;}const St=a.rest[ti[i]].world,Ss=new THREE.Quaternion().fromArray(J.rest[i]);
     const ci=J.tgt.indexOf(MOCAP_CH[J.tgt[i]]);let Aq=null;
-    if(ci>=0&&ti[ci]>=0){const dS=v3(J.restPos[ci]).sub(v3(J.restPos[i])).normalize(),dT=a.rest[ti[ci]].wpos.clone().sub(a.rest[ti[i]].wpos).normalize();Aq=new THREE.Quaternion().setFromUnitVectors(dT,dS);}
+    if(MOCAP_NEUTRAL.test(J.tgt[i]))Aq=new THREE.Quaternion(); // tronco: ereto = ereto (a direção do osso não é a do segmento do corpo)
+    else if(ci>=0&&ti[ci]>=0){const dS=v3(J.restPos[ci]).sub(v3(J.restPos[i])).normalize(),dT=a.rest[ti[ci]].wpos.clone().sub(a.rest[ti[i]].wpos).normalize();Aq=new THREE.Quaternion().setFromUnitVectors(dT,dS);}
     else{const pn=a.rest[a.rest[ti[i]].pIdx]?.name,pi=J.tgt.indexOf(pn);Aq=pi>=0?A[pi].clone():new THREE.Quaternion();}
     A.push(Aq);Q.push(Ss.clone().invert().multiply(Aq).multiply(St));}
   const tOf=new Int16Array(a.rest.length).fill(-1);ti.forEach((t,i)=>{if(t>=0)tOf[t]=i;});
   // a base do esqueleto de origem é larga: coxa e canela giram para dentro (o pé continua reto no chão)
   const adj=a.rest.map(rs=>{const m_=/^(thigh|calf)_(l|r)$/.exec(rs.name);if(!m_)return null;const left=a.rest.find(x=>x.name==='thigh_l').wpos.x>0;const sgn=(m_[2]==='l')===left?-1:1;
     return new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),sgn*MOCAP_LEG_IN);});
-  const pel=a.pelvis,k=a.rest[pel].wpos.y/J.restPos[0][1];return {Q,tOf,k,adj,h0:J.restPos[0],pInv:a.rest[pel].pWorld.clone().invert()};}
+  const torso=a.rest.map(rs=>/^(neck_01|head)$/.test(rs.name)?2:/^(pelvis|spine_0[123]|clavicle_[lr])$/.test(rs.name)?1:0);
+  const pel=a.pelvis,k=a.rest[pel].wpos.y/J.restPos[0][1];return {Q,tOf,k,adj,torso,h0:J.restPos[0],pInv:a.rest[pel].pWorld.clone().invert()};}
 const MOCAP_LEG_IN=.13; // ~7,5°: pés a ~25 cm um do outro parado, passos sob o quadril
 const _mq=new THREE.Quaternion(),_mq2=new THREE.Quaternion(),_mv=new THREE.Vector3();
 function realMocap(g,v,dt,dialog){const d=g.userData,r=d.real,a=r.a,J=MOCAP.d;if(!J){mocapLoad();realPose(d);return;}
@@ -2338,11 +2362,14 @@ function realMocap(g,v,dt,dialog){const d=g.userData,r=d.real,a=r.a,J=MOCAP.d;if
       if(ws===0){acc[o]=_q4[0];acc[o+1]=_q4[1];acc[o+2]=_q4[2];acc[o+3]=_q4[3];}else THREE.Quaternion.slerpFlat(acc,o,acc,o,_q4,0,w/(ws+w));}
     const h=C.h;ms.h.x+=w*lerp(h[i0*3],h[i1*3],al);ms.h.y+=w*lerp(h[i0*3+1],h[i1*3+1],al);ms.h.z+=w*lerp(h[i0*3+2],h[i1*3+2],al);ws+=w;}
   if(ws<=0)return;ms.h.multiplyScalar(1/ws);
+  // postura ereta: o tronco gira um pouco para trás sobre o quadril e o queixo sobe (menos na corrida, onde a inclinação é natural)
+  const runW=Math.min(1,(ms.w.Sprint_Loop||0)+(ms.w.Jog_Fwd_Loop||0)*.7),sit=ms.w.Sitting_Idle_Loop||0,pitch=lerp(-MOCAP_UPRIGHT,-.05,runW)*(1-sit),pitchH=pitch-.07*(1-runW)*(1-sit);
+  _mqT.setFromAxisAngle(_mx,pitch);_mqH.setFromAxisAngle(_mx,pitchH);
   for(let k=0;k<a.rest.length;k++){const rs=a.rest[k],b=r.bones[k],pw=rs.pIdx>=0?r.W[rs.pIdx]:rs.pWorld,i=mm.tOf[k];
-    if(i>=0&&mm.Q[i]){_mq.fromArray(acc,i*4).multiply(mm.Q[i]);if(mm.adj[k])_mq.premultiply(mm.adj[k]);r.W[k].copy(_mq);}else r.W[k].copy(pw).multiply(rs.local);
+    if(i>=0&&mm.Q[i]){_mq.fromArray(acc,i*4).multiply(mm.Q[i]);if(mm.adj[k])_mq.premultiply(mm.adj[k]);if(mm.torso[k])_mq.premultiply(mm.torso[k]===2?_mqH:_mqT);r.W[k].copy(_mq);}else r.W[k].copy(pw).multiply(rs.local);
     _mq2.copy(pw).invert();b.quaternion.copy(_mq2).multiply(r.W[k]);}
   const pel=r.bones[a.pelvis];if(pel){_mv.set(ms.h.x-mm.h0[0],ms.h.y-mm.h0[1],0).multiplyScalar(mm.k).applyQuaternion(mm.pInv);pel.position.copy(a.rest[a.pelvis].pos).add(_mv);}}
-const _q4=new Float32Array(4);
+const _q4=new Float32Array(4),_mqT=new THREE.Quaternion(),_mqH=new THREE.Quaternion(),_mx=new THREE.Vector3(1,0,0),MOCAP_UPRIGHT=.17;
 const _rq=new THREE.Quaternion(),_rq2=new THREE.Quaternion(),_rinv=new THREE.Quaternion();
 function realPose(d){const r=d.real,a=r.a,R=d.rig,P={};
   // rotação "de mundo" de cada osso procedural (o repouso dele é identidade)
@@ -5489,7 +5516,7 @@ const AVATAR_RANGES={
 };
 const AVATAR_CHOICES={
   Corpo:[['gender','Gênero',['m','f'],false,['Masculino','Feminino']],['skin','Tom de pele',PAL.skin,true],['build','Silhueta',['A','B'],false,['Ombros largos','Cintura marcada']]],
-  Rosto:[['iris','Íris',['castanho','verde','azul']]],
+  Rosto:[['iris','Íris',['castanho','mel','verde','azul','cinza']]],
   Cabelo:[['hairStyle','Corte',Object.keys(HAIR)],['hair','Cor',PAL.hair,true],['beard','Barba',['não','por fazer','cheia'],false,['Sem barba','Por fazer','Cheia']]],
   Roupa:[['topStyle','Estilo',OUTFITS,false,OUTFIT_LABELS],
     ['top','Cor principal',PAL.top,true],['shirt','Cor da camisa / blusa',PAL.shirt,true],['pants','Cor da parte de baixo',PAL.pants,true],
@@ -5712,7 +5739,7 @@ async function boot(){
   if(!MP.on)await showAuth('login',MP.sb?'':'Sem conexão com o servidor. Confira a internet e tente de novo.');
   await enterAccount();
   window.__townReady=true;
-  window.__game={get rinfo(){return renderer&&renderer.info.render;},get preview(){return preview;},get programs(){return renderer&&renderer.info.programs;},AVATAR,rebuildHero,get ROUTE(){return ROUTE;},solidAt,bodyFree,setWaypoint,clearWaypoint,openBigMap,closeBigMap,goTo,get S(){return S;},get hero(){return hero;},get companies(){return companies;},get buildings(){return buildings;},canBuild,foundCompany,tryPlace,startPlacing,BUILD,get placing(){return placing;},renderer:()=>renderer,camera:()=>camera,CAM,openMenu,closeMenu,TILE,TS,M,PX,WORLD:()=>WORLD,STATS:()=>renderer.info.render,setDayAcc:v=>{dayAcc=v;},scheduleShiftX:()=>scheduleShift(),contactsX:()=>contacts,addAgenda,CARSX:()=>CARS,heroFree,WP:()=>WAYPOINT,actHire,genPerson,enterInterior,exitInterior,get SPECIAL(){return SPECIAL;},get PCAR(){return PCAR;},get INT(){return INT;},CROWD,setTod:v=>{tod=v;},sede:()=>sede,bFront,doInteract,get interact(){return interactTarget;},trafficStep:updateTraffic,crowdStep:updateCrowd,openBank,RESID,enterHome,mySpace,get REMOTES(){return REMOTES;},get joy(){return joy;},GB,gbEnter,openElevator,get HEROY(){return HEROY;},laneRoute,LANES,INTERS,GROUPS,lightState,get lightT(){return lightT;}};}
+  window.__game={get rinfo(){return renderer&&renderer.info.render;},get preview(){return preview;},setPrevAngle(v){previewAngle=v;},get programs(){return renderer&&renderer.info.programs;},AVATAR,rebuildHero,get ROUTE(){return ROUTE;},solidAt,bodyFree,setWaypoint,clearWaypoint,openBigMap,closeBigMap,goTo,get S(){return S;},get hero(){return hero;},get companies(){return companies;},get buildings(){return buildings;},canBuild,foundCompany,tryPlace,startPlacing,BUILD,get placing(){return placing;},renderer:()=>renderer,camera:()=>camera,CAM,openMenu,closeMenu,TILE,TS,M,PX,WORLD:()=>WORLD,STATS:()=>renderer.info.render,setDayAcc:v=>{dayAcc=v;},scheduleShiftX:()=>scheduleShift(),contactsX:()=>contacts,addAgenda,CARSX:()=>CARS,heroFree,WP:()=>WAYPOINT,actHire,genPerson,enterInterior,exitInterior,get SPECIAL(){return SPECIAL;},get PCAR(){return PCAR;},get INT(){return INT;},CROWD,setTod:v=>{tod=v;},sede:()=>sede,bFront,doInteract,get interact(){return interactTarget;},trafficStep:updateTraffic,crowdStep:updateCrowd,openBank,RESID,enterHome,mySpace,get REMOTES(){return REMOTES;},get joy(){return joy;},GB,gbEnter,openElevator,get HEROY(){return HEROY;},laneRoute,LANES,INTERS,GROUPS,lightState,get lightT(){return lightT;}};}
 boot().catch(e=>{console.error(e);window.__fail('Erro ao iniciar: '+(e&&e.message||e));});
 </script>
 </body>

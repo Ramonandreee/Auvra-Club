@@ -55,6 +55,9 @@ registramos os autores:
 ## Cortes de cabelo (`hair/`)
 Malhas de cabelo trocáveis (`m_*.glb`, `f_*.glb`), presas ao esqueleto no jogo: `short01–04`, `afro01`, `long01`, `ponytail01`, `bob02` (MakeHuman, CC0) e `toigo_curled_under_bob`, `toigo_blunt_bob_with_bangs` (MargaretToigo, CC0).
 
+## Olhos (`eyes/`)
+Texturas de olho do MakeHuman (`brown`, `brownlight`, `green`, `blue`, `grey` → castanho, mel, verde, azul, cinza), CC0, reduzidas para 512 px.
+
 ## Movimento (`anim.json`)
 Captura de movimento da **Universal Animation Library [Standard]**, de **Quaternius**, sob licença **CC0**: parado, andar, andar formal, trotar, correr, conversar, sentado e dirigindo. Foi convertida para o esqueleto dos nossos personagens (ver `tools/mocap/README.md`).
 
