@@ -2,6 +2,27 @@
 
 Registro de versões da documentação de pré-produção. Segue versionamento semântico de documento (Major.Minor).
 
+## 2.20.0 — 2026-11-28
+- **feat(town): movimento de captura real (mocap).** Andar, andar formal (com terno), trotar, correr, parado, conversando e sentado vêm da **Universal Animation Library**, de Quaternius (CC0), transferidos osso a osso para os personagens realistas (`realMocap`, `models/anim.json`).
+  - Andar, trotar e correr são misturados pela velocidade, com a cadência sincronizada à passada (o pé não patina).
+  - Quem está sentado (restaurante, escritórios) usa a animação de sentado.
+  - **Pernas abertas corrigidas:** o esqueleto de origem tem base larga (pés a ~47 cm). Coxa e canela giram ~7,5° para dentro (`MOCAP_LEG_IN`), o que deixa os pés a ~25 cm parado e os passos sob o quadril, sem inclinar a sola.
+  - A animação procedural continua no modelo de longe e como reserva enquanto o arquivo carrega.
+- **fix(town): validação item a item do editor.** Uma varredura automática tirou foto de cada opção (12 cortes × 2 gêneros, 7 cores de cabelo, 6 tons de pele, 3 íris, 10 pessoas, rosto e corpo nos extremos, 10 estilos e as cores de roupa, 12 acessórios e joias). Corrigido:
+  - **Cabelo:**
+    - Couro cabeludo na cor do fio (shader), o que acaba com os "buracos" em raspado, degradê, preso e longo.
+    - "Médio" com a franja aparada para não cobrir o olho.
+    - "Coque" refeito: cabelo puxado mais o coque na nuca.
+    - Cores claras (loiro, grisalho, ruivo) com o tom certo.
+  - **Pele:** os 6 tons agora ficam distintos (a textura é levada à cor média escolhida).
+  - **Íris:** verde e azul agora aparecem.
+  - **Rosto:** maxilar e nariz mais visíveis. Olhos, cílios e sobrancelhas acompanham a largura do rosto e o tamanho dos olhos.
+  - **Corpo:** massa, ombros e quadril com efeito visível, sem deformar o pescoço.
+  - **Terno:** as cores agora aparecem (antes só a gravata mudava).
+  - **Acessórios e joias no realista:** óculos, aviador, boné, chapéu, cachecol, colar de pérolas, brincos, relógios, abotoaduras, anel, bolsa, pasta, bolsa exótica, celular, café e crachá, presos aos ossos.
+  - **Prévia do editor:** o rosto passa a ser enquadrado pela cabeça animada.
+- **chore:** `sw.js` v37 com cache de modelos v4. Ferramenta em `tools/mocap/` e licença atualizada.
+
 ## 2.19.0 — 2026-11-27
 - **feat(town): tela Personagem em tela cheia.** Abre sem o menu lateral, com o botão "‹ Voltar".
 - **feat(town): editor funciona no modelo realista.** Antes os controles só mexiam no personagem de longe. Agora mexem no realista também:
